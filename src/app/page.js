@@ -1,5 +1,9 @@
+"use client";
+
+import { useState, useEffect } from "react";
 import Nav from "@/components/Nav";
 import Footer from "@/components/Footer";
+import Comments from "@/components/Comments";
 
 const decodeHtmlEntities = (str) => {
   if (!str) return "";
@@ -8,16 +12,15 @@ const decodeHtmlEntities = (str) => {
   return doc.documentElement.textContent;
 };
 
-async function fetchRSS() {
-  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
-  const response = await fetch(`${baseUrl}/api/rss`, { cache: "no-store" });
-
-  if (!response.ok) {
-    throw new Error("Failed to fetch RSS data");
-  }
-
-  const data = await response.json();
-  return data.sources || [];
+// Generate a simple article ID for comments
+function generateArticleId(article, sourceTitle) {
+  const sourcePart = (sourceTitle || "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]/g, "-");
+  const titlePart = (article.title || "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]/g, "-");
+  return `${sourcePart}-${titlePart}`.substring(0, 100); // Keep ID reasonably short
 }
 
 function formatDate(dateString) {
@@ -28,11 +31,45 @@ function formatDate(dateString) {
   });
 }
 
-export default async function Home() {
-  const sources = await fetchRSS();
+export default function Home() {
+  const [sources, setSources] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  const regularSources = sources.filter(source => !source.source.isPodcast);
-  const podcastSources = sources.filter(source => source.source.isPodcast);
+  useEffect(() => {
+    const fetchRSS = async () => {
+      try {
+        const baseUrl =
+          process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
+        const response = await fetch(`${baseUrl}/api/rss`);
+
+        if (!response.ok) {
+          throw new Error("Failed to fetch RSS data");
+        }
+
+        const data = await response.json();
+        setSources(data.sources || []);
+      } catch (error) {
+        console.error("Error loading RSS feeds:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchRSS();
+  }, []);
+
+  if (loading) {
+    return (
+      <div>
+        <Nav />
+        <div className="text-center py-10">Loading news feeds...</div>
+        <Footer />
+      </div>
+    );
+  }
+
+  const regularSources = sources.filter((source) => !source.source.isPodcast);
+  const podcastSources = sources.filter((source) => source.source.isPodcast);
 
   return (
     <div>
@@ -42,7 +79,7 @@ export default async function Home() {
           <div
             key={source.link || source.title}
             className={`bg-white shadow-lg rounded-lg p-4 ${
-              source.title && source.link.includes("youtube")
+              source.title && source.link?.includes("youtube")
                 ? "col-span-1 md:col-span-2 lg:col-span-3"
                 : ""
             }`}
@@ -56,7 +93,10 @@ export default async function Home() {
                 />
               )}
               <div>
-                <a href={source.link || "#"} className="text-blue-500 hover:text-blue-700">
+                <a
+                  href={source.link || "#"}
+                  className="text-blue-500 hover:text-blue-700"
+                >
                   <h2 className="text-lg font-bold uppercase text-black cursor-pointer">
                     {decodeHtmlEntities(source.title || "Unknown Source")}
                   </h2>
@@ -67,7 +107,7 @@ export default async function Home() {
               </div>
             </div>
 
-            {source.title && source.link.includes("youtube") ? (
+            {source.title && source.link?.includes("youtube") ? (
               <>
                 <div className="overflow-x-auto whitespace-nowrap flex gap-4 mb-6">
                   {articles.slice(0, 8).map((video, index) => (
@@ -82,13 +122,17 @@ export default async function Home() {
                         {video.thumbnail ? (
                           <img
                             src={video.thumbnail}
-                            alt={decodeHtmlEntities(video.title || "Untitled Video")}
+                            alt={decodeHtmlEntities(
+                              video.title || "Untitled Video"
+                            )}
                             className="w-full h-full object-cover transition-transform duration-300 ease-in-out group-hover:scale-105 group-hover:-translate-y-1 group-hover:brightness-80 group-hover:shadow-lg"
                           />
                         ) : (
                           <div className="bg-gray-200 h-40 w-full flex items-center justify-center">
                             <p className="text-center px-3 text-sm font-semibold truncate">
-                              {decodeHtmlEntities(video.title || "Untitled Video")}
+                              {decodeHtmlEntities(
+                                video.title || "Untitled Video"
+                              )}
                             </p>
                           </div>
                         )}
@@ -109,68 +153,100 @@ export default async function Home() {
                         className="w-12 h-12 mr-2"
                       />
                       <div>
-                        <h2 className="text-lg font-bold text-black">NFL Podcasts</h2>
+                        <h2 className="text-lg font-bold text-black">
+                          NFL Podcasts
+                        </h2>
                         <p className="text-gray-500 text-xs">
-                          Last Updated: {formatDate(podcastSources[0]?.source?.updatedAt)}
+                          Last Updated:{" "}
+                          {formatDate(podcastSources[0]?.source?.updatedAt)}
                         </p>
                       </div>
                     </div>
                     <div className="overflow-x-auto whitespace-nowrap flex gap-4">
-                      {podcastSources.flatMap(({ articles }) => articles.slice(0, 4)).map((video, index) => (
-                        <a
-                          key={index}
-                          href={video.link || "#"}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="inline-block min-w-[250px] max-w-[280px]"
-                        >
-                          <div className="w-full rounded-lg overflow-hidden group aspect-video">
-                            {video.thumbnail ? (
-                              <img
-                                src={video.thumbnail}
-                                alt={decodeHtmlEntities(video.title || "Untitled Video")}
-                                className="w-full h-full object-cover transition-transform duration-300 ease-in-out group-hover:scale-105 group-hover:-translate-y-1 group-hover:brightness-80 group-hover:shadow-lg"
-                              />
-                            ) : (
-                              <div className="bg-gray-200 h-40 w-full flex items-center justify-center">
-                                <p className="text-center px-3 text-sm font-semibold truncate">
-                                  {decodeHtmlEntities(video.title || "Untitled Video")}
-                                </p>
-                              </div>
-                            )}
-                          </div>
-                          <p className="text-center mt-2 text-sm font-semibold w-full truncate">
-                            {decodeHtmlEntities(video.title || "Untitled Video")}
-                          </p>
-                        </a>
-                      ))}
+                      {podcastSources
+                        .flatMap(({ articles }) => articles.slice(0, 4))
+                        .map((video, index) => (
+                          <a
+                            key={index}
+                            href={video.link || "#"}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-block min-w-[250px] max-w-[280px]"
+                          >
+                            <div className="w-full rounded-lg overflow-hidden group aspect-video">
+                              {video.thumbnail ? (
+                                <img
+                                  src={video.thumbnail}
+                                  alt={decodeHtmlEntities(
+                                    video.title || "Untitled Video"
+                                  )}
+                                  className="w-full h-full object-cover transition-transform duration-300 ease-in-out group-hover:scale-105 group-hover:-translate-y-1 group-hover:brightness-80 group-hover:shadow-lg"
+                                />
+                              ) : (
+                                <div className="bg-gray-200 h-40 w-full flex items-center justify-center">
+                                  <p className="text-center px-3 text-sm font-semibold truncate">
+                                    {decodeHtmlEntities(
+                                      video.title || "Untitled Video"
+                                    )}
+                                  </p>
+                                </div>
+                              )}
+                            </div>
+                            <p className="text-center mt-2 text-sm font-semibold w-full truncate">
+                              {decodeHtmlEntities(
+                                video.title || "Untitled Video"
+                              )}
+                            </p>
+                          </a>
+                        ))}
                     </div>
                   </>
                 )}
               </>
             ) : (
-              <ul className="space-y-2">
-                {articles.slice(0, 6).map((article, index) => (
-                  <li key={index} className="border-b pb-2 flex items-start gap-2">
-                    <div>
-                      <a
-                        href={article.link || "#"}
-                        className="text-black hover:underline hover:text-blue-500 font-medium"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                      >
-                        <h3>{decodeHtmlEntities(article.title || "Untitled Article")}</h3>
-                      </a>
-                      <p className="text-gray-500 text-xs">{formatDate(article.pubDate)}</p>
-                    </div>
-                  </li>
-                ))}
-              </ul>
-            )}
+              <>
+                <ul className="space-y-2">
+                  {articles.slice(0, 6).map((article, index) => {
+                    const articleId = generateArticleId(article, source.title);
 
-            <a href={source.link || "#"} className="text-sm text-blue-500 mt-2 block font-semibold">
-              MORE ...
-            </a>
+                    return (
+                      <li key={index} className="border-b pb-2">
+                        <div>
+                          <a
+                            href={article.link || "#"}
+                            className="text-black hover:underline hover:text-blue-500 font-medium"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                          >
+                            <h3>
+                              {decodeHtmlEntities(
+                                article.title || "Untitled Article"
+                              )}
+                            </h3>
+                          </a>
+                          <p className="text-gray-500 text-xs">
+                            {formatDate(article.pubDate)}
+                          </p>
+                        </div>
+
+                        {/* Add comments section for each article */}
+                        <Comments
+                          articleId={articleId}
+                          sourceTitle={source.title}
+                        />
+                      </li>
+                    );
+                  })}
+                </ul>
+
+                <a
+                  href={source.link || "#"}
+                  className="text-sm text-blue-500 mt-2 block font-semibold"
+                >
+                  MORE ...
+                </a>
+              </>
+            )}
           </div>
         ))}
       </div>
