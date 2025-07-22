@@ -1,7 +1,4 @@
-import Nav from "@/components/Nav";
-import Footer from "@/components/Footer";
-import Image from "next/image";
-import Card from "./Card";
+import TeamPageContent from './TeamPageContent';
 
 // Helper: Map team names to primary colors
 const teamColors = {
@@ -303,179 +300,6 @@ const teamSocials = {
   }
 };
 
-export async function generateMetadata({ params }) {
-  const resolvedParams = await params;
-  const teamName = resolvedParams.team.split('-').map(word => 
-    word.charAt(0).toUpperCase() + word.slice(1)
-  ).join(' ');
-  
-  return {
-    title: `${teamName} | Pro Football Report`,
-    description: `Latest news, scores, stats, and schedule for the ${teamName}`,
-  };
-}
-
-export default async function TeamPage({ params }) {
-  const resolvedParams = await params;
-  const teamName = resolvedParams.team.split('-').map(word => 
-    word.charAt(0).toUpperCase() + word.slice(1)
-  ).join(' ');
-  const accent = teamColors[teamName] || '#222';
-  const conference = teamConference[teamName] || 'NFL Team';
-  const socials = teamSocials[teamName] || {};
-
-  return (
-    <div style={{
-      minHeight: '100vh',
-      background: 'linear-gradient(135deg, #ece9f6 0%, #d1d1d1 100%)',
-      paddingBottom: 40
-    }}>
-      <Nav />
-      {/* Team Header Banner */}
-      <div style={{
-        background: `linear-gradient(90deg, ${accent} 60%, #fff 100%)`,
-        borderRadius: 16,
-        margin: '32px auto 24px',
-        maxWidth: 1200,
-        boxShadow: '0 6px 32px 0 rgba(0,0,0,0.10)',
-        padding: '32px 40px',
-        display: 'flex',
-        alignItems: 'center',
-        gap: 32
-      }}>
-        <div style={{ width: 110, height: 110, background: '#fff', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 2px 12px 0 rgba(0,0,0,0.10)' }}>
-          <Image
-            src={`https://sports.cbsimg.net/fly/images/team-logos/${getTeamLogoId(teamName)}.svg`}
-            alt={`${teamName} logo`}
-            width={90}
-            height={90}
-            style={{ objectFit: 'contain' }}
-          />
-        </div>
-        <div>
-          <h1 style={{ 
-            fontSize: 44, 
-            fontWeight: 800, 
-            color: '#fff', 
-            marginBottom: 8, 
-            textShadow: '0 2px 8px rgba(0,0,0,0.25), 0 1px 0 #222' 
-          }}>{teamName}</h1>
-          <p style={{ 
-            color: '#fff', 
-            fontSize: 22, 
-            fontWeight: 600, 
-            letterSpacing: 1, 
-            background: 'rgba(0,0,0,0.15)', 
-            display: 'inline-block', 
-            padding: '2px 16px', 
-            borderRadius: 8, 
-            textShadow: '0 2px 8px rgba(0,0,0,0.25), 0 1px 0 #222',
-            marginTop: 6
-          }}>{conference}</p>
-          {/* Social Media Row */}
-          <div style={{ display: 'flex', gap: 32, marginTop: 18, alignItems: 'center', flexWrap: 'wrap' }}>
-            {socials.website && (
-              <a href={socials.website} target="_blank" rel="noopener noreferrer" style={{ color: '#fff', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 6 }}>
-                <img src="https://cdn.jsdelivr.net/npm/simple-icons@3.13.0/icons/safari.svg" alt="Website" width={20} height={20} style={{ filter: 'invert(1)' }} />
-                <span style={{ fontWeight: 500, fontSize: 16 }}>Official Website</span>
-              </a>
-            )}
-            {socials.facebook && (
-              <a href={socials.facebook} target="_blank" rel="noopener noreferrer" style={{ color: '#fff', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 6 }}>
-                <img src="https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/facebook.svg" alt="Facebook" width={20} height={20} style={{ filter: 'invert(1)' }} />
-                <span style={{ fontWeight: 500, fontSize: 16 }}>@{teamName.replace(/ /g, '')}</span>
-              </a>
-            )}
-            {socials.instagram && (
-              <a href={socials.instagram} target="_blank" rel="noopener noreferrer" style={{ color: '#fff', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 6 }}>
-                <img src="https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/instagram.svg" alt="Instagram" width={20} height={20} style={{ filter: 'invert(1)' }} />
-                <span style={{ fontWeight: 500, fontSize: 16 }}>@{teamName.replace(/ /g, '').toLowerCase()}</span>
-              </a>
-            )}
-            {socials.snapchat && (
-              <a href={socials.snapchat} target="_blank" rel="noopener noreferrer" style={{ color: '#fff', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 6 }}>
-                <img src="https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/snapchat.svg" alt="Snapchat" width={20} height={20} style={{ filter: 'invert(1)' }} />
-                <span style={{ fontWeight: 500, fontSize: 16 }}>@BillsNFL</span>
-              </a>
-            )}
-            {socials.twitter && (
-              <a href={socials.twitter} target="_blank" rel="noopener noreferrer" style={{ color: '#fff', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 6 }}>
-                <img src="https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/x.svg" alt="X" width={20} height={20} style={{ filter: 'invert(1)' }} />
-                <span style={{ fontWeight: 500, fontSize: 16 }}>@{teamName.replace(/ /g, '').toLowerCase()}</span>
-              </a>
-            )}
-          </div>
-        </div>
-      </div>
-
-      {/* Team Content */}
-      <div className="max-w-7xl mx-auto px-4 py-2" style={{ display: 'grid', gridTemplateColumns: '1fr 340px', gap: 32 }}>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 32 }}>
-          {/* Latest News */}
-          <Card accent={accent}>
-            <h2 className="text-2xl font-bold mb-4" style={{ color: accent }}>Latest News</h2>
-            <div className="space-y-4">
-              <div className="border-b pb-4">
-                <h3 className="font-semibold text-lg">Team News Headline</h3>
-                <p className="text-gray-600 mt-2">Latest news and updates about the team...</p>
-              </div>
-            </div>
-          </Card>
-
-          {/* Schedule */}
-          <Card accent={accent}>
-            <h2 className="text-2xl font-bold mb-4" style={{ color: accent }}>Schedule</h2>
-            <div className="space-y-4">
-              <div className="border-b pb-4">
-                <h3 className="font-semibold">Upcoming Games</h3>
-                <p className="text-gray-600 mt-2">Schedule information will be displayed here...</p>
-              </div>
-            </div>
-          </Card>
-        </div>
-
-        {/* Sidebar */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 32 }}>
-          {/* Team Info */}
-          <Card accent={accent}>
-            <h2 className="text-2xl font-bold mb-4" style={{ color: accent }}>Team Info</h2>
-            <div className="space-y-4">
-              <div>
-                <h3 className="font-semibold">Head Coach</h3>
-                <p className="text-gray-600">Coach Name</p>
-              </div>
-              <div>
-                <h3 className="font-semibold">Stadium</h3>
-                <p className="text-gray-600">Stadium Name</p>
-              </div>
-              <div>
-                <h3 className="font-semibold">Established</h3>
-                <p className="text-gray-600">Year</p>
-              </div>
-            </div>
-          </Card>
-
-          {/* Stats */}
-          <Card accent={accent}>
-            <h2 className="text-2xl font-bold mb-4" style={{ color: accent }}>Team Stats</h2>
-            <div className="space-y-4">
-              <div>
-                <h3 className="font-semibold">Record</h3>
-                <p className="text-gray-600">W-L-T</p>
-              </div>
-              <div>
-                <h3 className="font-semibold">Standings</h3>
-                <p className="text-gray-600">Division Position</p>
-              </div>
-            </div>
-          </Card>
-        </div>
-      </div>
-      <Footer />
-    </div>
-  );
-}
-
 // Helper function to get team logo ID
 function getTeamLogoId(teamName) {
   const teamLogoMap = {
@@ -514,4 +338,32 @@ function getTeamLogoId(teamName) {
   };
   
   return teamLogoMap[teamName] || "404";
+}
+
+export async function generateMetadata({ params }) {
+  const resolvedParams = await params;
+  const teamName = resolvedParams.team.split('-').map(word => 
+    word.charAt(0).toUpperCase() + word.slice(1)
+  ).join(' ');
+  
+  return {
+    title: `${teamName} | Pro Football Report`,
+    description: `Latest news, scores, stats, and schedule for the ${teamName}`,
+  };
+}
+
+export default async function TeamPage({ params }) {
+  const resolvedParams = await params;
+  const teamName = resolvedParams.team.split('-').map(word => 
+    word.charAt(0).toUpperCase() + word.slice(1)
+  ).join(' ');
+
+  const teamData = {
+    accent: teamColors[teamName] || '#222',
+    conference: teamConference[teamName] || 'NFL Team',
+    socials: teamSocials[teamName] || {},
+    logoId: getTeamLogoId(teamName),
+  };
+
+  return <TeamPageContent teamName={teamName} teamData={teamData} />;
 }
