@@ -1,22 +1,22 @@
 import { useState, useEffect } from "react";
 
-export default function ManageUserArticlesModal({ isOpen, onClose, source, article, onArticleAdded, onArticleUpdated }) {
+export default function ManageFeaturedVideoModal({ isOpen, onClose, video, onVideoUpdated, onVideoAdded }) {
   const [title, setTitle] = useState("");
   const [link, setLink] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  const isEditMode = !!article;
+  const isEditMode = !!video;
 
   useEffect(() => {
     if (isEditMode) {
-      setTitle(article.title);
-      setLink(article.link);
+      setTitle(video.title);
+      setLink(video.link);
     } else {
       setTitle("");
       setLink("");
     }
-  }, [article, isEditMode]);
+  }, [video, isEditMode]);
 
   if (!isOpen) return null;
 
@@ -25,9 +25,9 @@ export default function ManageUserArticlesModal({ isOpen, onClose, source, artic
     setLoading(true);
     setError("");
     try {
-      const url = isEditMode ? `/api/user-articles` : '/api/user-articles';
+      const url = isEditMode ? `/api/featured-video` : '/api/featured-video';
       const method = isEditMode ? 'PUT' : 'POST';
-      const body = JSON.stringify(isEditMode ? { id: article.id, title, link } : { sourceLink: source.link, title, link });
+      const body = JSON.stringify(isEditMode ? { id: video.id, title, link } : { title, link });
 
       const res = await fetch(url, {
         method,
@@ -35,14 +35,17 @@ export default function ManageUserArticlesModal({ isOpen, onClose, source, artic
         body,
       });
 
-      if (!res.ok) throw new Error(`Failed to ${isEditMode ? 'update' : 'add'} article`);
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.error || `Failed to ${isEditMode ? 'update' : 'add'} video`);
+      }
       
       const result = await res.json();
 
       if (isEditMode) {
-        onArticleUpdated(source.link, result);
+        onVideoUpdated(result);
       } else {
-        onArticleAdded(source.link, result);
+        onVideoAdded(result);
       }
       onClose();
     } catch (err) {
@@ -59,7 +62,7 @@ export default function ManageUserArticlesModal({ isOpen, onClose, source, artic
     }}>
       <div style={{ background: 'white', padding: '2rem', borderRadius: '8px', width: '400px', maxWidth: '90%' }}>
         <h2 style={{ fontSize: '1.25rem', fontWeight: 'bold', marginBottom: '1rem' }}>
-          {isEditMode ? 'Edit Article' : `Add Article to ${source.title}`}
+          {isEditMode ? 'Edit Featured Video' : 'Add Featured Video'}
         </h2>
         <form onSubmit={handleSubmit}>
           <input
@@ -72,7 +75,7 @@ export default function ManageUserArticlesModal({ isOpen, onClose, source, artic
           />
           <input
             type="url"
-            placeholder="Link"
+            placeholder="YouTube Link"
             value={link}
             onChange={e => setLink(e.target.value)}
             required
@@ -87,4 +90,4 @@ export default function ManageUserArticlesModal({ isOpen, onClose, source, artic
       </div>
     </div>
   );
-} 
+}

@@ -1,6 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
 import ManageUserArticlesModal from "./ManageUserArticlesModal";
+import ManageFeaturedVideoModal from "./ManageFeaturedVideoModal";
 import Nav from "@/components/Nav";
 import Footer from "@/components/Footer";
 import { TopBannerAd, SidebarAd, InContentAd } from "@/components/AdBanner";
@@ -32,19 +33,26 @@ const decodeHtmlEntities = (str) => {
 };
 
 export default function NewsFeedClient({ sources, commentCounts }) {
-  const [modalOpenSource, setModalOpenSource] = useState(null);
+  const [modalState, setModalState] = useState({ isOpen: false, source: null, article: null });
   const [userArticles, setUserArticles] = useState({});
+  const [featuredVideos, setFeaturedVideos] = useState([]);
+  const [isFeaturedVideoModalOpen, setIsFeaturedVideoModalOpen] = useState(false);
+  const [editingFeaturedVideo, setEditingFeaturedVideo] = useState(null);
 
-  // Fetch user articles for all sources on mount
   useEffect(() => {
-    async function fetchUserArticles() {
-      const res = await fetch("/api/user-articles");
-      if (res.ok) {
-        const data = await res.json();
+    async function fetchData() {
+      const userArticlesRes = await fetch("/api/user-articles");
+      if (userArticlesRes.ok) {
+        const data = await userArticlesRes.json();
         setUserArticles(data);
       }
+      const featuredVideoRes = await fetch("/api/featured-video");
+      if (featuredVideoRes.ok) {
+        const data = await featuredVideoRes.json();
+        setFeaturedVideos(data || []);
+      }
     }
-    fetchUserArticles();
+    fetchData();
   }, []);
 
   const handleUserArticleAdded = (sourceLink, newArticle) => {
@@ -54,7 +62,50 @@ export default function NewsFeedClient({ sources, commentCounts }) {
     }));
   };
 
-  // Prepare sources as in the original page.js
+  const handleUserArticleUpdated = (sourceLink, updatedArticle) => {
+    setUserArticles((prev) => ({
+      ...prev,
+      [sourceLink]: (prev[sourceLink] || []).map(a => a.id === updatedArticle.id ? updatedArticle : a),
+    }));
+  };
+
+  const handleUserArticleDeleted = (sourceLink, articleId) => {
+    setUserArticles((prev) => ({
+      ...prev,
+      [sourceLink]: (prev[sourceLink] || []).filter(a => a.id !== articleId),
+    }));
+  };
+
+  const handleFeaturedVideoAdded = (newVideo) => {
+    setFeaturedVideos(prev => [...prev, newVideo]);
+  };
+
+  const handleFeaturedVideoUpdated = (updatedVideo) => {
+    setFeaturedVideos(prev => prev.map(v => v.id === updatedVideo.id ? updatedVideo : v));
+  };
+
+  const handleFeaturedVideoDeleted = async (videoId) => {
+    if (!confirm("Are you sure you want to delete this featured video?")) return;
+    const res = await fetch("/api/featured-video", {
+      method: "DELETE",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id: videoId }),
+    });
+    if (res.ok) {
+      setFeaturedVideos(prev => prev.filter(v => v.id !== videoId));
+    } else {
+      alert("Failed to delete featured video.");
+    }
+  };
+
+  const openModal = (source, article = null) => setModalState({ isOpen: true, source, article });
+  const closeModal = () => setModalState({ isOpen: false, source: null, article: null });
+
+  const openFeaturedVideoModal = (video = null) => {
+    setEditingFeaturedVideo(video);
+    setIsFeaturedVideoModalOpen(true);
+  }
+
   const regularSources = sources.filter(
     (source) =>
       !source.source.isPodcast &&
@@ -80,73 +131,49 @@ export default function NewsFeedClient({ sources, commentCounts }) {
     (s) => s !== nflYoutubeSource
   );
 
-  // Featured NFL Video
-  nonNFLYoutubeSources.splice(1, 0, {
-    source: {
-      title: "Featured NFL Video",
-      link: "https://www.youtube.com/watch?v=GwSzA2niaEM",
-      image:
-        "https://upload.wikimedia.org/wikipedia/commons/7/75/YouTube_social_white_squircle_(2017).svg",
-      updatedAt: "2024-03-31T20:00:00Z",
-      isFeatured: true,
-    },
-    articles: [
-      {
-        title: "NFL Draft: Top QB Prospects Review",
-        link: "https://www.youtube.com/watch?v=GwSzA2niaEM",
-        thumbnail: "https://img.youtube.com/vi/GwSzA2niaEM/hqdefault.jpg",
-        pubDate: "2024-03-31T20:00:00Z",
-      },
-    ],
-  });
+  const topGridSources = [...nonNFLYoutubeSources.slice(0, 1)];
+  const remainingSources = nonNFLYoutubeSources.slice(1);
 
-  const topGridSources = nonNFLYoutubeSources.slice(0, 3);
-  const remainingSources = nonNFLYoutubeSources.slice(3);
+  const renderFeaturedVideoCard = (video) => (
+    <div key={video.id} className="bg-white shadow-lg rounded-lg p-4">
+      <div className="flex items-center mb-2">
+        <img
+          src="https://upload.wikimedia.org/wikipedia/commons/7/75/YouTube_social_white_squircle_(2017).svg"
+          alt="YouTube Logo"
+          className="w-10 h-10 mr-2"
+        />
+        <h2 className="text-lg font-bold text-black">Featured NFL Video</h2>
+      </div>
+      <div className="overflow-hidden group aspect-video mb-2 rounded-lg">
+        <a href={video.link} target="_blank" rel="noopener noreferrer">
+          <img
+            src={video.thumbnail}
+            alt="Featured NFL Video"
+            className="w-full h-full object-cover transition-transform duration-300 ease-in-out group-hover:scale-105 group-hover:brightness-90"
+          />
+        </a>
+      </div>
+      <p className="text-center mt-2 text-lg font-semibold w-full truncate">
+        <a href={video.link} target="_blank" rel="noopener noreferrer" className="text-black-600 hover:text-blue-800">
+          {decodeHtmlEntities(video.title || "Untitled")}
+        </a>
+      </p>
+      <div className="flex gap-2 mt-2">
+        <button onClick={() => openFeaturedVideoModal(video)} className="text-sm text-blue-500 hover:underline">Edit</button>
+        <button onClick={() => handleFeaturedVideoDeleted(video.id)} className="text-sm text-red-500 hover:underline">Delete</button>
+      </div>
+    </div>
+  );
+
+  const renderAddFeaturedVideoCard = () => (
+    <div className="bg-white shadow-lg rounded-lg p-4 flex items-center justify-center">
+      <button onClick={() => openFeaturedVideoModal()} className="text-lg font-bold text-blue-500 hover:underline">
+        + Add Featured Video
+      </button>
+    </div>
+  );
 
   const renderCard = ({ source, articles }) => {
-    if (source.isFeatured) {
-      return (
-        <div
-          key="featured-nfl-video"
-          className="bg-white shadow-lg rounded-lg p-4"
-        >
-          <div className="flex items-center mb-2">
-            <img
-              src={source.image}
-              alt="YouTube Logo"
-              className="w-10 h-10 mr-2"
-            />
-            <h2 className="text-lg font-bold text-black">Featured NFL Video</h2>
-          </div>
-          <div className="overflow-hidden group aspect-video mb-2 rounded-lg">
-            <a
-              href={articles[0].link}
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              <img
-                src={articles[0].thumbnail}
-                alt="Featured NFL Video"
-                className="w-full h-full object-cover transition-transform duration-300 ease-in-out group-hover:scale-105 group-hover:brightness-90"
-              />
-            </a>
-          </div>
-
-          <p className="text-center mt-2 text-lg font-semibold w-full truncate">
-            <a
-              href={articles[0].link}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-black-600 hover:text-blue-800"
-            >
-              {decodeHtmlEntities(articles[0]?.title || "Untitled")}
-            </a>
-          </p>
-        </div>
-      );
-    }
-
-    // Merge user articles for this source
     const mergedArticles = [
       ...(userArticles[source.link] || []),
       ...articles.slice(0, 6),
@@ -184,8 +211,24 @@ export default function NewsFeedClient({ sources, commentCounts }) {
         <ul className="space-y-2">
           {mergedArticles.map((article, index) => {
             const commentCount = commentCounts?.[article.title] || 0;
+            const isUserArticle = !!article.id;
+
+            const handleDelete = async () => {
+              if (!confirm("Are you sure you want to delete this article?")) return;
+              const res = await fetch("/api/user-articles", {
+                method: "DELETE",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ id: article.id }),
+              });
+              if (res.ok) {
+                handleUserArticleDeleted(source.link, article.id);
+              } else {
+                alert("Failed to delete article.");
+              }
+            };
+
             return (
-              <li key={index} className="border-b pb-2 flex items-start gap-2">
+              <li key={article.id || index} className="border-b pb-2 flex items-start gap-2">
                 <div className="flex-1">
                   <a
                     href={article.link || "#"}
@@ -227,6 +270,12 @@ export default function NewsFeedClient({ sources, commentCounts }) {
                     )}
                   </a>
                 </div>
+                {isUserArticle && (
+                  <div className="flex flex-col gap-1">
+                    <button onClick={() => openModal(source, article)} className="text-xs text-blue-500 hover:underline">Edit</button>
+                    <button onClick={handleDelete} className="text-xs text-red-500 hover:underline">Delete</button>
+                  </div>
+                )}
               </li>
             );
           })}
@@ -242,18 +291,12 @@ export default function NewsFeedClient({ sources, commentCounts }) {
           </a>
           <button
             className="text-sm text-green-600 font-semibold underline"
-            onClick={() => setModalOpenSource(source.link)}
+            onClick={() => openModal(source)}
             type="button"
           >
             Manage Content
           </button>
         </div>
-        <ManageUserArticlesModal
-          isOpen={modalOpenSource === source.link}
-          onClose={() => setModalOpenSource(null)}
-          source={source}
-          onArticleAdded={handleUserArticleAdded}
-        />
       </div>
     );
   };
@@ -261,25 +304,20 @@ export default function NewsFeedClient({ sources, commentCounts }) {
   return (
     <div>
       <Nav />
-      {/* Top Banner Ad */}
       <div className="px-4 pt-4">
         <TopBannerAd />
       </div>
-      {/* Upcoming Games Carousel */}
       <div className="px-4">
         <UpcomingGamesCarousel />
       </div>
-      {/* Main Layout with Sidebar */}
       <div className="flex flex-col lg:flex-row gap-6 px-4 pb-4 max-w-screen-2xl mx-auto">
-        {/* Main Content Area */}
         <div className="flex-1 min-w-0">
-          {/* Top Grid (ESPN, Featured, ProFootballTalk) - 3 columns on large screens, 2 on medium */}
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 mb-6">
             {topGridSources.map(renderCard)}
+            {featuredVideos.map(renderFeaturedVideoCard)}
+            {featuredVideos.length < 3 && renderAddFeaturedVideoCard()}
           </div>
-          {/* In-Content Ad */}
           <InContentAd />
-          {/* MAIN NFL YOUTUBE CHANNEL CAROUSEL */}
           {regularSources.some(
             (s) => s.source.title === "NFL" && s.source.link.includes("youtube")
           ) && (
@@ -354,11 +392,9 @@ export default function NewsFeedClient({ sources, commentCounts }) {
               </a>
             </div>
           )}
-          {/* Remaining Articles Grid - Responsive columns */}
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 mb-6">
             {remainingSources.map(renderCard)}
           </div>
-          {/* TOP 10 NFL YOUTUBE CHANNELS (Card Layout) */}
           {topChannelSources.length > 0 && (
             <div className="bg-white shadow-lg rounded-lg p-4 mb-6">
               <div className="flex items-center mb-2">
@@ -419,7 +455,6 @@ export default function NewsFeedClient({ sources, commentCounts }) {
               </a>
             </div>
           )}
-          {/* UP & COMING CHANNELS (Card Layout) */}
           {upAndComingSources.length > 0 && (
             <div className="bg-white shadow-lg rounded-lg p-4 mb-6">
               <div className="flex items-center mb-2">
@@ -482,7 +517,6 @@ export default function NewsFeedClient({ sources, commentCounts }) {
               </a>
             </div>
           )}
-          {/* NFL PODCASTS (Card Layout) */}
           {podcastSources.length > 0 && (
             <div className="bg-white shadow-lg rounded-lg p-4 mb-6">
               <div className="flex items-center mb-2">
@@ -543,7 +577,6 @@ export default function NewsFeedClient({ sources, commentCounts }) {
             </div>
           )}
         </div>
-        {/* Sidebar - Only visible on large screens */}
         <div className="hidden lg:block w-64 flex-shrink-0 space-y-4">
           <SidebarAd size="medium" />
           <SidebarAd size="large" />
@@ -552,6 +585,21 @@ export default function NewsFeedClient({ sources, commentCounts }) {
         </div>
       </div>
       <Footer />
+      <ManageUserArticlesModal
+        isOpen={modalState.isOpen}
+        onClose={closeModal}
+        source={modalState.source}
+        article={modalState.article}
+        onArticleAdded={handleUserArticleAdded}
+        onArticleUpdated={handleUserArticleUpdated}
+      />
+      <ManageFeaturedVideoModal
+        isOpen={isFeaturedVideoModalOpen}
+        onClose={() => setIsFeaturedVideoModalOpen(false)}
+        video={editingFeaturedVideo}
+        onVideoAdded={handleFeaturedVideoAdded}
+        onVideoUpdated={handleFeaturedVideoUpdated}
+      />
     </div>
   );
-} 
+}
