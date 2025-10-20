@@ -608,7 +608,7 @@ export default function TeamPage({ params }) {
                 <div className="text-center py-8">
                   <p className="text-gray-500">No news available</p>
                   {isAdmin() && (
-                    <p className="text-gray-400 text-sm mt-1">Click "Add News" to create a news article</p>
+                    <p className="text-gray-400 text-sm mt-1">Click &quot;Add News&quot; to create a news article</p>
                   )}
                 </div>
               )}
@@ -656,7 +656,7 @@ export default function TeamPage({ params }) {
                 <div className="text-center py-8">
                   <p className="text-gray-500">No games scheduled</p>
                   {isAdmin() && (
-                    <p className="text-gray-400 text-sm mt-1">Click "Edit" to add games</p>
+                    <p className="text-gray-400 text-sm mt-1">Click &quot;Edit&quot; to add games</p>
                   )}
                 </div>
               )}

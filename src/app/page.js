@@ -469,7 +469,7 @@ const upAndComingSources = mainPageSources.filter(
                 </div>
                 <p className="text-gray-500 text-sm">No featured videos available</p>
                 {isAdmin() && (
-                  <p className="text-gray-400 text-xs mt-1">Click "Add Video" to set featured content</p>
+                  <p className="text-gray-400 text-xs mt-1">Click &quot;Add Video&quot; to set featured content</p>
                 )}
               </div>
             </div>

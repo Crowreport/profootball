@@ -365,7 +365,7 @@ export default function FanzonePage() {
                       <div className="text-center py-6">
                         <p className="text-gray-500">No forums available for this team</p>
                         {isAdmin() && (
-                          <p className="text-gray-400 text-sm mt-1">Click "Edit Forums" to add some!</p>
+                          <p className="text-gray-400 text-sm mt-1">Click &quot;Edit Forums&quot; to add some!</p>
                         )}
                       </div>
                     )}
