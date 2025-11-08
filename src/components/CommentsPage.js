@@ -9,6 +9,7 @@ import { supabase } from "@/utils/supabase";
 import { useAuth } from "@/contexts/AuthContext";
 import { censorText } from "@/utils/censor";
 import { decodeHtmlEntities } from "@/utils/decodeHtmlEntities";
+import { checkRateLimit } from "@/utils/ratelimit";
 
 // Dynamically import TinyMCE Editor for SSR compatibility
 const Editor = dynamic(
@@ -117,6 +118,12 @@ export default function CommentsPage({ title }) {
       commentContent === "<p></p>"
     )
       return alert("Please enter a comment.");
+
+    // Rate limiting: max 5 comments per minute
+    const userIp = 'client-' + (user?.id || 'anonymous');
+    if (!checkRateLimit(userIp, 5)) {
+      return alert("Too many comments. Please wait a moment (max 5 per minute).");
+    }
 
     let currentUser = user;
 

@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { supabase } from '@/utils/supabase';
+import { checkRateLimit } from '@/utils/ratelimit';
 
 // Admin emails (same as in AuthContext)
 const ADMIN_EMAILS = [
@@ -13,6 +14,14 @@ export async function POST(request) {
     console.log('Received POST request to add custom article');
     const { sourceUrl, title, link, userEmail } = await request.json();
     console.log('Request data:', { sourceUrl, title, link, userEmail });
+
+    // Rate limiting: max 20 article creations per minute per user
+    if (!checkRateLimit(`article-post-${userEmail}`, 20)) {
+      return NextResponse.json(
+        { error: 'Too many requests. Please try again later.' },
+        { status: 429 }
+      );
+    }
 
     if (!sourceUrl || !title || !link || !userEmail) {
       console.error('Missing required fields');

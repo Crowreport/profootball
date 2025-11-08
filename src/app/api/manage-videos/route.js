@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { supabase } from '@/utils/supabase';
+import { checkRateLimit } from '@/utils/ratelimit';
 
 // Admin emails (same as in AuthContext)
 const ADMIN_EMAILS = [
@@ -13,6 +14,14 @@ export async function POST(request) {
     console.log('Received POST request to add custom video');
     const { sectionType, title, link, thumbnail, userEmail } = await request.json();
     console.log('Request data:', { sectionType, title, link, thumbnail, userEmail });
+
+    // Rate limiting: max 20 video creations per minute per user
+    if (!checkRateLimit(`video-post-${userEmail}`, 20)) {
+      return NextResponse.json(
+        { error: 'Too many requests. Please try again later.' },
+        { status: 429 }
+      );
+    }
 
     if (!sectionType || !title || !link || !userEmail) {
       console.error('Missing required fields');

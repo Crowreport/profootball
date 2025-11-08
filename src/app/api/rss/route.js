@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import Parser from "rss-parser";
 import fs from "fs";
 import path from "path";
+import { checkRateLimit } from "@/utils/ratelimit";
 
 // In-memory cache for RSS feeds
 let cache = {
@@ -160,7 +161,16 @@ async function processFeed(feedConfig, parser) {
   }
 }
 
-export async function GET() {
+export async function GET(request) {
+  // Rate limiting: max 10 requests per minute per IP
+  const ip = request.headers.get('x-forwarded-for') || 'unknown';
+  if (!checkRateLimit(`rss-${ip}`, 10)) {
+    return NextResponse.json(
+      { error: 'Too many requests. Please try again later.' },
+      { status: 429 }
+    );
+  }
+
   // Check cache first
   if (
     cache.data &&
