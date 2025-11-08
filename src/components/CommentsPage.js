@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import dynamic from "next/dynamic";
+import DOMPurify from "isomorphic-dompurify";
 import Nav from "@/components/Nav";
 import Footer from "@/components/Footer";
 import { supabase } from "@/utils/supabase";
@@ -294,7 +295,13 @@ export default function CommentsPage({ title }) {
                   </div>
                   <div
                     className="mt-2"
-                    dangerouslySetInnerHTML={{ __html: c.content }}
+                    dangerouslySetInnerHTML={{ 
+                      __html: DOMPurify.sanitize(c.content, {
+                        ALLOWED_TAGS: ['p', 'br', 'strong', 'em', 'u', 'a', 'ul', 'ol', 'li', 'img', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'blockquote', 'code', 'pre', 'span', 'div'],
+                        ALLOWED_ATTR: ['href', 'src', 'alt', 'title', 'class', 'style'],
+                        ALLOW_DATA_ATTR: false
+                      }) 
+                    }}
                   />
                 </li>
               ))}

@@ -11,7 +11,9 @@
   "dependencies": {
     "@supabase/supabase-js": "^2.49.4",
     "@tinymce/tinymce-react": "^6.1.0",
+    "dompurify": "^3.3.0",
     "glin-profanity": "^2.1.0",
+    "isomorphic-dompurify": "^2.31.0",
     "next": "^15.3.2",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
