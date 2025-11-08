@@ -21,14 +21,9 @@
     { "url": "https://nfltraderumors.co/feed/", "image": "" },
     { "url": "https://www.the33rdteam.com/rss", "image": "" },
     {
-      "url": "https://rsshub.app/twitter/user/NFL",
-      "image": "data:image/png;base64,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"
-    },
-    {
       "url": "https://www.reddit.com/r/nfl/.rss",
       "image": "https://images.squarespace-cdn.com/content/v1/5c5554d316b64061c6f8a20d/1630949829757-WXNOUZ8R4QQCXMIY4YMG/What-Is-The-Reddit-Logo-Called.png"
     },
-    { "url": "https://apnews.com/hub/nfl?format=rss", "image": "" },
     { "url": "https://www.youtube.com/feeds/videos.xml?playlist_id=PLRdw3IjKY2gmLSYihwViI0cRROkkvFUSe", "image": "", "isPodcast": true },
     { "url": "https://www.youtube.com/feeds/videos.xml?playlist_id=PLRdw3IjKY2gllZ72IErHeDGyJgOyZKWRM", "image": "", "isPodcast": true },
     { "url": "https://www.youtube.com/feeds/videos.xml?playlist_id=PLRdw3IjKY2gldfLR6PNBa75I7ItCQbUlj", "image": "", "isPodcast": true },
@@ -64,7 +59,6 @@
     { "url": "https://nflspinzone.com/feed/", "image": "", "source": "NFL Spin Zone" },
     { "url": "https://fetchrss.com/feed/aJvbxh_WTWMjaJwRwrQNEmsC.rss", "image": "", "source": "Bleacher Report" },
     { "url": "https://fetchrss.com/feed/aJvbxh_WTWMjaJ0UnUL_RNPz.rss", "image": "", "source": "Substack" },
-    { "url": "https://www.nfl.com/rss/rsslanding?searchString=home", "image": "", "source": "NFL News" },
     { "url": "https://www.sportsnet.ca/football/nfl/feed/", "image": "", "source": "Sportsnet NFL" },
     { "url": "https://fetchrss.com/feed/aJ1CQZlz4cWCaKTeXUpkidWC.rss", "image": "", "source": "YardBarker NFL" },
     {
@@ -72,110 +66,6 @@
       "image": "",
       "source": "Heavy NFL"
       
-    },
-    {
-      "url": "https://podcasts.apple.com/us/podcast/the-athletic-football-show-a-show-about-the-nfl/id1528622068",
-      "image": "https://is1-ssl.mzstatic.com/image/thumb/Podcasts211/v4/a9/a5/a5/a9a5a548-aaa2-2449-a377-58b667a1f791/mza_11148697896506461332.jpg/600x600bb.webp",
-      "source": "The Athletic Football Show",
-      "platform": "apple", 
-      "isPodcast": true,
-      "category": "nfl"
-    },
-    {
-      "url": "https://podcasts.apple.com/us/podcast/the-ringer-nfl-show/id1109282822",
-      "image": "data:image/jpeg;base64,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",
-      "source": "The Ringer NFL Show",
-      "platform": "apple",
-      "isPodcast": true,
-      "category": "nfl"
-    },
-    {
-      "url": "https://podcasts.apple.com/us/podcast/between-two-tackles-an-nfl-draft-podcast/id1609106186",
-      "image": "https://is1-ssl.mzstatic.com/image/thumb/Podcasts126/v4/8f/9a/7c/8f9a7c3e-4b2e-1a5d-9e8f-6c7b8a9d0e1f/mza_7654321098765432109.jpg/600x600bb.webp",
-      "source": "Between Two Tackles: An NFL Draft Podcast",
-      "platform": "apple",
-      "isPodcast": true,
-      "category": "nfl"
-    },
-    {
-      "url": "https://podcasts.apple.com/us/podcast/nfl-move-the-sticks-with-daniel-jeremiah-bucky-brooks/id915544088",
-      "image": "https://is1-ssl.mzstatic.com/image/thumb/Podcasts211/v4/f3/2e/8d/f32e8d9a-4c6b-1f5e-a7b3-9c8d7e6f0a1b/mza_8765432109876543210.jpg/600x600bb.webp",
-      "source": "NFL: Move the Sticks with Daniel Jeremiah & Bucky Brooks",
-      "platform": "apple",
-      "isPodcast": true,
-      "category": "nfl"
-    },
-    {
-      "url": "https://podcasts.apple.com/us/podcast/pushing-the-pile-a-cbs-sports-nfl-podcast/id1263289980",
-      "image": "https://is1-ssl.mzstatic.com/image/thumb/Podcasts211/v4/a1/b2/c3/a1b2c3d4-e5f6-789a-bcde-f0123456789a/mza_1234567890123456789.jpg/600x600bb.webp",
-      "source": "Pushing the Pile: A CBS Sports NFL Podcast",
-      "platform": "apple",
-      "isPodcast": true,
-      "category": "nfl"
-    },
-    {
-      "url": "https://podcasts.apple.com/us/podcast/nfl-daily-with-gregg-rosenthal/id680904259",
-      "image": "https://is1-ssl.mzstatic.com/image/thumb/Podcasts211/v4/d8/c1/e9/d8c1e9f2-7b4a-3c5e-8f1d-6a9b8e7f0c2d/mza_5678901234567890123.jpg/600x600bb.webp",
-      "source": "NFL Daily with Gregg Rosenthal",
-      "platform": "apple",
-      "isPodcast": true,
-      "category": "nfl"
-    },
-    {
-      "url": "https://podcasts.apple.com/us/podcast/the-pff-nfl-podcast/id913714358",
-      "image": "https://is1-ssl.mzstatic.com/image/thumb/Podcasts211/v4/f1/d4/e7/f1d4e7a8-9c2b-5e3f-d6g8-h9i0j1k2l3m4/mza_4567890123456789012.jpg/600x600bb.webp",
-      "source": "The PFF NFL Podcast",
-      "platform": "apple", 
-      "isPodcast": true,
-      "category": "nfl"
-    },
-    {
-      "url": "https://podcasts.apple.com/us/podcast/locked-on-nfl-daily-podcast-on-the-national-football-league/id1139967050",
-      "image": "https://is1-ssl.mzstatic.com/image/thumb/Podcasts211/v4/c2/f5/a8/c2f5a8b9-4d6e-7f1c-82a3-b4c5d6e7f8g9/mza_3456789012345678901.jpg/600x600bb.webp",
-      "source": "Locked On NFL – Daily Podcast On The National Football League",
-      "platform": "apple",
-      "isPodcast": true,
-      "category": "nfl"
-    },
-    {
-      "url": "https://podcasts.apple.com/us/podcast/nfl-the-insiders/id1543090622",
-      "image": "https://is1-ssl.mzstatic.com/image/thumb/Podcasts211/v4/a5/b8/c1/a5b8c1d2-e6f7-8901-23ab-cdef45678901/mza_2345678901234567890.jpg/600x600bb.webp",
-      "source": "NFL: The Insiders",
-      "platform": "apple",
-      "isPodcast": true,
-      "category": "nfl"
-    },
-    {
-      "url": "https://podcasts.apple.com/us/podcast/ross-tucker-football-podcast-daily-nfl-podcast/id638447093",
-      "image": "https://is1-ssl.mzstatic.com/image/thumb/Podcasts211/v4/b9/d7/e2/b9d7e2f3-8a4c-5b6d-9e1f-0a2b3c4d5e6f/mza_8765432109876543210.jpg/600x600bb.webp",
-      "source": "Ross Tucker Football Podcast: Daily NFL Podcast",
-      "platform": "apple",
-      "isPodcast": true,
-      "category": "nfl"
-    },
-    {
-      "url": "https://podcasts.apple.com/us/podcast/nfl-live/id1042028608",
-      "image": "https://is1-ssl.mzstatic.com/image/thumb/Podcasts211/v4/e8/f1/d4/e8f1d4a7-b5c9-6e2f-93d0-1a4b5c6d7e8f/mza_7890123456789012345.jpg/600x600bb.webp",
-      "source": "NFL Live",
-      "platform": "apple",
-      "isPodcast": true,
-      "category": "nfl"
-    },
-    {
-      "url": "https://podcasts.apple.com/us/podcast/the-mmqb-nfl-podcast/id916244917",
-      "image": "https://is1-ssl.mzstatic.com/image/thumb/Podcasts211/v4/c8/a2/f5/c8a2f5b9-7d4e-8c1a-95b6-2e3f4a5b6c7d/mza_6789012345678901234.jpg/600x600bb.webp",
-      "source": "The MMQB NFL Podcast", 
-      "platform": "apple",
-      "isPodcast": true,
-      "category": "nfl"
-    },
-    {
-      "url": "https://podcasts.apple.com/us/podcast/the-nfl-on-fox-podcast/id1705559962",
-      "image": "https://is1-ssl.mzstatic.com/image/thumb/Podcasts211/v4/d5/e2/a8/d5e2a8c4-b9f6-7e3d-91a2-4c5b6d7e8f90/mza_5678901234567890123.jpg/600x600bb.webp",
-      "source": "The NFL on FOX Podcast",
-      "platform": "apple",
-      "isPodcast": true,
-      "category": "nfl"
     }
   ]
 }
