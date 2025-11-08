@@ -2,7 +2,24 @@ import { NextResponse } from 'next/server';
 import fs from 'fs';
 import path from 'path';
 
+// Admin emails (same as in other management routes)
+const ADMIN_EMAILS = [
+  'minseo7532@gmail.com', 
+  'robcroley@gmail.com',
+];
+
 const FEEDS_FILE_PATH = path.join(process.cwd(), 'data', 'feeds.json');
+
+// Helper function to validate URL format
+function isValidUrl(urlString) {
+  try {
+    const url = new URL(urlString);
+    // Only allow http and https protocols
+    return url.protocol === 'http:' || url.protocol === 'https:';
+  } catch (error) {
+    return false;
+  }
+}
 
 // Helper function to read feeds
 function readFeeds() {
@@ -29,10 +46,25 @@ function writeFeeds(feedsData) {
 // POST - Add new RSS source
 export async function POST(request) {
   try {
-    const { title, url, image, isPodcast, isTopChannel, isUpAndComing } = await request.json();
+    const { title, url, image, isPodcast, isTopChannel, isUpAndComing, userEmail } = await request.json();
+
+    // Check admin authentication
+    if (!userEmail || !ADMIN_EMAILS.includes(userEmail)) {
+      return NextResponse.json({ error: 'Unauthorized - Admin access required' }, { status: 403 });
+    }
 
     if (!url) {
       return NextResponse.json({ error: 'RSS URL is required' }, { status: 400 });
+    }
+
+    // Validate URL format
+    if (!isValidUrl(url)) {
+      return NextResponse.json({ error: 'Invalid URL format. Must be a valid http or https URL' }, { status: 400 });
+    }
+
+    // Validate image URL if provided
+    if (image && !isValidUrl(image)) {
+      return NextResponse.json({ error: 'Invalid image URL format' }, { status: 400 });
     }
 
     const feedsData = readFeeds();
@@ -71,10 +103,25 @@ export async function POST(request) {
 // PUT - Update existing RSS source
 export async function PUT(request) {
   try {
-    const { originalUrl, title, url, image, isPodcast, isTopChannel, isUpAndComing } = await request.json();
+    const { originalUrl, title, url, image, isPodcast, isTopChannel, isUpAndComing, userEmail } = await request.json();
+
+    // Check admin authentication
+    if (!userEmail || !ADMIN_EMAILS.includes(userEmail)) {
+      return NextResponse.json({ error: 'Unauthorized - Admin access required' }, { status: 403 });
+    }
 
     if (!originalUrl || !url) {
       return NextResponse.json({ error: 'Original URL and new URL are required' }, { status: 400 });
+    }
+
+    // Validate URL formats
+    if (!isValidUrl(url)) {
+      return NextResponse.json({ error: 'Invalid URL format. Must be a valid http or https URL' }, { status: 400 });
+    }
+
+    // Validate image URL if provided
+    if (image && !isValidUrl(image)) {
+      return NextResponse.json({ error: 'Invalid image URL format' }, { status: 400 });
     }
 
     const feedsData = readFeeds();
@@ -120,7 +167,12 @@ export async function PUT(request) {
 // DELETE - Remove RSS source
 export async function DELETE(request) {
   try {
-    const { url } = await request.json();
+    const { url, userEmail } = await request.json();
+
+    // Check admin authentication
+    if (!userEmail || !ADMIN_EMAILS.includes(userEmail)) {
+      return NextResponse.json({ error: 'Unauthorized - Admin access required' }, { status: 403 });
+    }
 
     if (!url) {
       return NextResponse.json({ error: 'RSS URL is required' }, { status: 400 });
