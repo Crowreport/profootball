@@ -2,11 +2,8 @@ import { NextResponse } from 'next/server';
 import fs from 'fs';
 import path from 'path';
 
-// Admin emails (same as in other management routes)
-const ADMIN_EMAILS = [
-  'minseo7532@gmail.com', 
-  'robcroley@gmail.com',
-];
+// Get admin emails from environment variable
+const ADMIN_EMAILS = process.env.ADMIN_EMAILS?.split(',') || [];
 
 const FEEDS_FILE_PATH = path.join(process.cwd(), 'data', 'feeds.json');
 

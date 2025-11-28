@@ -3,11 +3,8 @@
 import { createContext, useContext, useState, useEffect } from "react";
 import { supabase } from "@/utils/supabase";
 
-// Centralized admin emails configuration
-const ADMIN_EMAILS = [
-  'minseo7532@gmail.com', 
-  'robcroley@gmail.com',
-];
+// Get admin emails from environment variable
+const ADMIN_EMAILS = process.env.NEXT_PUBLIC_ADMIN_EMAILS?.split(',') || [];
 
 // Create a context for auth
 const AuthContext = createContext();
@@ -18,6 +15,7 @@ export function AuthProvider({ children }) {
   const [userProfile, setUserProfile] = useState(null);
   const [loading, setLoading] = useState(true);
   const [authInitialized, setAuthInitialized] = useState(false);
+  const [creatingProfile, setCreatingProfile] = useState(new Set());
 
   // Fetch user profile data (username) - using public schema
   const fetchUserProfile = async (userId) => {
@@ -52,26 +50,52 @@ export function AuthProvider({ children }) {
 
         // If the profile doesn't exist, try to create one
         if (error.code === "PGRST116") {
-          console.log("Profile not found, attempting to create one");
-          // Get current user data
-          const currentUser =
-            user || (await supabase.auth.getUser()).data?.user;
-          const email = currentUser?.email || "";
-          const defaultUsername = email.split("@")[0] || "user";
-
-          // Insert into public.users
-          const { data: newProfile, error: createError } = await supabase
-            .from("users")
-            .insert([{ id: userId, username: defaultUsername }])
-            .select("username")
-            .single();
-
-          if (createError) {
-            console.error("Error creating user profile:", createError);
-            return { username: defaultUsername };
+          // Check if we're already creating a profile for this user
+          if (creatingProfile.has(userId)) {
+            console.log("Profile creation already in progress for user:", userId);
+            // Wait a bit and try to fetch again
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            const { data: retryData, error: retryError } = await supabase
+              .from("users")
+              .select("username")
+              .eq("id", userId)
+              .single();
+            
+            if (!retryError && retryData) {
+              return retryData;
+            }
           }
 
-          return newProfile;
+          console.log("Profile not found, attempting to create one");
+          setCreatingProfile(prev => new Set(prev).add(userId));
+          
+          try {
+            // Get current user data
+            const currentUser =
+              user || (await supabase.auth.getUser()).data?.user;
+            const email = currentUser?.email || "";
+            const defaultUsername = email.split("@")[0] || "user";
+
+            // Insert into public.users
+            const { data: newProfile, error: createError } = await supabase
+              .from("users")
+              .insert([{ id: userId, username: defaultUsername }])
+              .select("username")
+              .single();
+
+            if (createError) {
+              console.error("Error creating user profile:", createError);
+              return { username: defaultUsername };
+            }
+
+            return newProfile;
+          } finally {
+            setCreatingProfile(prev => {
+              const newSet = new Set(prev);
+              newSet.delete(userId);
+              return newSet;
+            });
+          }
         }
 
         // Fallback with current user data
@@ -135,9 +159,13 @@ export function AuthProvider({ children }) {
 
         if (session?.user) {
           console.log("User logged in:", session.user.email);
-          setUser(session.user);
-          const profile = await fetchUserProfile(session.user.id);
-          setUserProfile(profile);
+          
+          // Only update if user actually changed to avoid duplicate processing
+          if (!user || user.id !== session.user.id) {
+            setUser(session.user);
+            const profile = await fetchUserProfile(session.user.id);
+            setUserProfile(profile);
+          }
         } else {
           console.log("User logged out or session expired");
           setUser(null);
@@ -205,29 +233,8 @@ export function AuthProvider({ children }) {
 
       console.log("User signed up successfully:", data?.user?.email);
 
-      // If the trigger doesn't create the profile, create it manually
-      try {
-        if (data?.user?.id) {
-          const { error: profileError } = await supabase
-            .from("users")
-            .insert([{ id: data.user.id, username: username }]);
-
-          if (profileError && profileError.code !== "23505") {
-            // Ignore duplicate key errors
-            console.error(
-              "Error creating profile during signup:",
-              profileError
-            );
-          } else {
-            console.log("User profile created for:", username);
-          }
-        }
-      } catch (profileError) {
-        console.error(
-          "Exception creating profile during signup:",
-          profileError
-        );
-      }
+      // Skip manual profile creation - let auth state change handle it
+      // to avoid race conditions
 
       return { data, error: null };
     } catch (error) {

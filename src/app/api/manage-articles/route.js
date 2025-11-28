@@ -2,11 +2,8 @@ import { NextResponse } from 'next/server';
 import { supabase } from '@/utils/supabase';
 import { checkRateLimit } from '@/utils/ratelimit';
 
-// Admin emails (same as in AuthContext)
-const ADMIN_EMAILS = [
-  'minseo7532@gmail.com', 
-  'robcroley@gmail.com',
-];
+// Get admin emails from environment variable
+const ADMIN_EMAILS = process.env.ADMIN_EMAILS?.split(',') || [];
 
 // POST - Add custom article to a specific source
 export async function POST(request) {

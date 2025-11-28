@@ -3,10 +3,7 @@ import { supabase } from '@/utils/supabase';
 import { checkRateLimit } from '@/utils/ratelimit';
 
 // Admin emails (same as in AuthContext)
-const ADMIN_EMAILS = [
-  'minseo7532@gmail.com', 
-  'robcroley@gmail.com',
-];
+const ADMIN_EMAILS = process.env.ADMIN_EMAILS?.split(',') || [];
 
 // POST - Add custom video to a specific section
 export async function POST(request) {

@@ -1,7 +1,7 @@
 import { supabase } from '@/utils/supabase';
 
 // Admin emails for validation
-const ADMIN_EMAILS = ['robcroley@gmail.com', 'minseo7532@gmail.com'];
+const ADMIN_EMAILS = process.env.ADMIN_EMAILS?.split(',') || [];
 
 export async function POST(request) {
   try {
