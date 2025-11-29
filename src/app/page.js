@@ -474,6 +474,78 @@ const upAndComingSources = mainPageSources.filter(
               </div>
             </div>
           )}
+
+          {/* Featured Podcast Section - Added below video */}
+          <div className="mt-4 border-t pt-4">
+            <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center">
+                <img
+                  src="https://upload.wikimedia.org/wikipedia/commons/e/e7/Podcasts_%28iOS%29.svg"
+                  alt="Podcast Logo"
+                  className="w-8 h-8 mr-2"
+                />
+                <h3 className="text-md font-bold text-black">Featured NFL Podcast</h3>
+              </div>
+              {isAdmin() && (
+                <button
+                  onClick={() => handleManageVideo('featured-podcast')}
+                  className="text-xs bg-green-500 text-white px-2 py-1 rounded hover:bg-green-600 transition-colors"
+                >
+                  Add Podcast
+                </button>
+              )}
+            </div>
+
+            {/* Get first podcast from available sources */}
+            {(() => {
+              const featuredPodcast = podcastSources?.[0]?.articles?.[0] || customVideos['featured-podcast']?.[0];
+              
+              return featuredPodcast ? (
+                <div className="aspect-video bg-gray-50 rounded-lg flex items-center p-4">
+                  <div className="flex items-center space-x-4">
+                    <div className="w-16 h-16 bg-gray-300 rounded-lg flex items-center justify-center flex-shrink-0">
+                      <svg className="w-8 h-8 text-gray-600" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 14.5v-9l6 4.5-6 4.5z"/>
+                      </svg>
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <a
+                        href={featuredPodcast.link}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="block"
+                      >
+                        <h4 className="font-semibold text-sm text-black hover:text-blue-600 line-clamp-2">
+                          {decodeHtmlEntities(featuredPodcast.title || "Featured NFL Podcast")}
+                        </h4>
+                        <p className="text-xs text-gray-500 mt-1">Latest Episode</p>
+                      </a>
+                      {featuredPodcast?.isCustom && isAdmin() && (
+                        <button
+                          onClick={() => handleEditVideo('featured-podcast', featuredPodcast)}
+                          className="mt-1 bg-yellow-500 text-white px-2 py-1 text-xs rounded hover:bg-yellow-600 transition-colors"
+                          title="Edit featured podcast"
+                        >
+                          Edit
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <div className="aspect-video bg-gray-100 rounded-lg flex items-center justify-center">
+                  <div className="text-center">
+                    <div className="w-8 h-8 mx-auto mb-2 bg-gray-300 rounded-full flex items-center justify-center">
+                      <svg className="w-4 h-4 text-gray-500" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 14.5v-9l6 4.5-6 4.5z"/>
+                      </svg>
+                    </div>
+                    <p className="text-gray-500 text-xs">No featured podcast available</p>
+                  </div>
+                </div>
+              );
+            })()}
+          </div>
         </div>
       );
     }
@@ -542,7 +614,7 @@ const upAndComingSources = mainPageSources.filter(
                   {/* Comment count */}
                   <div className="relative flex-shrink-0">
                     <a
-                      href={`/comments/${article.title}`}
+                      href={`/comments/${encodeURIComponent(article.title)}?sourceTitle=${encodeURIComponent(source.title || 'Unknown Source')}&sourceImage=${encodeURIComponent(source.image || '')}&sourceLink=${encodeURIComponent(source.link || '')}`}
                       className="hover:text-blue-500 relative inline-block"
                     >
                       <svg
@@ -886,7 +958,7 @@ const upAndComingSources = mainPageSources.filter(
                   {/* Comment count */}
                   <div className="relative flex-shrink-0">
                     <a
-                      href={`/comments/${article.title}`}
+                      href={`/comments/${encodeURIComponent(article.title)}?sourceTitle=${encodeURIComponent(source.title || 'Unknown Source')}&sourceImage=${encodeURIComponent(source.image || '')}&sourceLink=${encodeURIComponent(source.link || '')}`}
                       className="hover:text-blue-500 relative inline-block"
                     >
                       <svg
@@ -1060,7 +1132,7 @@ const upAndComingSources = mainPageSources.filter(
                   </div>
                   <div className="relative flex-shrink-0">
                     <a
-                      href={`/comments/${encodeURIComponent(article.title)}`}
+                      href={`/comments/${encodeURIComponent(article.title)}?sourceTitle=${encodeURIComponent(matchedSource.source.title || 'Unknown Source')}&sourceImage=${encodeURIComponent(matchedSource.source.image || '')}&sourceLink=${encodeURIComponent(matchedSource.source.link || '')}`}
                       className="hover:text-blue-500 relative inline-block"
                     >
                       <svg
@@ -1444,7 +1516,7 @@ const upAndComingSources = mainPageSources.filter(
                   </div>
                   <div className="relative flex-shrink-0">
                     <a
-                      href={`/comments/${encodeURIComponent(article.title)}`}
+                      href={`/comments/${encodeURIComponent(article.title)}?sourceTitle=${encodeURIComponent(matchedSource.source.title || 'Unknown Source')}&sourceImage=${encodeURIComponent(matchedSource.source.image || '')}&sourceLink=${encodeURIComponent(matchedSource.source.link || '')}`}
                       className="hover:text-blue-500 relative inline-block"
                     >
                       <svg
@@ -1576,7 +1648,7 @@ const upAndComingSources = mainPageSources.filter(
                   </div>
                   <div className="relative flex-shrink-0">
                     <a
-                      href={`/comments/${encodeURIComponent(article.title)}`}
+                      href={`/comments/${encodeURIComponent(article.title)}?sourceTitle=${encodeURIComponent(matchedSource.source.title || 'Unknown Source')}&sourceImage=${encodeURIComponent(matchedSource.source.image || '')}&sourceLink=${encodeURIComponent(matchedSource.source.link || '')}`}
                       className="hover:text-blue-500 relative inline-block"
                     >
                       <svg

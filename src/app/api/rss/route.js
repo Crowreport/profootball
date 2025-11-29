@@ -99,8 +99,17 @@ async function processFeed(feedConfig, parser) {
         : parsedFeed.items?.[0]?.link
         ? new URL(parsedFeed.items[0].link).origin
         : feedUrl;
-      const feedUpdatedAt =
-        parsedFeed.lastBuildDate || parsedFeed.items?.[0]?.pubDate || null;
+      // Get feed updated date, but validate it's not in the future
+      let feedUpdatedAt = parsedFeed.lastBuildDate || parsedFeed.items?.[0]?.pubDate || null;
+      if (feedUpdatedAt) {
+        const date = new Date(feedUpdatedAt);
+        const now = new Date();
+        // If date is in the future, use current date instead
+        if (date > now) {
+          console.warn(`Feed ${feedUrl} has future date ${feedUpdatedAt}, using current date`);
+          feedUpdatedAt = now.toISOString();
+        }
+      }
 
       const articles = (parsedFeed.items || [])
         .map((item) => {
@@ -117,11 +126,21 @@ async function processFeed(feedConfig, parser) {
               item["media:content"]?.url ||
               null;
 
+            // Validate article date is not in the future
+            let articleDate = item.pubDate || feedUpdatedAt;
+            if (articleDate) {
+              const date = new Date(articleDate);
+              const now = new Date();
+              if (date > now) {
+                articleDate = now.toISOString();
+              }
+            }
+
             return {
               title: decodeHtmlEntities(item.title || "Untitled"),
               link: articleLink,
               thumbnail,
-              pubDate: item.pubDate || feedUpdatedAt,
+              pubDate: articleDate,
               contentSnippet: decodeHtmlEntities(item.contentSnippet || ""),
             };
           } catch (itemError) {
@@ -162,6 +181,16 @@ async function processFeed(feedConfig, parser) {
 }
 
 export async function GET(request) {
+  // Check for cache clearing parameter
+  const url = new URL(request.url);
+  const clearCache = url.searchParams.get('clearCache');
+  
+  if (clearCache === 'true') {
+    cache.data = null;
+    cache.timestamp = null;
+    console.log("RSS cache cleared - will fetch fresh data");
+  }
+
   // Rate limiting: max 10 requests per minute per IP
   const ip = request.headers.get('x-forwarded-for') || 'unknown';
   if (!checkRateLimit(`rss-${ip}`, 10)) {

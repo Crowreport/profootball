@@ -31,7 +31,7 @@ const setStoredVotes = (votes) => {
   localStorage.setItem('commentVotes', JSON.stringify(votes));
 };
 
-export default function CommentsPage({ title }) {
+export default function CommentsPage({ title, sourceTitle, sourceImage, sourceLink }) {
   const { user, signIn } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -252,9 +252,35 @@ export default function CommentsPage({ title }) {
     <div>
       <Nav />
       <div className="max-w-4xl mx-auto mt-10 p-4 mb-50 rounded shadow bg-gray-100">
+        {/* Source Information */}
+        {sourceTitle && (
+          <div className="flex items-center mb-4 p-3 bg-white rounded-lg border">
+            {sourceImage && (
+              <img
+                src={decodeURIComponent(sourceImage)}
+                alt={decodeURIComponent(sourceTitle)}
+                className="w-10 h-10 mr-3 rounded-full object-cover"
+              />
+            )}
+            <div>
+              <h4 className="font-semibold text-gray-700">Source:</h4>
+              {sourceLink ? (
+                <a
+                  href={`/external/${encodeURIComponent(sourceLink)}`}
+                  className="text-blue-500 hover:text-blue-700 font-medium"
+                >
+                  {decodeURIComponent(sourceTitle)}
+                </a>
+              ) : (
+                <span className="text-gray-600">{decodeURIComponent(sourceTitle)}</span>
+              )}
+            </div>
+          </div>
+        )}
+
         {/* Title */}
         <h3 className="text-2xl font-bold mb-4">
-          Title: {decodeURIComponent(title)}
+          Article: {decodeURIComponent(title)}
         </h3>
 
         {/* Comments List */}
