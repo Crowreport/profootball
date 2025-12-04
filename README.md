@@ -1,6 +1,29 @@
-# NFL RSS News Reader
+## Local Development Setup
 
-An RSS-based news reader that fetches and displays the latest NFL news from various sources. Built with Next.js, this project allows users to stay updated with the latest NFL headlines in a clean and user-friendly interface.
+### Prerequisites
+- **Node.js and npm:** This project requires Node.js and npm to be installed on your system.
+  - Download and install from [nodejs.org](https://nodejs.org/)
+  - Verify installation by running: `node --version` and `npm --version`
+
+1. **Install dependencies:**
+   ```bash
+   npm install
+   ```
+
+2. **Set up environment variables:**
+   - Create a `.env.local` file in the root directory
+   - Add your environment variables (see `.env.example` for reference)
+
+3. **Start the development server:**
+   ```bash
+   npm run dev
+   ```
+
+4. **Open your browser:**
+   - Go to `http://localhost:3000`
+   - The local development site should be running
+
+Any questions? Check this README.md for more information.
 
 ## Features
 - Fetches and parses NFL news from RSS feeds.
