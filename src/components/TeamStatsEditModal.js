@@ -1,8 +1,6 @@
 import { useState, useEffect } from 'react';
-import { useAuth } from '@/contexts/AuthContext';
 
 export default function TeamStatsEditModal({ isOpen, onClose, teamName, teamStats, onSave }) {
-  const { user } = useAuth();
   const [formData, setFormData] = useState({
     wins: '',
     losses: '',

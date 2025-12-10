@@ -1,58 +1,49 @@
-"use client";
-import Link from "next/link";
-import { useState } from "react";
-import Image from "next/image";
-import { useAuth } from "@/contexts/AuthContext";
-import { useRouter } from "next/navigation";
+"use client"
+
+import Link from "next/link"
+import { useState } from "react"
+import Image from "next/image"
+import { useRouter } from "next/navigation"
+import { Cog6ToothIcon } from "@heroicons/react/24/outline"
+import { useUserStore } from "@/store/useUserStore"
+import { createClient } from "@/utils/supabase/component"
 
 const Nav = () => {
-  const [isOpen, setIsOpen] = useState(false);
-  const router = useRouter();
-
-  // Get auth context with try-catch to handle errors more gracefully
-  let user = null;
-  let userProfile = null;
-  let signOut = null;
-
-  try {
-    const auth = useAuth();
-    user = auth.user;
-    userProfile = auth.userProfile;
-    signOut = auth.signOut;
-  } catch (error) {
-    console.error("Auth context error:", error);
-    // Fallback: Show login/signup buttons if auth context fails
-  }
+  const [isOpen, setIsOpen] = useState(false)
+  const router = useRouter()
+  const { profile, isAuthenticated, clearProfile } = useUserStore()
+  const supabase = createClient()
 
   const toggleMenu = () => {
-    setIsOpen(!isOpen);
-  };
+    setIsOpen(!isOpen)
+  }
 
   const handleSignOut = async () => {
     try {
-      if (signOut) {
-        const { error } = await signOut();
-        if (error) {
-          console.error("Sign out error:", error);
-          return;
-        }
-
-        // Force refresh the page after sign out to ensure state is reset
-        router.push("/");
-        router.refresh();
+      // Sign out from Supabase
+      const { error } = await supabase.auth.signOut()
+      
+      if (error) {
+        console.error("Sign out error:", error)
+        return
       }
-    } catch (error) {
-      console.error("Sign out exception:", error);
-    }
-  };
 
-  // Get username for display - with fallback to email or anonymous
-  const displayName =
-    userProfile?.username || (user?.email ? user.email.split("@")[0] : "User");
+      // Clear Zustand store
+      clearProfile()
+
+      // Redirect to home
+      router.push("/")
+    } catch (error) {
+      console.error("Sign out exception:", error)
+    }
+  }
+
+  // Get username for display
+  const displayName = profile?.username || profile?.firstName || "User"
 
   return (
     <nav className="bg-[#0B0B12] text-white px-6 py-6 shadow-md sticky top-0 z-50 font-['DM Sans']">
-      <div className="max-w-7xl mx-auto flex justify-between items-center">
+      <div className="max-w-8xl mx-auto flex justify-between items-center">
         {/* Logo + Title */}
         <Link href="/" className="flex items-center space-x-4">
           <Image src="/images/PFRlogo.jpg" alt="Logo" width={48} height={48} />
@@ -76,11 +67,19 @@ const Nav = () => {
 
         {/* Right Side Buttons */}
         <div className="hidden lg:flex items-center space-x-2">
-          {user ? (
+          {isAuthenticated && profile ? (
             <>
+              <span className="text-white text-sm mr-2">
+                Welcome, {displayName}
+              </span>
+              <Link href="/settings">
+                <button className="cursor-pointer bg-gray-600 text-white p-2 rounded-md hover:bg-gray-700 transition-all duration-200">
+                  <Cog6ToothIcon className="h-5 w-5" />
+                </button>
+              </Link>
               <button
                 onClick={handleSignOut}
-                className="bg-[#087994] text-white px-4 py-5 text-sm rounded-md hover:opacity-90 transition-all duration-200 font-['DM Sans'] text-base"
+                className="cursor-pointer bg-red-600 text-white px-4 py-2 text-sm rounded-md hover:bg-red-700 transition-all duration-200 font-['DM Sans']"
               >
                 Log Out
               </button>
@@ -88,12 +87,12 @@ const Nav = () => {
           ) : (
             <>
               <Link href="/login">
-                <button className="bg-[#087994] text-white px-4 py-2 text-sm rounded-md hover:opacity-90 transition-all duration-200 font-['DM Sans'] text-base">
+                <button className="cursor-pointer bg-[#087994] text-white px-4 py-2 text-sm rounded-md hover:opacity-90 transition-all duration-200 font-['DM Sans']">
                   Login
                 </button>
               </Link>
               <Link href="/signup">
-                <button className="bg-[#087994] text-white px-4 py-2 text-sm rounded-md hover:opacity-90 transition-all duration-200 font-['DM Sans'] text-base">
+                <button className="cursor-pointer bg-[#087994] text-white px-4 py-2 text-sm rounded-md hover:opacity-90 transition-all duration-200 font-['DM Sans']">
                   Sign Up
                 </button>
               </Link>
@@ -103,7 +102,7 @@ const Nav = () => {
 
         {/* Mobile Hamburger */}
         <div className="lg:hidden">
-          <button onClick={toggleMenu}>
+          <button onClick={toggleMenu} className="cursor-pointer">
             <svg
               className="w-6 h-6 text-white"
               fill="none"
@@ -134,7 +133,7 @@ const Nav = () => {
       {/* Mobile Menu */}
       {isOpen && (
         <div className="lg:hidden mt-4 grid grid-cols-3 gap-3 place-items-center">
-          {["Teams", "Standings", "Fantasy", "Sportsbooks", "Fanzone"].map((item) => (
+          {["Teams", "Scores", "Standings", "Fantasy", "Sportsbooks", "Fanzone"].map((item) => (
             <Link
               key={item}
               href={`/${item.toLowerCase()}`}
@@ -143,11 +142,19 @@ const Nav = () => {
               {item}
             </Link>
           ))}
-          {user ? (
+          {isAuthenticated && profile ? (
             <>
+              <div className="w-36 text-center text-white text-xs">
+                Welcome, {displayName}
+              </div>
+              <Link href="/settings">
+                <button className="cursor-pointer w-12 bg-gray-600 text-white p-2 rounded-md hover:bg-gray-700 transition-all duration-200 flex items-center justify-center">
+                  <Cog6ToothIcon className="h-5 w-5" />
+                </button>
+              </Link>
               <button
                 onClick={handleSignOut}
-                className="w-36 bg-[#087994] text-white px-4 py-2 text-sm rounded-md hover:opacity-90 transition-all duration-200"
+                className="cursor-pointer w-36 bg-red-600 text-white px-4 py-2 text-sm rounded-md hover:bg-red-700 transition-all duration-200"
               >
                 Log Out
               </button>
@@ -155,12 +162,12 @@ const Nav = () => {
           ) : (
             <>
               <Link href="/login">
-                <button className="w-36 bg-[#087994] text-white px-4 py-2 text-sm rounded-md hover:opacity-90 transition-all duration-200">
+                <button className="cursor-pointer w-36 bg-[#087994] text-white px-4 py-2 text-sm rounded-md hover:opacity-90 transition-all duration-200">
                   Login
                 </button>
               </Link>
               <Link href="/signup">
-                <button className="w-36 bg-[#087994] text-white px-4 py-2 text-sm rounded-md hover:opacity-90 transition-all duration-200">
+                <button className="cursor-pointer w-36 bg-[#087994] text-white px-4 py-2 text-sm rounded-md hover:opacity-90 transition-all duration-200">
                   Sign Up
                 </button>
               </Link>
@@ -169,7 +176,7 @@ const Nav = () => {
         </div>
       )}
     </nav>
-  );
-};
+  )
+}
 
-export default Nav;
+export default Nav

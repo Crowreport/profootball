@@ -9,11 +9,11 @@ import PollCard from "@/components/PollCard";
 import BlogCard from "@/components/Blog";
 import ManageSourceModal from "@/components/ManageSourceModal";
 import ManageVideoModal from "@/components/ManageVideoModal";
-import { useAuth } from "@/contexts/AuthContext";
+import { useUserStore } from "@/store/useUserStore";
 import { useState, useEffect } from "react";
 
 
-const decodeHtmlEntities = (str) => {
+const decodeHtmlEntities = (str: string): string => {
   if (!str) return "";
   if (typeof window === "undefined") return str;
   try {
@@ -50,7 +50,7 @@ async function fetchRSS() {
   }
 }
 
-function formatDate(dateString) {
+function formatDate(dateString: string): string {
   if (!dateString) return "Unknown";
   try {
     return new Date(dateString).toLocaleString(undefined, {
@@ -64,19 +64,20 @@ function formatDate(dateString) {
 }
 
 export default function Home() {
-  const { isAdmin } = useAuth();
-  const [sources, setSources] = useState([]);
-  const [customArticles, setCustomArticles] = useState({});
-  const [customVideos, setCustomVideos] = useState({});
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [manageModalOpen, setManageModalOpen] = useState(false);
-  const [videoModalOpen, setVideoModalOpen] = useState(false);
-  const [selectedSource, setSelectedSource] = useState(null);
-  const [selectedVideoSection, setSelectedVideoSection] = useState(null);
-  const [editingArticle, setEditingArticle] = useState(null);
-  const [editingVideo, setEditingVideo] = useState(null);
-  const [commentCounts, setCommentCounts] = useState({});
+  const { profile } = useUserStore();
+  const isAdmin = profile?.role === 'admin';
+  const [sources, setSources] = useState<any[]>([]);
+  const [customArticles, setCustomArticles] = useState<Record<string, any>>({});
+  const [customVideos, setCustomVideos] = useState<Record<string, any>>({});
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<Error | null>(null);
+  const [manageModalOpen, setManageModalOpen] = useState<boolean>(false);
+  const [videoModalOpen, setVideoModalOpen] = useState<boolean>(false);
+  const [selectedSource, setSelectedSource] = useState<any>(null);
+  const [selectedVideoSection, setSelectedVideoSection] = useState<string | null>(null);
+  const [editingArticle, setEditingArticle] = useState<any>(null);
+  const [editingVideo, setEditingVideo] = useState<any>(null);
+  const [commentCounts, setCommentCounts] = useState<Record<string, number>>({});
 
   // Fetch custom articles
   const fetchCustomArticles = async () => {
@@ -396,7 +397,7 @@ const upAndComingSources = mainPageSources.filter(
               />
               <h2 className="text-lg font-bold text-black">Featured NFL Video</h2>
             </div>
-            {isAdmin() && (
+            {isAdmin && (
               <button
                 onClick={() => handleManageVideo('featured-nfl-video')}
                 className="text-sm bg-green-500 text-white px-3 py-1 rounded hover:bg-green-600 transition-colors"
@@ -426,7 +427,7 @@ const upAndComingSources = mainPageSources.filter(
                       </a>
                       
                       {/* Edit button for custom featured video */}
-                      {video?.isCustom && isAdmin() && (
+                      {video?.isCustom && isAdmin && (
                         <button
                           onClick={() => handleEditVideo('featured-nfl-video', video)}
                           className="absolute top-2 right-2 bg-yellow-500 text-white px-2 py-1 text-xs rounded hover:bg-yellow-600 transition-colors"
@@ -468,7 +469,7 @@ const upAndComingSources = mainPageSources.filter(
                   </svg>
                 </div>
                 <p className="text-gray-500 text-sm">No featured videos available</p>
-                {isAdmin() && (
+                {isAdmin && (
                   <p className="text-gray-400 text-xs mt-1">Click &quot;Add Video&quot; to set featured content</p>
                 )}
               </div>
@@ -486,7 +487,7 @@ const upAndComingSources = mainPageSources.filter(
                 />
                 <h3 className="text-md font-bold text-black">Featured NFL Podcast</h3>
               </div>
-              {isAdmin() && (
+              {isAdmin && (
                 <button
                   onClick={() => handleManageVideo('featured-podcast')}
                   className="text-xs bg-green-500 text-white px-2 py-1 rounded hover:bg-green-600 transition-colors"
@@ -520,7 +521,7 @@ const upAndComingSources = mainPageSources.filter(
                         </h4>
                         <p className="text-xs text-gray-500 mt-1">Latest Episode</p>
                       </a>
-                      {featuredPodcast?.isCustom && isAdmin() && (
+                      {featuredPodcast?.isCustom && isAdmin && (
                         <button
                           onClick={() => handleEditVideo('featured-podcast', featuredPodcast)}
                           className="mt-1 bg-yellow-500 text-white px-2 py-1 text-xs rounded hover:bg-yellow-600 transition-colors"
@@ -602,7 +603,7 @@ const upAndComingSources = mainPageSources.filter(
                 </div>
                 <div className="flex items-center gap-2">
                   {/* Edit button for custom articles (admin only) */}
-                  {article.isCustom && isAdmin() && (
+                  {article.isCustom && isAdmin && (
                     <button
                       onClick={() => handleEditArticle(source, article)}
                       className="text-xs bg-yellow-500 text-white px-2 py-1 rounded hover:bg-yellow-600 transition-colors"
@@ -652,7 +653,7 @@ const upAndComingSources = mainPageSources.filter(
           >
             MORE ...
           </a>
-          {isAdmin() && (
+          {isAdmin && (
             <button
               onClick={() => handleManageSource(source)}
               className="text-sm bg-green-500 text-white px-3 py-1 rounded hover:bg-green-600 transition-colors"
@@ -735,7 +736,7 @@ const upAndComingSources = mainPageSources.filter(
                       </p>
                     </div>
                   </div>
-                  {isAdmin() && (
+                  {isAdmin && (
                     <button
                       onClick={() => handleManageVideo('nfl-latest-videos')}
                       className="text-sm bg-green-500 text-white px-3 py-1 rounded hover:bg-green-600 transition-colors"
@@ -745,7 +746,7 @@ const upAndComingSources = mainPageSources.filter(
                   )}
                 </div>
 
-                <HorizontalScroller videos={mergedVideos} onEditVideo={isAdmin() ? (video) => handleEditVideo('nfl-latest-videos', video) : null} />
+                <HorizontalScroller videos={mergedVideos} onEditVideo={isAdmin ? (video) => handleEditVideo('nfl-latest-videos', video) : null} />
 
                 <a
                   href="https://www.youtube.com/c/NFL"
@@ -809,7 +810,7 @@ const upAndComingSources = mainPageSources.filter(
                       </p>
                     </div>
                   </div>
-                  {isAdmin() && (
+                  {isAdmin && (
                     <button
                       onClick={() => handleManageVideo('top-nfl-channels')}
                       className="text-sm bg-green-500 text-white px-3 py-1 rounded hover:bg-green-600 transition-colors"
@@ -819,7 +820,7 @@ const upAndComingSources = mainPageSources.filter(
                   )}
                 </div>
 
-                <HorizontalScroller videos={mergedTopVideos} onEditVideo={isAdmin() ? (video) => handleEditVideo('top-nfl-channels', video) : null} />
+                <HorizontalScroller videos={mergedTopVideos} onEditVideo={isAdmin ? (video) => handleEditVideo('top-nfl-channels', video) : null} />
 
                 <a
                   href="https://www.youtube.com/results?search_query=NFL"
@@ -867,7 +868,7 @@ const upAndComingSources = mainPageSources.filter(
                       </p>
                     </div>
                   </div>
-                  {isAdmin() && (
+                  {isAdmin && (
                     <button
                       onClick={() => handleManageVideo('up-coming-channels')}
                       className="text-sm bg-green-500 text-white px-3 py-1 rounded hover:bg-green-600 transition-colors"
@@ -877,7 +878,7 @@ const upAndComingSources = mainPageSources.filter(
                   )}
                 </div>
 
-                <HorizontalScroller videos={mergedUpComingVideos} onEditVideo={isAdmin() ? (video) => handleEditVideo('up-coming-channels', video) : null} />
+                <HorizontalScroller videos={mergedUpComingVideos} onEditVideo={isAdmin ? (video) => handleEditVideo('up-coming-channels', video) : null} />
 
                 <a
                   href="https://www.youtube.com/results?search_query=nfl+up+and+coming"
@@ -946,7 +947,7 @@ const upAndComingSources = mainPageSources.filter(
                 </div>
                 <div className="flex items-center gap-2">
                   {/* Edit button for custom articles (admin only) */}
-                  {article.isCustom && isAdmin() && (
+                  {article.isCustom && isAdmin && (
                     <button
                       onClick={() => handleEditArticle(source.source, article)}
                       className="text-xs bg-yellow-500 text-white px-2 py-1 rounded hover:bg-yellow-600 transition-colors"
@@ -994,7 +995,7 @@ const upAndComingSources = mainPageSources.filter(
           >
             MORE ...
           </a>
-          {isAdmin() && (
+          {isAdmin && (
             <button
               onClick={() => handleManageSource(source.source)}
               className="text-sm bg-green-500 text-white px-3 py-1 rounded hover:bg-green-600 transition-colors"
@@ -1033,7 +1034,7 @@ const upAndComingSources = mainPageSources.filter(
                       </p>
                     </div>
                   </div>
-                  {isAdmin() && (
+                  {isAdmin && (
                     <button
                       onClick={() => handleManageVideo('nfl-podcasts')}
                       className="text-sm bg-green-500 text-white px-3 py-1 rounded hover:bg-green-600 transition-colors"
@@ -1043,7 +1044,7 @@ const upAndComingSources = mainPageSources.filter(
                   )}
                 </div>
 
-                <HorizontalScroller videos={mergedPodcastVideos} onEditVideo={isAdmin() ? (video) => handleEditVideo('nfl-podcasts', video) : null} />
+                <HorizontalScroller videos={mergedPodcastVideos} onEditVideo={isAdmin ? (video) => handleEditVideo('nfl-podcasts', video) : null} />
 
                 <a
                   href="https://www.youtube.com/results?search_query=NFL+podcast"
@@ -1175,7 +1176,7 @@ const upAndComingSources = mainPageSources.filter(
           >
             MORE ...
           </a>
-          {isAdmin() && (
+          {isAdmin && (
             <button
               onClick={() => handleManageSource(matchedSource.source)}
               className="text-sm bg-green-500 text-white px-3 py-1 rounded hover:bg-green-600 transition-colors"
@@ -1417,7 +1418,7 @@ const upAndComingSources = mainPageSources.filter(
             </p>
           </div>
         </div>
-        {isAdmin() && (
+        {isAdmin && (
           <button
             onClick={() => handleManageVideo('apple-podcasts')}
             className="text-sm bg-green-500 text-white px-3 py-1 rounded hover:bg-green-600 transition-colors"
@@ -1427,7 +1428,7 @@ const upAndComingSources = mainPageSources.filter(
         )}
       </div>
 
-      <HorizontalScroller videos={mergedApplePodcastVideos} onEditVideo={isAdmin() ? (video) => handleEditVideo('apple-podcasts', video) : null} />
+      <HorizontalScroller videos={mergedApplePodcastVideos} onEditVideo={isAdmin ? (video) => handleEditVideo('apple-podcasts', video) : null} />
 
       <a
         href="https://podcasts.apple.com/us/genre/podcasts-sports/id1545"
@@ -1559,7 +1560,7 @@ const upAndComingSources = mainPageSources.filter(
           >
             MORE ...
           </a>
-          {isAdmin() && (
+          {isAdmin && (
             <button
               onClick={() => handleManageSource(matchedSource.source)}
               className="text-sm bg-green-500 text-white px-3 py-1 rounded hover:bg-green-600 transition-colors"
@@ -1691,7 +1692,7 @@ const upAndComingSources = mainPageSources.filter(
           >
             MORE ...
           </a>
-          {isAdmin() && (
+          {isAdmin && (
             <button
               onClick={() => handleManageSource(matchedSource.source)}
               className="text-sm bg-green-500 text-white px-3 py-1 rounded hover:bg-green-600 transition-colors"
@@ -1718,7 +1719,7 @@ const upAndComingSources = mainPageSources.filter(
 
       <Footer />
 
-      {isAdmin() && (
+      {isAdmin && (
         <ManageSourceModal
           isOpen={manageModalOpen}
           onClose={handleModalClose}
@@ -1728,7 +1729,7 @@ const upAndComingSources = mainPageSources.filter(
         />
       )}
 
-      {isAdmin() && (
+      {isAdmin && (
         <ManageVideoModal
           isOpen={videoModalOpen}
           onClose={handleVideoModalClose}

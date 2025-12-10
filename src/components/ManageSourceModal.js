@@ -1,9 +1,8 @@
 "use client";
 import { useState, useEffect } from 'react';
-import { useAuth } from '@/contexts/AuthContext';
+// Removed AuthContext import
 
 export default function ManageSourceModal({ isOpen, onClose, sourceData = null, editingArticle = null, onSave }) {
-  const { isAdmin, user } = useAuth();
   const [formData, setFormData] = useState({
     title: '',
     link: ''

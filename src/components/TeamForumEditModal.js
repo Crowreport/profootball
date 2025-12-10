@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
-import { useAuth } from '@/contexts/AuthContext';
+// Removed AuthContext import
 
 export default function TeamForumEditModal({ isOpen, onClose, teamName, forums, onSave }) {
-  const { user } = useAuth();
+  const user = null; // Removed useAuth
   const [forumList, setForumList] = useState([]);
   const [loading, setLoading] = useState(false);
 

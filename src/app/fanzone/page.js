@@ -4,7 +4,7 @@ import Nav from "@/components/Nav";
 import Footer from "@/components/Footer";
 import Image from "next/image";
 import TeamForumEditModal from "@/components/TeamForumEditModal";
-import { useAuth } from "@/contexts/AuthContext";
+// Removed AuthContext import - now using Zustand for auth
 import { useState, useEffect } from "react";
 
 const conferences = {
@@ -189,7 +189,8 @@ const conferences = {
 };
 
 export default function FanzonePage() {
-  const { isAdmin } = useAuth();
+  // Removed useAuth - replace with Zustand if admin functionality is needed
+  const isAdmin = false; // TODO: Implement with useUserStore if needed
   const [expandedTeam, setExpandedTeam] = useState(null);
   const [teamForums, setTeamForums] = useState({});
   const [loading, setLoading] = useState(true);

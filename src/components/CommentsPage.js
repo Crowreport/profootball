@@ -6,7 +6,7 @@ import DOMPurify from "isomorphic-dompurify";
 import Nav from "@/components/Nav";
 import Footer from "@/components/Footer";
 import { supabase } from "@/utils/supabase";
-import { useAuth } from "@/contexts/AuthContext";
+import { useUserStore } from "@/store/useUserStore";
 import { censorText } from "@/utils/censor";
 import { decodeHtmlEntities } from "@/utils/decodeHtmlEntities";
 import { checkRateLimit } from "@/utils/ratelimit";
@@ -32,7 +32,6 @@ const setStoredVotes = (votes) => {
 };
 
 export default function CommentsPage({ title, sourceTitle, sourceImage, sourceLink }) {
-  const { user, signIn } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [rememberMe, setRememberMe] = useState(false);

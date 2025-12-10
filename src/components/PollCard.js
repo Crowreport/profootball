@@ -21,11 +21,6 @@ const PollCard = () => {
 
   const totalVotes = votes.reduce((sum, v) => sum + v, 0);
 
-  // Load saved data when component mounts
-  useEffect(() => {
-    loadSavedData();
-  }, []);
-
   const loadSavedData = () => {
     try {
       // Load saved vote counts from localStorage
@@ -46,6 +41,11 @@ const PollCard = () => {
       setIsLoading(false);
     }
   };
+
+  // Load saved data when component mounts
+  useEffect(() => {
+    loadSavedData();
+  }, []);
 
   const handleVote = (index) => {
     // Prevent voting if already voted

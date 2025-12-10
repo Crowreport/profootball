@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useAuth } from '@/contexts/AuthContext';
+// Removed AuthContext import
 
 // List of all NFL teams for dropdowns
 const NFL_TEAMS = [
@@ -14,7 +14,7 @@ const NFL_TEAMS = [
 ];
 
 export default function TeamScheduleEditModal({ isOpen, onClose, teamName, schedules, onSave }) {
-  const { user } = useAuth();
+  const user = null; // Removed useAuth
   const [scheduleList, setScheduleList] = useState([]);
   const [loading, setLoading] = useState(false);
 

@@ -1,4 +1,9 @@
 // src/utils/supabase.js
+// DEPRECATED: Use specific clients from /utils/supabase/ folder instead
+// - For client components: import { createClient } from '@/utils/supabase/component'
+// - For API routes: import createClient from '@/utils/supabase/api'
+// - For getServerSideProps: import { createClient } from '@/utils/supabase/server-props'
+
 import { createClient } from "@supabase/supabase-js";
 
 // Create a single supabase client for interacting with your database

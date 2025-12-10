@@ -1,9 +1,10 @@
 "use client";
 import { useState, useEffect } from 'react';
-import { useAuth } from '@/contexts/AuthContext';
 
 export default function ManageVideoModal({ isOpen, onClose, sectionType, editingVideo = null, onSave }) {
-  const { isAdmin, user } = useAuth();
+  // Removed useAuth - set default values
+  const isAdmin = false;
+  const user = null;
   const [formData, setFormData] = useState({
     title: '',
     link: '',

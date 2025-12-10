@@ -7,7 +7,7 @@ import TeamInfoEditModal from "@/components/TeamInfoEditModal";
 import TeamStatsEditModal from "@/components/TeamStatsEditModal";
 import TeamScheduleEditModal from "@/components/TeamScheduleEditModal";
 import TeamNewsEditModal from "@/components/TeamNewsEditModal";
-import { useAuth } from "@/contexts/AuthContext";
+// Removed AuthContext import - now using Zustand for auth
 import { useState, useEffect } from "react";
 
 // Helper: Map team names to primary colors
@@ -311,7 +311,6 @@ const teamSocials = {
 };
 
 export default function TeamPage({ params }) {
-  const { isAdmin } = useAuth();
   const [teamName, setTeamName] = useState('');
   const [teamInfo, setTeamInfo] = useState({
     headCoach: 'Coach Name',

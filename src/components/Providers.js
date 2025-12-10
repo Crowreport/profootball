@@ -1,7 +1,7 @@
 "use client";
 // src/components/Providers.js
-import { AuthProvider } from "@/contexts/AuthContext";
+// Note: AuthContext removed - now using Zustand for state management
 
 export default function Providers({ children }) {
-  return <AuthProvider>{children}</AuthProvider>;
+  return <>{children}</>;
 }
