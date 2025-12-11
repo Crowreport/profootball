@@ -7,8 +7,7 @@ import { getCommentCounts, getAllCommentTitles } from "@/utils/supabase";
 import HorizontalScroller from "@/components/HorizontalScroller";
 import PollCard from "@/components/PollCard";
 import BlogCard from "@/components/Blog";
-import ManageSourceModal from "@/components/ManageSourceModal";
-import ManageVideoModal from "@/components/ManageVideoModal";
+import { ManageSourceModal, ManageVideoModal } from "@/components/modal";
 import { useUserStore } from "@/store/useUserStore";
 import { useState, useEffect } from "react";
 

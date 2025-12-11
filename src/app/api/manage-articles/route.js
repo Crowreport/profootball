@@ -1,9 +1,7 @@
 import { NextResponse } from 'next/server';
 import { supabase } from '@/utils/supabase';
 import { checkRateLimit } from '@/utils/ratelimit';
-
-// Get admin emails from environment variable
-const ADMIN_EMAILS = process.env.ADMIN_EMAILS?.split(',') || [];
+import { checkAdminRole } from '@/utils/checkAdminRole';
 
 // POST - Add custom article to a specific source
 export async function POST(request) {
@@ -26,7 +24,8 @@ export async function POST(request) {
     }
 
     // Check if user is admin
-    if (!ADMIN_EMAILS.includes(userEmail)) {
+    const isAdmin = await checkAdminRole(userEmail);
+    if (!isAdmin) {
       return NextResponse.json({ error: 'Unauthorized - Admin access required' }, { status: 403 });
     }
 
@@ -85,7 +84,8 @@ export async function PUT(request) {
     }
 
     // Check if user is admin
-    if (!ADMIN_EMAILS.includes(userEmail)) {
+    const isAdmin = await checkAdminRole(userEmail);
+    if (!isAdmin) {
       return NextResponse.json({ error: 'Unauthorized - Admin access required' }, { status: 403 });
     }
 
@@ -146,7 +146,8 @@ export async function DELETE(request) {
     }
 
     // Check if user is admin
-    if (!ADMIN_EMAILS.includes(userEmail)) {
+    const isAdmin = await checkAdminRole(userEmail);
+    if (!isAdmin) {
       return NextResponse.json({ error: 'Unauthorized - Admin access required' }, { status: 403 });
     }
 
