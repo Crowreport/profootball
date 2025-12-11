@@ -1,8 +1,31 @@
-import { useState, useEffect } from 'react';
-// Removed AuthContext import
+'use client'
 
-export default function TeamInfoEditModal({ isOpen, onClose, teamName, teamInfo, onSave }) {
-  const user = null; // Removed useAuth
+import { useState, useEffect } from 'react';
+import Modal from '../modal';
+import { useUserStore } from '@/store/useUserStore';
+
+interface TeamInfo {
+  headCoach?: string;
+  stadium?: string;
+  established?: string;
+}
+
+interface TeamInfoEditModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  teamName: string;
+  teamInfo?: TeamInfo | null;
+  onSave: (result: any) => void;
+}
+
+export default function TeamInfoEditModal({ 
+  isOpen, 
+  onClose, 
+  teamName, 
+  teamInfo, 
+  onSave 
+}: TeamInfoEditModalProps) {
+  const { profile, isAuthenticated } = useUserStore();
   const [formData, setFormData] = useState({
     headCoach: '',
     stadium: '',
@@ -20,9 +43,9 @@ export default function TeamInfoEditModal({ isOpen, onClose, teamName, teamInfo,
     }
   }, [isOpen, teamInfo]);
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!user?.email) {
+    if (!isAuthenticated || !profile?.email) {
       alert('You must be logged in to edit team information');
       return;
     }
@@ -36,10 +59,8 @@ export default function TeamInfoEditModal({ isOpen, onClose, teamName, teamInfo,
         },
         body: JSON.stringify({
           teamName,
-          headCoach: formData.headCoach,
-          stadium: formData.stadium,
-          established: formData.established,
-          userEmail: user.email
+          ...formData,
+          userEmail: profile.email
         }),
       });
 
@@ -53,35 +74,28 @@ export default function TeamInfoEditModal({ isOpen, onClose, teamName, teamInfo,
         alert(result.error || 'Failed to update team information');
       }
     } catch (error) {
-      console.error('Error updating team info:', error);
+      console.error('Error updating team information:', error);
       alert('Failed to update team information. Please try again.');
     } finally {
       setLoading(false);
     }
   };
 
-  const handleChange = (e) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({
       ...formData,
       [e.target.name]: e.target.value
     });
   };
 
-  if (!isOpen) return null;
-
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg p-6 w-full max-w-md mx-4">
-        <div className="flex justify-between items-center mb-4">
-          <h2 className="text-xl font-bold">Edit Team Info - {teamName}</h2>
-          <button
-            onClick={onClose}
-            className="text-gray-500 hover:text-gray-700"
-          >
-            ✕
-          </button>
-        </div>
-
+    <Modal
+      isOpen={isOpen}
+      onClose={onClose}
+      title={`Edit Team Info - ${teamName}`}
+      size="md"
+    >
+      <div className="p-6">
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -94,7 +108,7 @@ export default function TeamInfoEditModal({ isOpen, onClose, teamName, teamInfo,
               onChange={handleChange}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               placeholder="Enter head coach name"
-              required
+              disabled={loading}
             />
           </div>
 
@@ -109,46 +123,44 @@ export default function TeamInfoEditModal({ isOpen, onClose, teamName, teamInfo,
               onChange={handleChange}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               placeholder="Enter stadium name"
-              required
+              disabled={loading}
             />
           </div>
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Established Year
+              Established
             </label>
             <input
-              type="number"
+              type="text"
               name="established"
               value={formData.established}
               onChange={handleChange}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               placeholder="Enter establishment year"
-              min="1900"
-              max="2024"
-              required
+              disabled={loading}
             />
           </div>
 
-          <div className="flex justify-end space-x-3 pt-4">
+          <div className="flex justify-end space-x-3 pt-4 border-t">
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 text-gray-600 bg-gray-200 rounded hover:bg-gray-300 transition-colors"
+              className="px-4 py-2 text-gray-600 bg-gray-200 rounded hover:bg-gray-300 transition-colors cursor-pointer"
               disabled={loading}
             >
               Cancel
             </button>
             <button
               type="submit"
-              className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors disabled:opacity-50"
+              className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors disabled:opacity-50 cursor-pointer"
               disabled={loading}
             >
-              {loading ? 'Saving...' : 'Save Changes'}
+              {loading ? 'Saving...' : 'Save Info'}
             </button>
           </div>
         </form>
       </div>
-    </div>
+    </Modal>
   );
-} 
+}

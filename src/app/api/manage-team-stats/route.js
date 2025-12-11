@@ -1,14 +1,15 @@
+import { checkAdminRole } from '@/utils/checkAdminRole';
 import { supabase } from '@/utils/supabase';
 
 // Admin emails for validation
-const ADMIN_EMAILS = process.env.ADMIN_EMAILS?.split(',') || [];
 
 export async function POST(request) {
   try {
     const { teamName, wins, losses, ties, divisionPosition, userEmail } = await request.json();
 
     // Validate admin user
-    if (!ADMIN_EMAILS.includes(userEmail)) {
+    const isAdmin = await checkAdminRole(userEmail);
+    if (!isAdmin) {
       return Response.json({ error: 'Unauthorized. Admin access required.' }, { status: 403 });
     }
 

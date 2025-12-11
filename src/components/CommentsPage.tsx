@@ -3,9 +3,10 @@
 import React, { useState, useEffect } from "react";
 import dynamic from "next/dynamic";
 import DOMPurify from "isomorphic-dompurify";
+import Image from "next/image";
 import Nav from "@/components/Nav";
 import Footer from "@/components/Footer";
-import { supabase } from "@/utils/supabase";
+import { createClient } from "@/utils/supabase/component";
 import { useUserStore } from "@/store/useUserStore";
 import { censorText } from "@/utils/censor";
 import { decodeHtmlEntities } from "@/utils/decodeHtmlEntities";
@@ -17,7 +18,28 @@ const Editor = dynamic(
   { ssr: false }
 );
 
-const getStoredVotes = () => {
+interface Comment {
+  comment_id: string;
+  user_id: string;
+  newsletter_title: string;
+  content: string;
+  votes_up: number;
+  votes_down: number;
+  created_at: string;
+  users?: {
+    first_name?: string;
+    last_name?: string;
+  };
+}
+
+interface CommentsPageProps {
+  title: string;
+  sourceTitle?: string;
+  sourceImage?: string;
+  sourceLink?: string;
+}
+
+const getStoredVotes = (): Record<string, string> => {
   if (typeof window === 'undefined') return {};
   try {
     return JSON.parse(localStorage.getItem('commentVotes') || '{}');
@@ -26,42 +48,34 @@ const getStoredVotes = () => {
   }
 };
 
-const setStoredVotes = (votes) => {
+const setStoredVotes = (votes: Record<string, string>): void => {
   if (typeof window === 'undefined') return;
   localStorage.setItem('commentVotes', JSON.stringify(votes));
 };
 
-export default function CommentsPage({ title, sourceTitle, sourceImage, sourceLink }) {
+export default function CommentsPage({ title, sourceTitle, sourceImage, sourceLink }: CommentsPageProps) {
+  const { profile, isAuthenticated } = useUserStore();
+  const supabase = createClient();
+  
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [rememberMe, setRememberMe] = useState(false);
-  const [comments, setComments] = useState([]);
+  const [comments, setComments] = useState<Comment[]>([]);
   const [commentContent, setCommentContent] = useState("");
+  const [userVotes, setUserVotes] = useState<Record<string, string>>({});
+  const [isLoading, setIsLoading] = useState(false);
+  
   const decodedTitle = decodeURIComponent(title);
-  const [userVotes, setUserVotes] = useState({});
 
   useEffect(() => {
     setUserVotes(getStoredVotes());
   }, []);
 
-  // You can remove this test query unless you specifically need it for debugging.
-  // useEffect(() => {
-  //   const testQuery = async () => {
-  //     const { data, error } = await supabase
-  //       .from("comments") // <--- REMOVED .schema("membership")
-  //       .select("*")
-  //       .limit(1);
-  //     if (error) console.error("Test Query Error:", error);
-  //     else console.log("Test Query Data:", data);
-  //   };
-  //   testQuery();
-  // }, []);
-
   // Fetch comments from Supabase when component mounts or title changes
   useEffect(() => {
     const fetchComments = async () => {
       const { data, error } = await supabase
-        .from("comments") // <--- REMOVED .schema("membership")
+        .from("comments")
         .select(
           `
           *,
@@ -72,102 +86,125 @@ export default function CommentsPage({ title, sourceTitle, sourceImage, sourceLi
         `
         )
         .eq("newsletter_title", decodedTitle)
-        .order("created_at", { ascending: true }); // Order ascending to match insertion logic
+        .order("created_at", { ascending: true });
 
       console.log("Fetched Comments:", data);
 
       if (error) {
         console.error("Error fetching comments:", error);
       } else {
-        setComments(data);
+        setComments(data || []);
       }
     };
 
     fetchComments();
 
-    // Setup real-time listener for new comments if you want them to appear automatically
+    // Setup real-time listener for new comments
     const commentsChannel = supabase
       .channel("comments_changes")
       .on(
         "postgres_changes",
         {
-          event: "*", // Listen for all changes (INSERT, UPDATE, DELETE)
-          schema: "public", // Specify the schema
+          event: "*",
+          schema: "public",
           table: "comments",
-          filter: `newsletter_title=eq.${decodedTitle}`, // Only listen for changes related to this title
+          filter: `newsletter_title=eq.${decodedTitle}`,
         },
         (payload) => {
           console.log("Change received!", payload);
-          // Refetch all comments for simplicity, or handle specific payload types
-          fetchComments(); // Re-fetch to ensure order and full data
+          fetchComments();
         }
       )
       .subscribe();
 
-    // Clean up on component unmount
     return () => {
       commentsChannel.unsubscribe();
     };
-  }, [decodedTitle]); // Depend on decodedTitle
+  }, [decodedTitle, supabase]);
+
+  const handleLogin = async (): Promise<boolean> => {
+    if (email.trim() === "") {
+      alert("Please enter an email.");
+      return false;
+    }
+    if (password.trim() === "") {
+      alert("Please enter a password.");
+      return false;
+    }
+
+    setIsLoading(true);
+    
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email,
+      password
+    });
+
+    if (error) {
+      alert("Login failed: " + error.message);
+      setIsLoading(false);
+      return false;
+    }
+
+    if (!data.user) {
+      alert("User not found after login. Please try again.");
+      setIsLoading(false);
+      return false;
+    }
+
+    // Note: The profile will be updated by the app's auth flow
+    // For now, we'll just clear the login form
+    if (!rememberMe) {
+      setEmail("");
+      setPassword("");
+    }
+
+    setIsLoading(false);
+    return true;
+  };
 
   const handleSubmit = async () => {
     if (
       commentContent.trim() === "" ||
       commentContent === "<p><br></p>" ||
       commentContent === "<p></p>"
-    )
+    ) {
       return alert("Please enter a comment.");
+    }
 
     // Rate limiting: max 5 comments per minute
-    const userIp = 'client-' + (user?.id || 'anonymous');
+    const userIp = 'client-' + (profile?.id || 'anonymous');
     if (!checkRateLimit(userIp, 5)) {
       return alert("Too many comments. Please wait a moment (max 5 per minute).");
     }
 
-    let currentUser = user;
-
-    if (!currentUser) {
-      if (email.trim() === "") return alert("Please enter an email.");
-      if (password.trim() === "") return alert("Please enter a password.");
-
-      // Ensure that signIn also returns data and error correctly.
-      // Assuming signIn in AuthContext handles Supabase login and updates the user state.
-      const { user: signedInUser, error: loginError } = await signIn(
-        email,
-        password
-      );
-
-      if (loginError) {
-        return alert("Login failed: " + loginError.message);
-      }
-
-      if (!signedInUser) {
-        // Check if user object is directly returned or nested
-        alert("User not found after login. Please try again.");
+    // Handle authentication if not logged in
+    if (!isAuthenticated || !profile) {
+      const loginSuccess = await handleLogin();
+      if (!loginSuccess) {
         return;
       }
-
-      currentUser = signedInUser; // Assign the directly returned user object
+      
+      // We need to wait for the profile to be set, but for now we'll use a different approach
+      alert("Please try submitting your comment again after logging in.");
+      return;
     }
 
     // Censor the comment content before saving
-    // 1. Strip HTML tags, 2. Decode entities, 3. Censor
     const plainText = decodeHtmlEntities(commentContent.replace(/<[^>]+>/g, ' '));
     const censoredContent = censorText(plainText);
 
     const newCommentPayload = {
-      // Renamed to avoid confusion with newComment object
-      user_id: currentUser.id,
+      user_id: profile.id,
       newsletter_title: decodedTitle,
       content: censoredContent,
-      // created_at and updated_at are handled by database defaults
-      // votes_up and votes_down are handled by database defaults
     };
+
+    setIsLoading(true);
 
     // Insert new comment into Supabase
     const { data, error } = await supabase
-      .from("comments") // <--- REMOVED .schema("membership")
-      .insert([newCommentPayload]) // Use the payload object
+      .from("comments")
+      .insert([newCommentPayload])
       .select(
         `
         *,
@@ -178,6 +215,8 @@ export default function CommentsPage({ title, sourceTitle, sourceImage, sourceLi
       `
       );
 
+    setIsLoading(false);
+
     if (error) {
       alert("Error adding comment: " + error.message);
       console.error(error);
@@ -186,35 +225,31 @@ export default function CommentsPage({ title, sourceTitle, sourceImage, sourceLi
       if (data && data[0]) {
         setComments((prevComments) => [...prevComments, data[0]]);
       }
-      if (!rememberMe) {
-        setEmail("");
-        setPassword("");
-      }
       setCommentContent("");
     }
   };
 
-  const handleVote = async (index, type) => {
+  const handleVote = async (index: number, type: 'up' | 'down') => {
     const comment = comments[index];
     const votes = getStoredVotes();
     const prevVote = votes[comment.comment_id];
+    
     if (prevVote === type) {
-      // Already voted this way, do nothing
       return;
     }
-    let updatedVotes = { ...votes, [comment.comment_id]: type };
+    
+    const updatedVotes = { ...votes, [comment.comment_id]: type };
     setStoredVotes(updatedVotes);
     setUserVotes(updatedVotes);
 
     // Calculate vote changes
     let votes_up = comment.votes_up;
     let votes_down = comment.votes_down;
+    
     if (!prevVote) {
-      // First time voting
       if (type === 'up') votes_up++;
       else votes_down++;
     } else {
-      // Changing vote
       if (type === 'up') {
         votes_up++;
         votes_down--;
@@ -234,7 +269,7 @@ export default function CommentsPage({ title, sourceTitle, sourceImage, sourceLi
     if (error) {
       alert('Error updating vote: ' + error.message);
       console.error(error);
-    } else {
+    } else if (data && data[0]) {
       const updatedCommentData = {
         ...data[0],
         users: comment.users,
@@ -255,10 +290,12 @@ export default function CommentsPage({ title, sourceTitle, sourceImage, sourceLi
         {sourceTitle && (
           <div className="flex items-center mb-4 p-3 bg-white rounded-lg border">
             {sourceImage && (
-              <img
+              <Image
                 src={decodeURIComponent(sourceImage)}
                 alt={decodeURIComponent(sourceTitle)}
-                className="w-10 h-10 mr-3 rounded-full object-cover"
+                width={40}
+                height={40}
+                className="mr-3 rounded-full object-cover"
               />
             )}
             <div>
@@ -288,9 +325,7 @@ export default function CommentsPage({ title, sourceTitle, sourceImage, sourceLi
           {comments.length > 0 ? (
             <ul className="border p-2 rounded bg-gray-50">
               {comments.map((c, index) => (
-                <li key={c.comment_id} className="border-b p-2 last:border-0 ">
-                  {" "}
-                  {/* Use unique ID for key */}
+                <li key={c.comment_id} className="border-b p-2 last:border-0">
                   <div className="flex frontusername justify-between items-center bg-[#f5da9f] border">
                     <div className="ml-5 font-bold">
                       {c.users?.first_name} {c.users?.last_name}
@@ -344,7 +379,7 @@ export default function CommentsPage({ title, sourceTitle, sourceImage, sourceLi
         </section>
 
         {/* Login and Comment Section */}
-        {!user ? (
+        {!isAuthenticated ? (
           <form
             onSubmit={(e) => e.preventDefault()}
             className="space-y-4 border border-black p-4 rounded bg-gray-50"
@@ -358,6 +393,7 @@ export default function CommentsPage({ title, sourceTitle, sourceImage, sourceLi
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
+                disabled={isLoading}
               />
               <label className="font-bold ml-4">Password:</label>
               <input
@@ -367,6 +403,7 @@ export default function CommentsPage({ title, sourceTitle, sourceImage, sourceLi
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
+                disabled={isLoading}
               />
               <a
                 href="/forgot-password"
@@ -382,6 +419,7 @@ export default function CommentsPage({ title, sourceTitle, sourceImage, sourceLi
                 id="rememberMe"
                 checked={rememberMe}
                 onChange={(e) => setRememberMe(e.target.checked)}
+                disabled={isLoading}
               />
               <label htmlFor="rememberMe" className="ml-2">
                 Remember me
@@ -410,7 +448,7 @@ export default function CommentsPage({ title, sourceTitle, sourceImage, sourceLi
                     "Arial=arial,helvetica,sans-serif; Courier New=courier new,courier; Times New Roman=times new roman,times; Verdana=verdana,geneva;",
                   fontsize_formats: "10px 12px 14px 16px 18px 24px 36px",
                   file_picker_types: "image media",
-                  images_upload_handler: (blobInfo) => {
+                  images_upload_handler: (blobInfo: any) => {
                     return new Promise((resolve, reject) => {
                       try {
                         const base64 = blobInfo.base64();
@@ -422,25 +460,24 @@ export default function CommentsPage({ title, sourceTitle, sourceImage, sourceLi
                       }
                     });
                   },
-                  file_picker_callback: (callback, value, meta) => {
+                  file_picker_callback: (callback: any, value: any, meta: any) => {
                     const input = document.createElement("input");
                     input.setAttribute("type", "file");
 
                     if (meta.filetype === "image") {
                       input.setAttribute("accept", "image/*");
                     } else if (meta.filetype === "media") {
-                      input.setAttribute("accept", "video/*"); // accepts video
+                      input.setAttribute("accept", "video/*");
                     }
 
                     input.onchange = function () {
-                      const file = this.files[0];
+                      const file = (this as HTMLInputElement).files?.[0];
+                      if (!file) return;
+                      
                       const reader = new FileReader();
-
                       reader.onload = function () {
-                        // This will embed the video as a base64 blob
                         callback(reader.result, { title: file.name });
                       };
-
                       reader.readAsDataURL(file);
                     };
 
@@ -457,10 +494,11 @@ export default function CommentsPage({ title, sourceTitle, sourceImage, sourceLi
             <div className="flex justify-end space-x-2 mt-4">
               <button
                 onClick={handleSubmit}
-                className="px-4 py-2 bg-[#f5da9f] text-black rounded hover:bg-black hover:text-yellow-400 transition"
+                className="px-4 py-2 bg-[#f5da9f] text-black rounded hover:bg-black hover:text-yellow-400 transition disabled:opacity-50"
                 type="button"
+                disabled={isLoading}
               >
-                Add Comment
+                {isLoading ? 'Processing...' : 'Add Comment'}
               </button>
             </div>
           </form>
@@ -469,7 +507,7 @@ export default function CommentsPage({ title, sourceTitle, sourceImage, sourceLi
             onSubmit={(e) => e.preventDefault()}
             className="space-y-4 border border-black p-4 rounded bg-gray-50"
           >
-            <p className="mb-4">Logged in as {user.email}</p>
+            <p className="mb-4">Logged in as {profile?.email}</p>
 
             <div className="border border-gray-300 rounded p-2 bg-white">
               <Editor
@@ -486,7 +524,7 @@ export default function CommentsPage({ title, sourceTitle, sourceImage, sourceLi
                   fontsize_formats: "10px 12px 14px 16px 18px 24px 36px",
                   automatic_uploads: true,
                   file_picker_types: "image media",
-                  images_upload_handler: (blobInfo) => {
+                  images_upload_handler: (blobInfo: any) => {
                     return new Promise((resolve, reject) => {
                       try {
                         const base64 = blobInfo.base64();
@@ -498,25 +536,24 @@ export default function CommentsPage({ title, sourceTitle, sourceImage, sourceLi
                       }
                     });
                   },
-                  file_picker_callback: (callback, value, meta) => {
+                  file_picker_callback: (callback: any, value: any, meta: any) => {
                     const input = document.createElement("input");
                     input.setAttribute("type", "file");
 
                     if (meta.filetype === "image") {
                       input.setAttribute("accept", "image/*");
                     } else if (meta.filetype === "media") {
-                      input.setAttribute("accept", "video/*"); // accepts video
+                      input.setAttribute("accept", "video/*");
                     }
 
                     input.onchange = function () {
-                      const file = this.files[0];
+                      const file = (this as HTMLInputElement).files?.[0];
+                      if (!file) return;
+                      
                       const reader = new FileReader();
-
                       reader.onload = function () {
-                        // This will embed the video as a base64 blob
                         callback(reader.result, { title: file.name });
                       };
-
                       reader.readAsDataURL(file);
                     };
 
@@ -533,10 +570,11 @@ export default function CommentsPage({ title, sourceTitle, sourceImage, sourceLi
             <div className="flex justify-end space-x-2 mt-4">
               <button
                 onClick={handleSubmit}
-                className="px-4 py-2 bg-[#f5da9f] text-black rounded hover:bg-black hover:text-yellow-400 transition"
+                className="px-4 py-2 bg-[#f5da9f] text-black rounded hover:bg-black hover:text-yellow-400 transition disabled:opacity-50"
                 type="button"
+                disabled={isLoading}
               >
-                Add Comment
+                {isLoading ? 'Adding Comment...' : 'Add Comment'}
               </button>
             </div>
           </form>

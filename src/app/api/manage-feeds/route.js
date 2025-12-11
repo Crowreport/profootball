@@ -1,9 +1,9 @@
+import { checkAdminRole } from '@/utils/checkAdminRole';
 import { NextResponse } from 'next/server';
 import fs from 'fs';
 import path from 'path';
 
 // Get admin emails from environment variable
-const ADMIN_EMAILS = process.env.ADMIN_EMAILS?.split(',') || [];
 
 const FEEDS_FILE_PATH = path.join(process.cwd(), 'data', 'feeds.json');
 
