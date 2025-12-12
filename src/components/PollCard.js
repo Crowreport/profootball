@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 
 const PollCard = () => {
   const [votes, setVotes] = useState([0, 0, 0, 0, 0]);
@@ -21,31 +21,24 @@ const PollCard = () => {
 
   const totalVotes = votes.reduce((sum, v) => sum + v, 0);
 
-  const loadSavedData = () => {
+  const loadSavedData = useCallback(() => {
     try {
-      // Load saved vote counts from localStorage
       const savedVotes = localStorage.getItem(VOTES_KEY);
-      if (savedVotes) {
-        const parsedVotes = JSON.parse(savedVotes);
-        setVotes(parsedVotes);
-      }
+      if (savedVotes) setVotes(JSON.parse(savedVotes));
 
-      // Check if user has already voted
       const userVote = localStorage.getItem(USER_VOTE_KEY);
-      if (userVote !== null) {
-        setVotedIndex(parseInt(userVote));
-      }
+      if (userVote !== null) setVotedIndex(parseInt(userVote, 10));
     } catch (error) {
-      console.error('Error loading saved poll data:', error);
+      console.error("Error loading saved poll data:", error);
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [VOTES_KEY, USER_VOTE_KEY]);
 
   // Load saved data when component mounts
   useEffect(() => {
     loadSavedData();
-  }, []);
+  }, [loadSavedData]);
 
   const handleVote = (index) => {
     // Prevent voting if already voted

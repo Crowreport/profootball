@@ -35,7 +35,6 @@ export default function StandingsPage() {
 
   useEffect(() => {
     fetchStandings();
-    // eslint-disable-next-line
   }, []);
 
   async function fetchStandings() {
