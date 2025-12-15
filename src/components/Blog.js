@@ -10,7 +10,6 @@ const BlogCard = () => {
         </div>
       </div>
       <h2 className="text-xl font-bold text-black mb-1">Letter From the Editor</h2>
-      <p className="text-gray-600 text-sm mb-2">By Rob Croley</p>
       <p className="text-gray-800 text-sm line-clamp-4">
         In this week&apos;s letter, we reflect on the shifting narratives surrounding the NFL&apos;s preseason and how team dynamics are evolving. Stay tuned for deeper insights and exclusive commentary.
       </p>
