@@ -7,7 +7,7 @@ import { getCommentCounts, getAllCommentTitles } from "@/utils/supabase";
 import HorizontalScroller from "@/components/HorizontalScroller";
 import PollCard from "@/components/PollCard";
 import BlogCard from "@/components/Blog";
-import { ManageSourceModal, ManageVideoModal } from "@/components/modal";
+import { ManageSourceModal, ManageVideoModal, PollManagementModal } from "@/components/modal";
 import { useUserStore } from "@/store/useUserStore";
 import { useState, useEffect } from "react";
 
@@ -77,6 +77,9 @@ export default function Home() {
   const [editingArticle, setEditingArticle] = useState<any>(null);
   const [editingVideo, setEditingVideo] = useState<any>(null);
   const [commentCounts, setCommentCounts] = useState<Record<string, number>>({});
+  const [polls, setPolls] = useState<any[]>([]);
+  const [pollModalOpen, setPollModalOpen] = useState<boolean>(false);
+  const [editingPoll, setEditingPoll] = useState<any>(null);
 
   // Fetch custom articles
   const fetchCustomArticles = async () => {
@@ -91,19 +94,34 @@ export default function Home() {
     }
   };
 
+  // Fetch polls
+  const fetchPolls = async () => {
+    try {
+      const response = await fetch('/api/polls?status=active&limit=10');
+      if (response.ok) {
+        const data = await response.json();
+        setPolls(data.polls || []);
+      }
+    } catch (error) {
+      console.error('Error fetching polls:', error);
+    }
+  };
+
   useEffect(() => {
     const loadData = async () => {
       try {
         setLoading(true);
-        const [fetchedSources, customArticlesData, customVideosData] = await Promise.all([
+        const [fetchedSources, customArticlesData, customVideosData, pollsData] = await Promise.all([
           fetchRSS(),
           fetch('/api/manage-articles').then(res => res.ok ? res.json() : { articles: {} }),
-          fetch('/api/manage-videos').then(res => res.ok ? res.json() : { videos: {} })
+          fetch('/api/manage-videos').then(res => res.ok ? res.json() : { videos: {} }),
+          fetch('/api/polls?status=active&limit=10').then(res => res.ok ? res.json() : { polls: [] })
         ]);
         
         setSources(fetchedSources);
         setCustomArticles(customArticlesData.articles || {});
         setCustomVideos(customVideosData.videos || {});
+        setPolls(pollsData.polls || []);
 
         // Get comment counts for displayed articles
         const displayedArticles = fetchedSources.flatMap(source => 
@@ -194,6 +212,33 @@ export default function Home() {
     setVideoModalOpen(false);
     setSelectedVideoSection(null);
     setEditingVideo(null);
+  };
+
+  const handleManagePoll = () => {
+    setEditingPoll(null);
+    setPollModalOpen(true);
+  };
+
+  const handleEditPoll = (poll) => {
+    setEditingPoll(poll);
+    setPollModalOpen(true);
+  };
+
+  const handlePollSave = async (result) => {
+    // Refresh polls after save
+    await fetchPolls();
+    console.log('Poll saved successfully:', result);
+  };
+
+  const handlePollDelete = async (pollId: string) => {
+    // Refresh polls after delete
+    await fetchPolls();
+    console.log('Polls refreshed after delete');
+  };
+
+  const handlePollModalClose = () => {
+    setPollModalOpen(false);
+    setEditingPoll(null);
   };
 
   // Merge custom videos with YouTube sections
@@ -498,7 +543,7 @@ const upAndComingSources = mainPageSources.filter(
 
             {/* Get first podcast from available sources */}
             {(() => {
-              const featuredPodcast = podcastSources?.[0]?.articles?.[0] || customVideos['featured-podcast']?.[0];
+              const featuredPodcast = customVideos['featured-podcast']?.[0] || podcastSources?.[0]?.articles?.[0];
               
               return featuredPodcast ? (
                 <div className="aspect-video bg-gray-50 rounded-lg flex items-center p-4">
@@ -771,8 +816,14 @@ const upAndComingSources = mainPageSources.filter(
       })}
 
     {/* ✅ Poll Card */}
-    <div className="bg-white shadow-lg rounded-lg p-4 flex items-center justify-center text-gray-500 text-lg font-semibold h-full">
-      <PollCard />
+    <div className="bg-white shadow-lg rounded-lg p-4 h-full">
+      <PollCard 
+        polls={polls}
+        onManagePoll={handleManagePoll}
+        onEditPoll={handleEditPoll}
+        onRefresh={fetchPolls}
+        limit={1}
+      />
     </div>
     
     {/* Blank Card - Visible but empty */}
@@ -1735,6 +1786,15 @@ const upAndComingSources = mainPageSources.filter(
           sectionType={selectedVideoSection}
           editingVideo={editingVideo}
           onSave={handleVideoSave}
+        />
+      )}
+
+      {isAdmin && (
+        <PollManagementModal
+          isOpen={pollModalOpen}
+          onClose={handlePollModalClose}
+          editingPoll={editingPoll}
+          onSave={handlePollSave}
         />
       )}
     </div>

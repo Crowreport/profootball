@@ -1,5 +1,6 @@
 import { supabase } from '@/utils/supabase';
 import { checkAdminRole } from '@/utils/checkAdminRole';
+import { createClient } from '@supabase/supabase-js';
 
 export async function POST(request) {
   try {
@@ -19,8 +20,14 @@ export async function POST(request) {
     console.log('Updating team forums for:', teamName);
     console.log('Number of forums:', forums.length);
 
+    // Create authenticated Supabase client with secret key for admin operations
+    const adminSupabase = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL,
+      process.env.SUPABASE_SECRET_KEY
+    );
+
     // First, delete existing forums for this team
-    const { error: deleteError } = await supabase
+    const { error: deleteError } = await adminSupabase
       .from('team_forums')
       .delete()
       .eq('team_name', teamName);
@@ -38,7 +45,7 @@ export async function POST(request) {
       created_at: new Date().toISOString()
     }));
 
-    const { data, error } = await supabase
+    const { data, error } = await adminSupabase
       .from('team_forums')
       .insert(forumsToInsert)
       .select();

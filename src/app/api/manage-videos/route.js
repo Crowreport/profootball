@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { createClient } from '@supabase/supabase-js';
 import { supabase } from '@/utils/supabase';
 import { checkRateLimit } from '@/utils/ratelimit';
 import { checkAdminRole } from '@/utils/checkAdminRole';
@@ -30,6 +31,12 @@ export async function POST(request) {
     }
 
     console.log('Adding video for admin user:', userEmail);
+
+    // Create authenticated Supabase client with secret key
+    const supabase = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL,
+      process.env.SUPABASE_SECRET_KEY
+    );
 
     // Insert the new custom video into the database
     const { data: newVideo, error: insertError } = await supabase
@@ -89,6 +96,12 @@ export async function PUT(request) {
     if (!isAdmin) {
       return NextResponse.json({ error: 'Unauthorized - Admin access required' }, { status: 403 });
     }
+
+    // Create authenticated Supabase client with secret key
+    const supabase = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL,
+      process.env.SUPABASE_SECRET_KEY
+    );
 
     // Update the video
     const { data: updatedVideo, error: updateError } = await supabase
@@ -154,6 +167,12 @@ export async function DELETE(request) {
       return NextResponse.json({ error: 'Unauthorized - Admin access required' }, { status: 403 });
     }
 
+    // Create authenticated Supabase client with secret key
+    const supabase = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL,
+      process.env.SUPABASE_SECRET_KEY
+    );
+
     // Delete the video
     const { data: deletedVideo, error: deleteError } = await supabase
       .from('custom_videos')
@@ -188,7 +207,7 @@ export async function GET() {
   try {
     console.log('Fetching all custom videos');
     
-    // Fetch all custom videos from the database
+    // Use regular supabase client for public read access
     const { data: videos, error } = await supabase
       .from('custom_videos')
       .select('*')

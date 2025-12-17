@@ -11,3 +11,4 @@ export { default as TeamScheduleEditModal } from './TeamSchedule/TeamScheduleEdi
 // Management Modals
 export { default as ManageSourceModal } from './ManageSource/ManageSourceModal';
 export { default as ManageVideoModal } from './ManageVideo/ManageVideoModal';
+export { default as PollManagementModal } from './PollManagement/PollManagementModal';
