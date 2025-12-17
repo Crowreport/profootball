@@ -3,10 +3,7 @@ import Nav from "@/components/Nav";
 import Footer from "@/components/Footer";
 import Image from "next/image";
 import Card from "./Card";
-import TeamInfoEditModal from "@/components/TeamInfoEditModal";
-import TeamStatsEditModal from "@/components/TeamStatsEditModal";
-import TeamScheduleEditModal from "@/components/TeamScheduleEditModal";
-import TeamNewsEditModal from "@/components/TeamNewsEditModal";
+import { TeamInfoEditModal, TeamStatsEditModal, TeamScheduleEditModal, TeamNewsEditModal } from "@/components/modal";
 // Removed AuthContext import - now using Zustand for auth
 import { useState, useEffect } from "react";
 

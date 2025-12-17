@@ -1,9 +1,8 @@
 import { NextResponse } from 'next/server';
+import { createClient } from '@supabase/supabase-js';
 import { supabase } from '@/utils/supabase';
 import { checkRateLimit } from '@/utils/ratelimit';
-
-// Get admin emails from environment variable
-const ADMIN_EMAILS = process.env.ADMIN_EMAILS?.split(',') || [];
+import { checkAdminRole } from '@/utils/checkAdminRole';
 
 // POST - Add custom article to a specific source
 export async function POST(request) {
@@ -26,11 +25,18 @@ export async function POST(request) {
     }
 
     // Check if user is admin
-    if (!ADMIN_EMAILS.includes(userEmail)) {
+    const isAdmin = await checkAdminRole(userEmail);
+    if (!isAdmin) {
       return NextResponse.json({ error: 'Unauthorized - Admin access required' }, { status: 403 });
     }
 
     console.log('Adding article for admin user:', userEmail);
+
+    // Create authenticated Supabase client with secret key
+    const supabase = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL,
+      process.env.SUPABASE_SECRET_KEY
+    );
 
     // Insert the new custom article into the database
     const { data: newArticle, error: insertError } = await supabase
@@ -85,9 +91,16 @@ export async function PUT(request) {
     }
 
     // Check if user is admin
-    if (!ADMIN_EMAILS.includes(userEmail)) {
+    const isAdmin = await checkAdminRole(userEmail);
+    if (!isAdmin) {
       return NextResponse.json({ error: 'Unauthorized - Admin access required' }, { status: 403 });
     }
+
+    // Create authenticated Supabase client with secret key
+    const supabase = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL,
+      process.env.SUPABASE_SECRET_KEY
+    );
 
     // Update the article
     const { data: updatedArticle, error: updateError } = await supabase
@@ -146,9 +159,16 @@ export async function DELETE(request) {
     }
 
     // Check if user is admin
-    if (!ADMIN_EMAILS.includes(userEmail)) {
+    const isAdmin = await checkAdminRole(userEmail);
+    if (!isAdmin) {
       return NextResponse.json({ error: 'Unauthorized - Admin access required' }, { status: 403 });
     }
+
+    // Create authenticated Supabase client with secret key
+    const supabase = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL,
+      process.env.SUPABASE_SECRET_KEY
+    );
 
     // Delete the article
     const { data: deletedArticle, error: deleteError } = await supabase
@@ -184,7 +204,7 @@ export async function GET() {
   try {
     console.log('Fetching all custom articles');
     
-    // Fetch all custom articles from the database
+    // Use regular supabase client for public read access
     const { data: articles, error } = await supabase
       .from('custom_articles')
       .select('*')

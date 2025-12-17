@@ -1,14 +1,16 @@
+import { checkAdminRole } from '@/utils/checkAdminRole';
 import { supabase } from '@/utils/supabase';
+import { createClient } from '@supabase/supabase-js';
 
 // Admin emails for validation
-const ADMIN_EMAILS = process.env.ADMIN_EMAILS?.split(',') || [];
 
 export async function POST(request) {
   try {
     const { teamName, schedules, userEmail } = await request.json();
 
     // Validate admin user
-    if (!ADMIN_EMAILS.includes(userEmail)) {
+    const isAdmin = await checkAdminRole(userEmail);
+    if (!isAdmin) {
       return Response.json({ error: 'Unauthorized. Admin access required.' }, { status: 403 });
     }
 
@@ -20,8 +22,14 @@ export async function POST(request) {
     console.log('Updating team schedule for:', teamName);
     console.log('Number of games:', schedules.length);
 
+    // Create authenticated Supabase client with secret key for admin operations
+    const adminSupabase = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL,
+      process.env.SUPABASE_SECRET_KEY
+    );
+
     // First, delete existing schedules for this team
-    const { error: deleteError } = await supabase
+    const { error: deleteError } = await adminSupabase
       .from('team_schedule')
       .delete()
       .eq('team_name', teamName);
@@ -42,7 +50,7 @@ export async function POST(request) {
       created_at: new Date().toISOString()
     }));
 
-    const { data, error } = await supabase
+    const { data, error } = await adminSupabase
       .from('team_schedule')
       .insert(schedulesToInsert)
       .select();

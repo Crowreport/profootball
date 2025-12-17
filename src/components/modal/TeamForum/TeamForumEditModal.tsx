@@ -1,9 +1,32 @@
-import { useState, useEffect } from 'react';
-// Removed AuthContext import
+'use client'
 
-export default function TeamForumEditModal({ isOpen, onClose, teamName, forums, onSave }) {
-  const user = null; // Removed useAuth
-  const [forumList, setForumList] = useState([]);
+import { useState, useEffect } from 'react';
+import Modal from '../modal';
+import { useUserStore } from '@/store/useUserStore';
+
+interface Forum {
+  id: string | null;
+  name: string;
+  url: string;
+}
+
+interface TeamForumEditModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  teamName: string;
+  forums: Forum[];
+  onSave: (result: any) => void;
+}
+
+export default function TeamForumEditModal({ 
+  isOpen, 
+  onClose, 
+  teamName, 
+  forums, 
+  onSave 
+}: TeamForumEditModalProps) {
+  const { profile, isAuthenticated } = useUserStore();
+  const [forumList, setForumList] = useState<Forum[]>([]);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
@@ -26,9 +49,9 @@ export default function TeamForumEditModal({ isOpen, onClose, teamName, forums, 
     }
   }, [isOpen, forums]);
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!user?.email) {
+    if (!isAuthenticated || !profile?.email) {
       alert('You must be logged in to edit forums');
       return;
     }
@@ -48,7 +71,7 @@ export default function TeamForumEditModal({ isOpen, onClose, teamName, forums, 
         body: JSON.stringify({
           teamName,
           forums: validForums,
-          userEmail: user.email
+          userEmail: profile.email
         }),
       });
 
@@ -69,7 +92,7 @@ export default function TeamForumEditModal({ isOpen, onClose, teamName, forums, 
     }
   };
 
-  const handleForumChange = (index, field, value) => {
+  const handleForumChange = (index: number, field: keyof Forum, value: string) => {
     const updatedForums = [...forumList];
     updatedForums[index] = {
       ...updatedForums[index],
@@ -78,7 +101,7 @@ export default function TeamForumEditModal({ isOpen, onClose, teamName, forums, 
     setForumList(updatedForums);
   };
 
-  const clearForum = (index) => {
+  const clearForum = (index: number) => {
     const updatedForums = [...forumList];
     updatedForums[index] = {
       id: null,
@@ -88,21 +111,14 @@ export default function TeamForumEditModal({ isOpen, onClose, teamName, forums, 
     setForumList(updatedForums);
   };
 
-  if (!isOpen) return null;
-
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg p-6 w-full max-w-4xl mx-4 max-h-[90vh] overflow-y-auto">
-        <div className="flex justify-between items-center mb-4">
-          <h2 className="text-xl font-bold">Edit Forums - {teamName}</h2>
-          <button
-            onClick={onClose}
-            className="text-gray-500 hover:text-gray-700"
-          >
-            ✕
-          </button>
-        </div>
-
+    <Modal
+      isOpen={isOpen}
+      onClose={onClose}
+      title={`Edit Forums - ${teamName}`}
+      size="2xl"
+    >
+      <div className="p-6">
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="space-y-4">
             <p className="text-sm text-gray-600 mb-4">
@@ -116,7 +132,7 @@ export default function TeamForumEditModal({ isOpen, onClose, teamName, forums, 
                   <button
                     type="button"
                     onClick={() => clearForum(index)}
-                    className="text-xs text-red-500 hover:text-red-700"
+                    className="text-xs text-red-500 hover:text-red-700 cursor-pointer"
                   >
                     Clear
                   </button>
@@ -133,6 +149,7 @@ export default function TeamForumEditModal({ isOpen, onClose, teamName, forums, 
                       onChange={(e) => handleForumChange(index, 'name', e.target.value)}
                       className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                       placeholder="e.g., ChiefsPlanet"
+                      disabled={loading}
                     />
                   </div>
 
@@ -146,6 +163,7 @@ export default function TeamForumEditModal({ isOpen, onClose, teamName, forums, 
                       onChange={(e) => handleForumChange(index, 'url', e.target.value)}
                       className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                       placeholder="https://www.chiefsplanet.com/"
+                      disabled={loading}
                     />
                   </div>
                 </div>
@@ -157,14 +175,14 @@ export default function TeamForumEditModal({ isOpen, onClose, teamName, forums, 
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 text-gray-600 bg-gray-200 rounded hover:bg-gray-300 transition-colors"
+              className="px-4 py-2 text-gray-600 bg-gray-200 rounded hover:bg-gray-300 transition-colors cursor-pointer"
               disabled={loading}
             >
               Cancel
             </button>
             <button
               type="submit"
-              className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors disabled:opacity-50"
+              className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors disabled:opacity-50 cursor-pointer"
               disabled={loading}
             >
               {loading ? 'Saving...' : 'Save Forums'}
@@ -172,6 +190,6 @@ export default function TeamForumEditModal({ isOpen, onClose, teamName, forums, 
           </div>
         </form>
       </div>
-    </div>
+    </Modal>
   );
-} 
+}

@@ -1,14 +1,16 @@
+import { checkAdminRole } from '@/utils/checkAdminRole';
 import { supabase } from '@/utils/supabase';
+import { createClient } from '@supabase/supabase-js';
 
 // Admin emails for validation
-const ADMIN_EMAILS = process.env.ADMIN_EMAILS?.split(',') || [];
 
 export async function POST(request) {
   try {
     const { teamName, wins, losses, ties, divisionPosition, userEmail } = await request.json();
 
     // Validate admin user
-    if (!ADMIN_EMAILS.includes(userEmail)) {
+    const isAdmin = await checkAdminRole(userEmail);
+    if (!isAdmin) {
       return Response.json({ error: 'Unauthorized. Admin access required.' }, { status: 403 });
     }
 
@@ -23,8 +25,14 @@ export async function POST(request) {
     // Create record string (e.g., "12-5-0")
     const record = `${wins}-${losses}-${ties}`;
 
+    // Create authenticated Supabase client with secret key for admin operations
+    const adminSupabase = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL,
+      process.env.SUPABASE_SECRET_KEY
+    );
+
     // Insert or update team stats in Supabase
-    const { data, error } = await supabase
+    const { data, error } = await adminSupabase
       .from('team_stats')
       .upsert(
         {
