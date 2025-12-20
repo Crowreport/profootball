@@ -1,14 +1,16 @@
+import { checkAdminRole } from '@/utils/checkAdminRole';
 import { supabase } from '@/utils/supabase';
+import { createClient } from '@supabase/supabase-js';
 
 // Admin emails for validation
-const ADMIN_EMAILS = process.env.ADMIN_EMAILS?.split(',') || [];
 
 export async function POST(request) {
   try {
     const { teamName, title, link, userEmail } = await request.json();
 
     // Validate admin user
-    if (!ADMIN_EMAILS.includes(userEmail)) {
+    const isAdmin = await checkAdminRole(userEmail);
+    if (!isAdmin) {
       return Response.json({ error: 'Unauthorized. Admin access required.' }, { status: 403 });
     }
 
@@ -20,8 +22,14 @@ export async function POST(request) {
     console.log('Adding team news for:', teamName);
     console.log('Title:', title);
 
+    // Create authenticated Supabase client with secret key for admin operations
+    const adminSupabase = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL,
+      process.env.SUPABASE_SECRET_KEY
+    );
+
     // Check current count of news articles for this team
-    const { data: existingNews, error: countError } = await supabase
+    const { data: existingNews, error: countError } = await adminSupabase
       .from('team_news')
       .select('id')
       .eq('team_name', teamName);
@@ -33,7 +41,7 @@ export async function POST(request) {
 
     // If we already have 5 articles, delete the oldest one
     if (existingNews && existingNews.length >= 5) {
-      const { error: deleteError } = await supabase
+      const { error: deleteError } = await adminSupabase
         .from('team_news')
         .delete()
         .eq('team_name', teamName)
@@ -47,7 +55,7 @@ export async function POST(request) {
     }
 
     // Insert new team news into Supabase
-    const { data, error } = await supabase
+    const { data, error } = await adminSupabase
       .from('team_news')
       .insert({
         team_name: teamName,
@@ -67,7 +75,7 @@ export async function POST(request) {
     console.log('Team news added successfully:', data);
 
     // Return all news articles for this team
-    const { data: allNews, error: fetchError } = await supabase
+    const { data: allNews, error: fetchError } = await adminSupabase
       .from('team_news')
       .select('*')
       .eq('team_name', teamName)
@@ -103,7 +111,8 @@ export async function PUT(request) {
     const { teamName, title, link, originalTitle, userEmail } = await request.json();
 
     // Validate admin user
-    if (!ADMIN_EMAILS.includes(userEmail)) {
+    const isAdmin = await checkAdminRole(userEmail);
+    if (!isAdmin) {
       return Response.json({ error: 'Unauthorized. Admin access required.' }, { status: 403 });
     }
 
@@ -116,8 +125,14 @@ export async function PUT(request) {
     console.log('Original title:', originalTitle);
     console.log('New title:', title);
 
+    // Create authenticated Supabase client with secret key for admin operations
+    const adminSupabase = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL,
+      process.env.SUPABASE_SECRET_KEY
+    );
+
     // Update team news in Supabase
-    const { data, error } = await supabase
+    const { data, error } = await adminSupabase
       .from('team_news')
       .update({
         title: title,
@@ -141,7 +156,7 @@ export async function PUT(request) {
     console.log('Team news updated successfully:', data);
 
     // Return all news articles for this team
-    const { data: allNews, error: fetchError } = await supabase
+    const { data: allNews, error: fetchError } = await adminSupabase
       .from('team_news')
       .select('*')
       .eq('team_name', teamName)
@@ -177,7 +192,8 @@ export async function DELETE(request) {
     const { teamName, title, userEmail } = await request.json();
 
     // Validate admin user
-    if (!ADMIN_EMAILS.includes(userEmail)) {
+    const isAdmin = await checkAdminRole(userEmail);
+    if (!isAdmin) {
       return Response.json({ error: 'Unauthorized. Admin access required.' }, { status: 403 });
     }
 
@@ -189,8 +205,14 @@ export async function DELETE(request) {
     console.log('Deleting team news for:', teamName);
     console.log('Title:', title);
 
+    // Create authenticated Supabase client with secret key for admin operations
+    const adminSupabase = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL,
+      process.env.SUPABASE_SECRET_KEY
+    );
+
     // Delete team news from Supabase
-    const { error } = await supabase
+    const { error } = await adminSupabase
       .from('team_news')
       .delete()
       .eq('team_name', teamName)
@@ -204,7 +226,7 @@ export async function DELETE(request) {
     console.log('Team news deleted successfully');
 
     // Return all remaining news articles for this team
-    const { data: allNews, error: fetchError } = await supabase
+    const { data: allNews, error: fetchError } = await adminSupabase
       .from('team_news')
       .select('*')
       .eq('team_name', teamName)
@@ -245,7 +267,7 @@ export async function GET(request) {
     }
 
     // Fetch all team news from Supabase (up to 5)
-    const { data, error } = await supabase
+    const { data, error } = await adminSupabase
       .from('team_news')
       .select('*')
       .eq('team_name', teamName)

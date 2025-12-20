@@ -3,7 +3,7 @@ import "./globals.css";
 import Providers from "@/components/Providers";
 
 export const metadata = {
-  title: "Profoot Ball News Report",
+  title: "Pro Football Report",
   description: "The one page location for all NFL related news",
 };
 
