@@ -302,7 +302,9 @@ export default function CommentsPage({ title, sourceTitle, sourceImage, sourceLi
               <h4 className="font-semibold text-gray-700">Source:</h4>
               {sourceLink ? (
                 <a
-                  href={`/external/${encodeURIComponent(sourceLink)}`}
+                  href={decodeURIComponent(sourceLink)}
+                  target="_blank"
+                  rel="noopener noreferrer"
                   className="text-blue-500 hover:text-blue-700 font-medium"
                 >
                   {decodeURIComponent(sourceTitle)}

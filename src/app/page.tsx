@@ -610,7 +610,9 @@ const upAndComingSources = mainPageSources.filter(
           )}
           <div>
             <a
-              href={`/external/${encodeURIComponent(source.link || "#")}`}
+              href={source.link || "#"}
+              target="_blank"
+              rel="noopener noreferrer"
               className="text-blue-500 hover:text-blue-700"
             >
               <h2 className="text-lg font-bold uppercase text-black cursor-pointer">
@@ -629,7 +631,9 @@ const upAndComingSources = mainPageSources.filter(
               <li key={index} className="border-b pb-2 flex items-start gap-2">
                 <div className="flex-1">
                   <a
-                    href={`/external/${encodeURIComponent(article.link || "#")}`}
+                    href={article.link || "#"}
+                    target="_blank"
+                    rel="noopener noreferrer"
                     className="text-black hover:underline hover:text-blue-500 font-medium"
                   >
                     <h3 className="flex items-center gap-2">
@@ -960,7 +964,9 @@ const upAndComingSources = mainPageSources.filter(
           )}
           <div>
             <a
-              href={`/external/${encodeURIComponent(source.source.link || "#")}`}
+              href={source.source.link || "#"}
+              target="_blank"
+              rel="noopener noreferrer"
               className="text-blue-500 hover:text-blue-700"
             >
               <h2 className="text-lg font-bold uppercase text-black cursor-pointer">
@@ -979,7 +985,9 @@ const upAndComingSources = mainPageSources.filter(
               <li key={index} className="border-b pb-2 flex items-start gap-2">
                 <div className="flex-1">
                   <a
-                    href={`/external/${encodeURIComponent(article.link || "#")}`}
+                    href={article.link || "#"}
+                    target="_blank"
+                    rel="noopener noreferrer"
                     className="text-black hover:underline hover:text-blue-500 font-medium"
                   >
                     <h3 className="flex items-center gap-2">
@@ -1040,7 +1048,9 @@ const upAndComingSources = mainPageSources.filter(
         </ul>
         <div className="flex items-center justify-between mt-2">
           <a
-            href={`/external/${encodeURIComponent(source.source.link || "#")}`}
+            href={source.source.link || "#"}
+            target="_blank"
+            rel="noopener noreferrer"
             className="text-base text-blue-500 font-semibold"
           >
             MORE ...
@@ -1149,7 +1159,9 @@ const upAndComingSources = mainPageSources.filter(
           )}
           <div>
             <a
-              href={`/external/${encodeURIComponent(matchedSource.source.link)}`}
+              href={matchedSource.source.link || "#"}
+              target="_blank"
+              rel="noopener noreferrer"
               className="text-blue-500 hover:text-blue-700"
             >
               <h2 className="text-lg font-bold uppercase text-black cursor-pointer">
@@ -1170,7 +1182,9 @@ const upAndComingSources = mainPageSources.filter(
                 <li key={index} className="border-b pb-2 flex items-start gap-2">
                   <div className="flex-1">
                     <a
-                      href={`/external/${encodeURIComponent(article.link)}`}
+                      href={article.link || "#"}
+                      target="_blank"
+                      rel="noopener noreferrer"
                       className="text-black hover:underline hover:text-blue-500 font-medium"
                     >
                       <h3>
@@ -1221,7 +1235,9 @@ const upAndComingSources = mainPageSources.filter(
 
         <div className="flex items-center justify-between mt-2">
           <a
-            href={`/external/${encodeURIComponent(matchedSource.source.link)}`}
+            href={matchedSource.source.link || "#"}
+            target="_blank"
+            rel="noopener noreferrer"
             className="text-base text-blue-500 font-semibold"
           >
             MORE ...
@@ -1533,7 +1549,9 @@ const upAndComingSources = mainPageSources.filter(
           )}
           <div>
             <a
-              href={`/external/${encodeURIComponent(matchedSource.source.link)}`}
+              href={matchedSource.source.link || "#"}
+              target="_blank"
+              rel="noopener noreferrer"
               className="text-blue-500 hover:text-blue-700"
             >
               <h2 className="text-lg font-bold uppercase text-black cursor-pointer">
@@ -1554,7 +1572,9 @@ const upAndComingSources = mainPageSources.filter(
                 <li key={index} className="border-b pb-2 flex items-start gap-2">
                   <div className="flex-1">
                     <a
-                      href={`/external/${encodeURIComponent(article.link)}`}
+                      href={article.link || "#"}
+                      target="_blank"
+                      rel="noopener noreferrer"
                       className="text-black hover:underline hover:text-blue-500 font-medium"
                     >
                       <h3>
@@ -1605,7 +1625,9 @@ const upAndComingSources = mainPageSources.filter(
 
         <div className="flex items-center justify-between mt-2">
           <a
-            href={`/external/${encodeURIComponent(matchedSource.source.link)}`}
+            href={matchedSource.source.link || "#"}
+            target="_blank"
+            rel="noopener noreferrer"
             className="text-base text-blue-500 font-semibold"
           >
             MORE ...
@@ -1665,7 +1687,9 @@ const upAndComingSources = mainPageSources.filter(
           )}
           <div>
             <a
-              href={`/external/${encodeURIComponent(matchedSource.source.link)}`}
+              href={matchedSource.source.link || "#"}
+              target="_blank"
+              rel="noopener noreferrer"
               className="text-blue-500 hover:text-blue-700"
             >
               <h2 className="text-lg font-bold uppercase text-black cursor-pointer">
@@ -1686,7 +1710,9 @@ const upAndComingSources = mainPageSources.filter(
                 <li key={index} className="border-b pb-2 flex items-start gap-2">
                   <div className="flex-1">
                     <a
-                      href={`/external/${encodeURIComponent(article.link)}`}
+                      href={article.link || "#"}
+                      target="_blank"
+                      rel="noopener noreferrer"
                       className="text-black hover:underline hover:text-blue-500 font-medium"
                     >
                       <h3>
@@ -1737,7 +1763,9 @@ const upAndComingSources = mainPageSources.filter(
 
         <div className="flex items-center justify-between mt-2">
           <a
-            href={`/external/${encodeURIComponent(matchedSource.source.link)}`}
+            href={matchedSource.source.link || "#"}
+            target="_blank"
+            rel="noopener noreferrer"
             className="text-base text-blue-500 font-semibold"
           >
             MORE ...
