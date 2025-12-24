@@ -363,6 +363,7 @@ const podcastSources = mainPageSources.filter(
 const upAndComingSources = mainPageSources.filter(
   (source) => source.source.isUpAndComing
 );
+const spotifyPodcastSources = podcastSources;
 
   const nflYoutubeSource = regularSources.find(
     (s) =>
@@ -879,6 +880,57 @@ const upAndComingSources = mainPageSources.filter(
                   rel="noopener noreferrer"
                 >
                   
+                </a>
+              </div>
+            );
+          })()}
+
+
+         {/* SPOTIFY NFL PODCASTS (Card Layout) */}
+          {topChannelSources.length > 0 && (() => {
+            // Prepare the videos array
+            const topSourceVideos = spotifyPodcastSources
+            .map((articles) => articles[0])
+            .filter(Boolean);
+
+            // Merge custom videos with original top channel videos
+            const mergedTopVideos = mergeCustomVideos('spotify-nfl-podcasts', topSourceVideos);
+
+            return (
+              <div className="bg-white shadow-lg rounded-lg p-4 mb-6">
+                <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-center">
+                    <img
+                    src="https://upload.wikimedia.org/wikipedia/commons/1/19/Spotify_logo_without_text.svg"
+                    alt="Spotify Logo"
+                    className="w-12 h-12 mr-2"
+                    />
+                    <div>
+                      <h2 className="text-lg font-bold text-black">Spotify NFL Podcasts</h2>
+                      <p className="text-gray-500 text-xs">
+                        Last Updated: {formatDate(topChannelSources[0]?.source?.updatedAt)}
+                      </p>
+                    </div>
+                  </div>
+                  {isAdmin && (
+                    <button
+                      onClick={() => handleManageVideo('spotify-nfl-podcasts')}
+                      className="text-sm bg-green-500 text-white px-3 py-1 rounded hover:bg-green-600 transition-colors"
+                    >
+                      Add Video
+                    </button>
+                  )}
+                </div>
+
+                <HorizontalScroller videos={mergedTopVideos} onEditVideo={isAdmin ? (video) => handleEditVideo('spotify-nfl-podcasts', video) : null} />
+
+                <a
+                href="https://open.spotify.com/search/NFL%20Podcast"
+                className="text-lg text-blue-500 block font-semibold"
+                target="_blank"
+                rel="noopener noreferrer"
+                >
+                 Browse more on Spotify →
                 </a>
               </div>
             );
