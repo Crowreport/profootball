@@ -74,8 +74,8 @@ export default function TeamScheduleEditModal({
         },
         body: JSON.stringify({
           teamName,
-          schedule: validGames,
-          userEmail: profile.email
+          schedules: validGames,
+          userId: profile.id
         }),
       });
 

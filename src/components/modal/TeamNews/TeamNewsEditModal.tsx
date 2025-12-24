@@ -74,7 +74,7 @@ export default function TeamNewsEditModal({
           title: formData.title.trim(),
           link: formData.link.trim(),
           originalTitle: newsArticle?.title,
-          userEmail: profile.email
+          userId: profile.id
         }),
       });
 
@@ -111,7 +111,7 @@ export default function TeamNewsEditModal({
         body: JSON.stringify({
           teamName,
           title: newsArticle.title,
-          userEmail: profile.email
+          userId: profile.id
         }),
       });
 

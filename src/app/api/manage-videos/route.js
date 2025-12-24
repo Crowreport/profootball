@@ -8,29 +8,29 @@ import { checkAdminRole } from '@/utils/checkAdminRole';
 export async function POST(request) {
   try {
     console.log('Received POST request to add custom video');
-    const { sectionType, title, link, thumbnail, userEmail } = await request.json();
-    console.log('Request data:', { sectionType, title, link, thumbnail, userEmail });
+    const { sectionType, title, link, thumbnail, userId } = await request.json();
+    console.log('Request data:', { sectionType, title, link, thumbnail, userId });
 
     // Rate limiting: max 20 video creations per minute per user
-    if (!checkRateLimit(`video-post-${userEmail}`, 20)) {
+    if (!checkRateLimit(`video-post-${userId}`, 20)) {
       return NextResponse.json(
         { error: 'Too many requests. Please try again later.' },
         { status: 429 }
       );
     }
 
-    if (!sectionType || !title || !link || !userEmail) {
+    if (!sectionType || !title || !link || !userId) {
       console.error('Missing required fields');
-      return NextResponse.json({ error: 'Section type, title, link, and user email are required' }, { status: 400 });
+      return NextResponse.json({ error: 'Section type, title, link, and userId are required' }, { status: 400 });
     }
 
     // Check if user is admin
-    const isAdmin = await checkAdminRole(userEmail);
+    const isAdmin = await checkAdminRole(userId);
     if (!isAdmin) {
       return NextResponse.json({ error: 'Unauthorized - Admin access required' }, { status: 403 });
     }
 
-    console.log('Adding video for admin user:', userEmail);
+    console.log('Adding video for admin user:', userId);
 
     // Create authenticated Supabase client with secret key
     const supabase = createClient(
@@ -83,16 +83,16 @@ export async function POST(request) {
 export async function PUT(request) {
   try {
     console.log('Received PUT request to edit custom video');
-    const { sectionType, originalTitle, title, link, thumbnail, userEmail } = await request.json();
-    console.log('Request data:', { sectionType, originalTitle, title, link, thumbnail, userEmail });
+    const { sectionType, originalTitle, title, link, thumbnail, userId } = await request.json();
+    console.log('Request data:', { sectionType, originalTitle, title, link, thumbnail, userId });
 
-    if (!sectionType || !originalTitle || !title || !link || !userEmail) {
+    if (!sectionType || !originalTitle || !title || !link || !userId) {
       console.error('Missing required fields for edit');
       return NextResponse.json({ error: 'All fields are required' }, { status: 400 });
     }
 
     // Check if user is admin
-    const isAdmin = await checkAdminRole(userEmail);
+    const isAdmin = await checkAdminRole(userId);
     if (!isAdmin) {
       return NextResponse.json({ error: 'Unauthorized - Admin access required' }, { status: 403 });
     }
@@ -153,16 +153,16 @@ export async function PUT(request) {
 export async function DELETE(request) {
   try {
     console.log('Received DELETE request to remove custom video');
-    const { sectionType, title, userEmail } = await request.json();
-    console.log('Request data:', { sectionType, title, userEmail });
+    const { sectionType, title, userId } = await request.json();
+    console.log('Request data:', { sectionType, title, userId });
 
-    if (!sectionType || !title || !userEmail) {
+    if (!sectionType || !title || !userId) {
       console.error('Missing required fields for delete');
-      return NextResponse.json({ error: 'Section type, title, and user email are required' }, { status: 400 });
+      return NextResponse.json({ error: 'Section type, title, and userId are required' }, { status: 400 });
     }
 
     // Check if user is admin
-    const isAdmin = await checkAdminRole(userEmail);
+    const isAdmin = await checkAdminRole(userId);
     if (!isAdmin) {
       return NextResponse.json({ error: 'Unauthorized - Admin access required' }, { status: 403 });
     }

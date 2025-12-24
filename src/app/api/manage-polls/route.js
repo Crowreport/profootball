@@ -8,31 +8,31 @@ import { checkAdminRole } from '@/utils/checkAdminRole';
 export async function POST(request) {
   try {
     console.log('Received POST request to create poll');
-    const { title, question, description, status, allowMultipleVotes, expiresAt, options, userEmail } = await request.json();
+    const { title, question, description, status, allowMultipleVotes, expiresAt, options, userId } = await request.json();
     console.log('Request data:', { title, question, description, status, allowMultipleVotes, expiresAt, options: options?.length });
 
     // Rate limiting: max 10 poll creations per minute per user
-    if (!checkRateLimit(`poll-post-${userEmail}`, 10)) {
+    if (!checkRateLimit(`poll-post-${userId}`, 10)) {
       return NextResponse.json(
         { error: 'Too many requests. Please try again later.' },
         { status: 429 }
       );
     }
 
-    if (!title || !question || !options || !Array.isArray(options) || options.length < 2 || !userEmail) {
+    if (!title || !question || !options || !Array.isArray(options) || options.length < 2 || !userId) {
       console.error('Missing required fields');
-      return NextResponse.json({ 
-        error: 'Title, question, at least 2 options, and user email are required' 
+      return NextResponse.json({
+        error: 'Title, question, at least 2 options, and userId are required'
       }, { status: 400 });
     }
 
     // Check if user is admin
-    const isAdmin = await checkAdminRole(userEmail);
+    const isAdmin = await checkAdminRole(userId);
     if (!isAdmin) {
       return NextResponse.json({ error: 'Unauthorized - Admin access required' }, { status: 403 });
     }
 
-    console.log('Creating poll for admin user:', userEmail);
+    console.log('Creating poll for admin user:', userId);
 
     // Create authenticated Supabase client with secret key for admin operations
     const adminSupabase = createClient(
@@ -102,16 +102,16 @@ export async function POST(request) {
 export async function PUT(request) {
   try {
     console.log('Received PUT request to update poll');
-    const { pollId, title, question, description, status, allowMultipleVotes, expiresAt, options, userEmail } = await request.json();
+    const { pollId, title, question, description, status, allowMultipleVotes, expiresAt, options, userId } = await request.json();
     console.log('Request data:', { pollId, title, question, status });
 
-    if (!pollId || !title || !question || !userEmail) {
+    if (!pollId || !title || !question || !userId) {
       console.error('Missing required fields for update');
-      return NextResponse.json({ error: 'Poll ID, title, question, and user email are required' }, { status: 400 });
+      return NextResponse.json({ error: 'Poll ID, title, question, and userId are required' }, { status: 400 });
     }
 
     // Check if user is admin
-    const isAdmin = await checkAdminRole(userEmail);
+    const isAdmin = await checkAdminRole(userId);
     if (!isAdmin) {
       return NextResponse.json({ error: 'Unauthorized - Admin access required' }, { status: 403 });
     }
@@ -199,16 +199,16 @@ export async function PUT(request) {
 export async function DELETE(request) {
   try {
     console.log('Received DELETE request to remove poll');
-    const { pollId, userEmail } = await request.json();
-    console.log('Request data:', { pollId, userEmail });
+    const { pollId, userId } = await request.json();
+    console.log('Request data:', { pollId, userId });
 
-    if (!pollId || !userEmail) {
+    if (!pollId || !userId) {
       console.error('Missing required fields for delete');
-      return NextResponse.json({ error: 'Poll ID and user email are required' }, { status: 400 });
+      return NextResponse.json({ error: 'Poll ID and userId are required' }, { status: 400 });
     }
 
     // Check if user is admin
-    const isAdmin = await checkAdminRole(userEmail);
+    const isAdmin = await checkAdminRole(userId);
     if (!isAdmin) {
       return NextResponse.json({ error: 'Unauthorized - Admin access required' }, { status: 403 });
     }

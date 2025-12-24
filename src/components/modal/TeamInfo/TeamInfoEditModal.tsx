@@ -60,7 +60,7 @@ export default function TeamInfoEditModal({
         body: JSON.stringify({
           teamName,
           ...formData,
-          userEmail: profile.email
+          userId: profile.id
         }),
       });
 

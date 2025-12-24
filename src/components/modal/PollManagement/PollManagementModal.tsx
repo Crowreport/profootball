@@ -187,7 +187,7 @@ export default function PollManagementModal({
         allowMultipleVotes: formData.allowMultipleVotes,
         expiresAt: formData.expiresAt || null,
         options: validOptions,
-        userEmail: profile?.email,
+        userId: profile?.id,
         ...(isEditing ? { pollId: editingPoll?.id } : {})
       };
 

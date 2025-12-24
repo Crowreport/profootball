@@ -8,29 +8,29 @@ import { checkAdminRole } from '@/utils/checkAdminRole';
 export async function POST(request) {
   try {
     console.log('Received POST request to add custom article');
-    const { sourceUrl, title, link, userEmail } = await request.json();
-    console.log('Request data:', { sourceUrl, title, link, userEmail });
+    const { sourceUrl, title, link, userId } = await request.json();
+    console.log('Request data:', { sourceUrl, title, link, userId });
 
     // Rate limiting: max 20 article creations per minute per user
-    if (!checkRateLimit(`article-post-${userEmail}`, 20)) {
+    if (!checkRateLimit(`article-post-${userId}`, 20)) {
       return NextResponse.json(
         { error: 'Too many requests. Please try again later.' },
         { status: 429 }
       );
     }
 
-    if (!sourceUrl || !title || !link || !userEmail) {
+    if (!sourceUrl || !title || !link || !userId) {
       console.error('Missing required fields');
-      return NextResponse.json({ error: 'Source URL, title, link, and user email are required' }, { status: 400 });
+      return NextResponse.json({ error: 'Source URL, title, link, and userId are required' }, { status: 400 });
     }
 
     // Check if user is admin
-    const isAdmin = await checkAdminRole(userEmail);
+    const isAdmin = await checkAdminRole(userId);
     if (!isAdmin) {
       return NextResponse.json({ error: 'Unauthorized - Admin access required' }, { status: 403 });
     }
 
-    console.log('Adding article for admin user:', userEmail);
+    console.log('Adding article for admin user:', userId);
 
     // Create authenticated Supabase client with secret key
     const supabase = createClient(
@@ -82,16 +82,16 @@ export async function POST(request) {
 export async function PUT(request) {
   try {
     console.log('Received PUT request to edit custom article');
-    const { sourceUrl, originalTitle, title, link, userEmail } = await request.json();
-    console.log('Request data:', { sourceUrl, originalTitle, title, link, userEmail });
+    const { sourceUrl, originalTitle, title, link, userId } = await request.json();
+    console.log('Request data:', { sourceUrl, originalTitle, title, link, userId });
 
-    if (!sourceUrl || !originalTitle || !title || !link || !userEmail) {
+    if (!sourceUrl || !originalTitle || !title || !link || !userId) {
       console.error('Missing required fields for edit');
       return NextResponse.json({ error: 'All fields are required' }, { status: 400 });
     }
 
     // Check if user is admin
-    const isAdmin = await checkAdminRole(userEmail);
+    const isAdmin = await checkAdminRole(userId);
     if (!isAdmin) {
       return NextResponse.json({ error: 'Unauthorized - Admin access required' }, { status: 403 });
     }
@@ -150,16 +150,16 @@ export async function PUT(request) {
 export async function DELETE(request) {
   try {
     console.log('Received DELETE request to remove custom article');
-    const { sourceUrl, title, userEmail } = await request.json();
-    console.log('Request data:', { sourceUrl, title, userEmail });
+    const { sourceUrl, title, userId } = await request.json();
+    console.log('Request data:', { sourceUrl, title, userId });
 
-    if (!sourceUrl || !title || !userEmail) {
+    if (!sourceUrl || !title || !userId) {
       console.error('Missing required fields for delete');
-      return NextResponse.json({ error: 'Source URL, title, and user email are required' }, { status: 400 });
+      return NextResponse.json({ error: 'Source URL, title, and userId are required' }, { status: 400 });
     }
 
     // Check if user is admin
-    const isAdmin = await checkAdminRole(userEmail);
+    const isAdmin = await checkAdminRole(userId);
     if (!isAdmin) {
       return NextResponse.json({ error: 'Unauthorized - Admin access required' }, { status: 403 });
     }
