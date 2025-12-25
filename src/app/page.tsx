@@ -995,122 +995,31 @@ const upAndComingSources = mainPageSources.filter(
             );
           })()}
 
-{/* Third chunk of remaining articles */}
-{remainingSourcesChunk3.length > 0 && (
-  <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 mb-6">
-    {remainingSourcesChunk3.map((source) => (
-      <div
-        key={source.source.link || source.source.title}
-        className="bg-white shadow-lg rounded-lg p-4"
-      >
-        <div className="flex items-center mb-4">
-          {source.source.image && (
-            <img
-              src={source.source.image}
-              alt={decodeHtmlEntities(source.source.title || "Unknown Source")}
-              className="w-10 h-10 mr-3 rounded-full object-cover"
-            />
-          )}
-          <div>
-            <a
-              href={`/external/${encodeURIComponent(source.source.link || "#")}`}
-              className="text-blue-500 hover:text-blue-700"
-            >
-              <h2 className="text-lg font-bold uppercase text-black cursor-pointer">
-                {decodeHtmlEntities(source.source.title || "Unknown Source")}
-              </h2>
-            </a>
-            <p className="text-gray-500 text-xs">
-              Last Updated: {formatDate(source.source.updatedAt)}
-            </p>
-          </div>
-        </div>
-        <ul className="space-y-2">
-          {source.articles.slice(0, 5).map((article, index) => {  {/* Changed from 6 to 4 */}
-            const commentCount = commentCounts[article.title] || 0;
-            return (
-              <li key={index} className="border-b pb-2 flex items-start gap-2">
-                <div className="flex-1">
-                  <a
-                    href={`/external/${encodeURIComponent(article.link || "#")}`}
-                    className="text-black hover:underline hover:text-blue-500 font-medium"
-                  >
-                    <h3 className="flex items-center gap-2">
-                      {decodeHtmlEntities(article.title || "Untitled Article")}
-                      {article.isCustom && (
-                        <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">
-                          Custom
-                        </span>
-                      )}
-                    </h3>
-                  </a>
-                  <p className="text-gray-500 text-xs">
-                    {formatDate(article.pubDate)}
-                  </p>
-                </div>
-                <div className="flex items-center gap-2">
-                  {/* Edit button for custom articles (admin only) */}
-                  {article.isCustom && isAdmin && (
-                    <button
-                      onClick={() => handleEditArticle(source.source, article)}
-                      className="text-xs bg-yellow-500 text-white px-2 py-1 rounded hover:bg-yellow-600 transition-colors"
-                      title="Edit custom article"
-                    >
-                      Edit
-                    </button>
-                  )}
-                  {/* Comment count */}
-                  <div className="relative flex-shrink-0">
-                    <a
-                      href={`/comments/${encodeURIComponent(article.title)}?sourceTitle=${encodeURIComponent(source.title || 'Unknown Source')}&sourceImage=${encodeURIComponent(source.image || '')}&sourceLink=${encodeURIComponent(source.link || '')}`}
-                      className="hover:text-blue-500 relative inline-block"
-                    >
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        width="36"
-                        height="36"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        className="lucide lucide-message-circle"
-                      >
-                        <path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z" />
-                      </svg>
-                      {commentCount > 0 && (
-                        <span className="absolute inset-0 flex items-center justify-center text-sm font-black text-gray-700 tracking-tight">
-                          {commentCount > 99 ? '99+' : commentCount}
-                        </span>
-                      )}
-                    </a>
-                  </div>
-                </div>
-              </li>
-            );
-          })}
-        </ul>
-        <div className="flex items-center justify-between mt-2">
-          <a
-            href={`/external/${encodeURIComponent(source.source.link || "#")}`}
-            className="text-base text-blue-500 font-semibold"
-          >
-            MORE ...
-          </a>
-          {isAdmin && (
-            <button
-              onClick={() => handleManageSource(source.source)}
-              className="text-sm bg-green-500 text-white px-3 py-1 rounded hover:bg-green-600 transition-colors"
-            >
-              Add Article
-            </button>
-          )}
-        </div>
-      </div>
-    ))}
-  </div>
-)}
+<div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 mb-6">
+  {/* LEFT: NFL Discussion */}
+  {(() => {
+    const left = remainingSourcesChunk3.find(s =>
+      s.source?.title?.toLowerCase().includes("national football league discussion")
+    );
+    return left
+      ? renderCard(left)
+      : <div className="bg-white shadow-lg rounded-lg p-4 h-full" />;
+  })()}
+
+  {/* MIDDLE: Empty */}
+  <div className="bg-white shadow-lg rounded-lg p-4 h-full" />
+
+  {/* RIGHT: Sportsnet */}
+  {(() => {
+    const right = remainingSourcesChunk3.find(s =>
+      s.source?.title?.toLowerCase().includes("sportsnet")
+    );
+    return right
+      ? renderCard(right)
+      : <div className="bg-white shadow-lg rounded-lg p-4 h-full" />;
+  })()}
+</div>
+
 
 
           {/* NFL PODCASTS (Card Layout) */}
