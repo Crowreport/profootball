@@ -805,32 +805,62 @@ const upAndComingSources = mainPageSources.filter(
           })()}
 
 {remainingSourcesChunk1.length > 0 && (
-  <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 mb-6">
-    {remainingSourcesChunk1
-      .filter(source => !source.source?.title?.toLowerCase().includes("sportsnet"))
-      .map((source, idx) => {
-        if (idx === 1) {
-          return [<BlogCard key="blog-card-in-grid" />, renderCard(source)];
-        }
-        return renderCard(source);
-      })}
+  <>
+    {/* ================= ROW 2 ================= */}
+    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 mb-6">
+      {/* Left: UNKNOWN FEED */}
+      {(() => {
+        const left = remainingSourcesChunk1.find(s =>
+          s.source?.title?.toLowerCase().includes("unknown feed")
+        );
+        return left
+          ? renderCard(left)
+          : <div className="bg-white shadow-lg rounded-lg p-4 h-full" />;
+      })()}
 
-    {/* ✅ Poll Card */}
-    <div className="bg-white shadow-lg rounded-lg p-4 h-full">
-      <PollCard 
-        polls={polls}
-        onManagePoll={handleManagePoll}
-        onEditPoll={handleEditPoll}
-        onRefresh={fetchPolls}
-        limit={1}
-      />
+      {/* Middle: Blank */}
+      <div className="bg-white shadow-lg rounded-lg p-4 h-full" />
+
+      {/* Right: CBS Sports Headlines */}
+      {(() => {
+        const right = remainingSourcesChunk1.find(s =>
+          s.source?.title?.toLowerCase().includes("cbs")
+        );
+        return right
+          ? renderCard(right)
+          : <div className="bg-white shadow-lg rounded-lg p-4 h-full" />;
+      })()}
     </div>
-    
-    {/* Blank Card - Visible but empty*/} 
-    <div className="bg-white shadow-lg rounded-lg p-4 h-full">
-      {/* Empty space - maintains grid layout */}
+
+    {/* ================= ROW 3 ================= */}
+    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 mb-6">
+      {/* Left: All Access Football */}
+      {(() => {
+        const left = remainingSourcesChunk1.find(s =>
+          s.source?.title?.toLowerCase().includes("all access football")
+        );
+        return left
+          ? renderCard(left)
+          : <div className="bg-white shadow-lg rounded-lg p-4 h-full" />;
+      })()}
+
+      {/* Middle: Blank */}
+      <div className="bg-white shadow-lg rounded-lg p-4 h-full" />
+
+      {/* Right: Blank (reserved for future links) */}
+      {/* Right: Pro Football Focus */}
+      {(() => {
+      const pff = remainingSourcesChunk2.find(s =>
+      s.source?.title?.toLowerCase().includes("pro football focus")
+      );
+
+      return pff
+      ? renderCard(pff)
+      : <div className="bg-white shadow-lg rounded-lg p-4 h-full" />;
+})()}
+
     </div>
-  </div>
+  </>
 )}
 
 
@@ -885,12 +915,35 @@ const upAndComingSources = mainPageSources.filter(
           })()}
 
 
-          {/* Second chunk of remaining articles */}
-          {remainingSourcesChunk2.length > 0 && (
-            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 mb-6">
-              {remainingSourcesChunk2.map(renderCard)}
-            </div>
-          )}
+        {/* Second chunk of remaining articles */}
+        {remainingSourcesChunk2.length > 0 && (
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 mb-6">
+    
+          {/* LEFT: NFLTradeRumors.co */}
+          {(() => {
+            const nflTrade = remainingSourcesChunk2.find(s =>
+            s.source?.title?.toLowerCase().includes("nfltraderumors")
+            );
+            return nflTrade
+            ? renderCard(nflTrade)
+            : <div className="bg-white shadow-lg rounded-lg p-4 h-full" />;
+          })()}
+
+          {/* MIDDLE: Blank */}
+          <div className="bg-white shadow-lg rounded-lg p-4 h-full" />
+
+        {/* RIGHT: The 33rd Team */}
+        {(() => {
+        const team33 = remainingSourcesChunk2.find(s =>
+        s.source?.title?.toLowerCase().includes("the 33rd team")
+        );
+        return team33
+        ? renderCard(team33)
+        : <div className="bg-white shadow-lg rounded-lg p-4 h-full" />;
+    })()}
+  </div>
+)}
+
 
           {/* UP & COMING CHANNELS (Card Layout) */}
           {upAndComingSources.length > 0 && (() => {
