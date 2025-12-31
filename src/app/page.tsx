@@ -1200,10 +1200,52 @@ const upAndComingSources = mainPageSources.filter(
   })}
 
 
-  {/* Blank Card - Visible but empty*/} 
-  <div className="bg-white shadow-lg rounded-lg p-4 h-full">
-    {/* Empty space - maintains grid layout */}
+
+  <div className="bg-white shadow-lg rounded-lg p-4 h-full flex flex-col">
+    {/*Header*/}
+    <div className="flex items-center mb-4">
+      <div className="w-10 h-10 mr-3 bg-gray-300 rounded-full flex items-center justify-center text-xs font-bold">
+        ICON
+      </div>
+
+      <div>
+        <h2 className="text-lg font-bold uppercase text-black">
+          NFL Draft Central
+        </h2>
+        <p className="text-gray-500 text-xs">
+          Draft resources & tools
+        </p>
+      </div>
+    </div>
+
+    {/*Image*/}
+
+
+    {/*Links*/}
+    <ul className="space-y-2 flex-1">
+      {[
+        { name: "The Draft Network", link: "https://www.thedraftnetwork.com/" },
+        { name: "NFL Mock Draft Database", link: "https://www.nflmockdraftdatabase.com/" },
+        { name: "Walter Football", link: "https://walterfootball.com/" },
+        { name: "Tankathon (NFL)", link: "https://www.tankathon.com/nfl" },
+        { name: "ESPN Draft Rounds", link: "https://www.espn.com/nfl/draft/rounds" },
+      ].map((item, index) => (
+        <li key={index} className="border-b pb-2 flex items-start gap-2">
+          <div className="flex-1">
+            <a
+              href={item.link}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-black hover:underline hover:text-blue-500 font-medium"
+            >
+              <h3>{item.name}</h3>
+            </a>
+          </div>
+        </li>
+      ))}
+    </ul>
   </div>
+
 
 
   {["Substack"].map((sourceName, i) => {
