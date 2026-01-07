@@ -1,4 +1,4 @@
-import { FaFacebook, FaTwitter, FaInstagram } from 'react-icons/fa';
+import { FaFacebook, FaTwitter, FaInstagram, FaTiktok } from 'react-icons/fa';
 import Image from 'next/image';
 
 const Footer = () => {
@@ -23,14 +23,17 @@ const Footer = () => {
         <div className="flex flex-col items-center md:items-start min-w-[140px] text-center md:text-left">
           <h3 className="text-lg font-bold mb-2">Follow Us</h3>
           <div className="flex space-x-3 mb-3 justify-center md:justify-start">
-            <a href="https://facebook.com" target="_blank" rel="noreferrer" className="w-8 h-8 rounded-full bg-white text-black flex items-center justify-center">
+            <a href="https://www.facebook.com/share/1FsaZd1tu2/?mibextid=wwXIfr" target="_blank" rel="noreferrer" className="w-8 h-8 rounded-full bg-white text-black flex items-center justify-center">
               <FaFacebook />
             </a>
-            <a href="https://instagram.com" target="_blank" rel="noreferrer" className="w-8 h-8 rounded-full bg-white text-black flex items-center justify-center">
+            <a href="https://www.instagram.com/profootball.report?igsh=eHdsd25ybzN4NTdt&utm_source=qr" target="_blank" rel="noreferrer" className="w-8 h-8 rounded-full bg-white text-black flex items-center justify-center">
               <FaInstagram />
             </a>
             <a href="https://twitter.com" target="_blank" rel="noreferrer" className="w-8 h-8 rounded-full bg-white text-black flex items-center justify-center">
               <FaTwitter />
+            </a>
+            <a href="https://www.tiktok.com/@profootballnews2?_r=1&_t=ZS-92IjrUV6rlH" target="_blank" rel="noreferrer" className="w-8 h-8 rounded-full bg-white text-black flex items-center justify-center">
+              <FaTiktok />
             </a>
           </div>
           <button className="bg-white text-black rounded-full px-4 py-1 transition-colors duration-150 active:bg-black active:text-white">
@@ -58,16 +61,13 @@ const Footer = () => {
           </div>
         </div>
 
-        {/* Suggestions */}
+        {/* Email */}
         <div className="flex flex-col items-center md:items-start w-[260px] max-w-full text-center md:text-left">
-          <h3 className="text-lg font-bold mb-2">Suggestion Box</h3>
-          <textarea
-            placeholder="Have an NFL news source we should add? Please let us know here!"
-            className="w-full bg-white text-black placeholder-gray-500 p-2 h-[80px] mb-2 text-sm rounded resize-none focus:outline-none focus:ring-0"
-          ></textarea>
-          <button className="bg-black border border-white text-white px-4 py-2 rounded-md w-full text-base font-sans transition-colors duration-150 active:bg-white active:text-black">
-            Submit
-          </button>
+          <h3 className="text-lg font-bold mb-2">Email</h3>
+
+          <a href="mailto:profootball@gmail.com" className="bg-black border border-white text-white px-4 py-2 rounded-md w-full text-base font-sans transition-colors duration-150 active:bg-white active:text-black text-center inline-block">
+            Email Us
+          </a>
         </div>
 
         {/* About */}
