@@ -434,7 +434,8 @@ const spotifyPodcastSources = podcastSources;
           key="featured-nfl-video"
           className="bg-white shadow-lg rounded-lg p-4 h-full flex flex-col"
         >
-          <div className="flex items-center justify-between mb-2">
+          {/* Header - fixed */}
+          <div className="flex items-center justify-between mb-2 flex-shrink-0">
             <div className="flex items-center">
               <img
                 src={source.image}
@@ -453,13 +454,13 @@ const spotifyPodcastSources = podcastSources;
             )}
           </div>
 
-          {/* Vertical scrolling container for up to 3 featured videos */}
+          {/* Scrollable content area */}
+          <div className="flex-1 min-h-0 overflow-y-auto">
           {featuredVideos.length > 0 ? (
-            <div className="max-h-[600px] overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
-              <div className="space-y-3 pr-2">
-                {featuredVideos.map((video, index) => (
-                  <div key={index}>
-                    <div className="relative overflow-hidden group aspect-video rounded-lg">
+            <div className="space-y-3">
+              {featuredVideos.map((video, index) => (
+                <div key={index}>
+                  <div className="relative overflow-hidden group aspect-video rounded-lg">
                       <a
                         href={video?.link}
                         target="_blank"
@@ -503,7 +504,6 @@ const spotifyPodcastSources = podcastSources;
                     </p>
                   </div>
                 ))}
-              </div>
             </div>
           ) : (
             /* Show placeholder if no videos */
@@ -548,10 +548,10 @@ const spotifyPodcastSources = podcastSources;
               const featuredPodcast = customVideos['featured-podcast']?.[0] || podcastSources?.[0]?.articles?.[0];
               
               return featuredPodcast ? (
-                <div className="aspect-video bg-gray-50 rounded-lg flex items-center p-4">
-                  <div className="flex items-center space-x-4">
-                    <div className="w-16 h-16 bg-gray-300 rounded-lg flex items-center justify-center flex-shrink-0">
-                      <svg className="w-8 h-8 text-gray-600" fill="currentColor" viewBox="0 0 24 24">
+                <div className="bg-gray-50 rounded-lg p-3">
+                  <div className="flex items-center space-x-3">
+                    <div className="w-12 h-12 bg-gray-300 rounded-lg flex items-center justify-center flex-shrink-0">
+                      <svg className="w-6 h-6 text-gray-600" fill="currentColor" viewBox="0 0 24 24">
                         <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 14.5v-9l6 4.5-6 4.5z"/>
                       </svg>
                     </div>
@@ -580,7 +580,7 @@ const spotifyPodcastSources = podcastSources;
                   </div>
                 </div>
               ) : (
-                <div className="aspect-video bg-gray-100 rounded-lg flex items-center justify-center">
+                <div className="bg-gray-100 rounded-lg p-3 flex items-center justify-center">
                   <div className="text-center">
                     <div className="w-8 h-8 mx-auto mb-2 bg-gray-300 rounded-full flex items-center justify-center">
                       <svg className="w-4 h-4 text-gray-500" fill="currentColor" viewBox="0 0 24 24">
@@ -593,14 +593,15 @@ const spotifyPodcastSources = podcastSources;
               );
             })()}
           </div>
+          </div> {/* Close scrollable area */}
         </div>
       );
     }
-  
+
     return (
       <div
         key={source.link || source.title}
-        className="bg-white shadow-lg rounded-lg p-4"
+        className="bg-white shadow-lg rounded-lg p-4 h-full"
       >
         <div className="flex items-center mb-4">
           {source.image && (
@@ -740,15 +741,15 @@ const spotifyPodcastSources = podcastSources;
           {topGridSources.length >= 3 && (
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6 items-stretch">
               {/* Card 1 */}
-              <div className="h-full flex flex-col">
+              <div className="flex flex-col">
                 {renderCard(topGridSources.filter(source => !source.source.isFeatured)[0])}
               </div>
               {/* Featured NFL Video */}
-              <div className="h-full flex flex-col">
+              <div className="flex flex-col">
                 {renderCard(topGridSources.find(source => source.source.isFeatured))}
               </div>
               {/* Card 2 */}
-              <div className="h-full flex flex-col">
+              <div className="flex flex-col">
                 {renderCard(topGridSources.filter(source => !source.source.isFeatured)[1])}
               </div>
             </div>
@@ -811,32 +812,69 @@ const spotifyPodcastSources = podcastSources;
           })()}
 
 {remainingSourcesChunk1.length > 0 && (
-  <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 mb-6">
-    {remainingSourcesChunk1
-      .filter(source => !source.source?.title?.toLowerCase().includes("sportsnet"))
-      .map((source, idx) => {
-        if (idx === 1) {
-          return [<BlogCard key="blog-card-in-grid" />, renderCard(source)];
-        }
-        return renderCard(source);
-      })}
+  <>
+    {/* ================= ROW 2 ================= */}
+    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 mb-6">
+      {/* Left: UNKNOWN FEED */}
+      {(() => {
+        const left = remainingSourcesChunk1.find(s =>
+          s.source?.title?.toLowerCase().includes("unknown feed")
+        );
+        return left
+          ? renderCard(left)
+          : <div className="bg-white shadow-lg rounded-lg p-4 h-full" />;
+      })()}
 
-    {/* ✅ Poll Card */}
-    <div className="bg-white shadow-lg rounded-lg p-4 h-full">
-      <PollCard 
-        polls={polls}
-        onManagePoll={handleManagePoll}
-        onEditPoll={handleEditPoll}
-        onRefresh={fetchPolls}
-        limit={1}
-      />
+      {/* Middle: Blank */}
+      <div className="bg-white shadow-lg rounded-lg p-4 h-full" />
+
+      {/* Right: CBS Sports Headlines */}
+      {(() => {
+        const right = remainingSourcesChunk1.find(s =>
+          s.source?.title?.toLowerCase().includes("cbs")
+        );
+        return right
+          ? renderCard(right)
+          : <div className="bg-white shadow-lg rounded-lg p-4 h-full" />;
+      })()}
     </div>
-    
-    {/* Blank Card - Visible but empty */}
-    <div className="bg-white shadow-lg rounded-lg p-4 h-full">
-      {/* Empty space - maintains grid layout */}
+
+    {/* ================= ROW 3 ================= */}
+    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 mb-6">
+      {/* Left: All Access Football */}
+      {(() => {
+        const left = remainingSourcesChunk1.find(s =>
+          s.source?.title?.toLowerCase().includes("all access football")
+        );
+        return left
+          ? renderCard(left)
+          : <div className="bg-white shadow-lg rounded-lg p-4 h-full" />;
+      })()}
+
+      {/* Middle: Poll Card */}
+      <div className="bg-white shadow-lg rounded-lg p-4 h-full">
+        <PollCard
+          polls={polls}
+          onManagePoll={handleManagePoll}
+          onEditPoll={handleEditPoll}
+          onRefresh={fetchPolls}
+          limit={1}
+        />
+      </div>
+
+      {/* Right: Pro Football Focus */}
+      {(() => {
+      const pff = remainingSourcesChunk2.find(s =>
+      s.source?.title?.toLowerCase().includes("pro football focus")
+      );
+
+      return pff
+      ? renderCard(pff)
+      : <div className="bg-white shadow-lg rounded-lg p-4 h-full" />;
+})()}
+
     </div>
-  </div>
+  </>
 )}
 
 
@@ -891,12 +929,35 @@ const spotifyPodcastSources = podcastSources;
           })()}
 
 
-          {/* Second chunk of remaining articles */}
-          {remainingSourcesChunk2.length > 0 && (
-            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 mb-6">
-              {remainingSourcesChunk2.map(renderCard)}
-            </div>
-          )}
+        {/* Second chunk of remaining articles */}
+        {remainingSourcesChunk2.length > 0 && (
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 mb-6">
+    
+          {/* LEFT: NFLTradeRumors.co */}
+          {(() => {
+            const nflTrade = remainingSourcesChunk2.find(s =>
+            s.source?.title?.toLowerCase().includes("nfltraderumors")
+            );
+            return nflTrade
+            ? renderCard(nflTrade)
+            : <div className="bg-white shadow-lg rounded-lg p-4 h-full" />;
+          })()}
+
+          {/* MIDDLE: Blank */}
+          <div className="bg-white shadow-lg rounded-lg p-4 h-full" />
+
+        {/* RIGHT: The 33rd Team */}
+        {(() => {
+        const team33 = remainingSourcesChunk2.find(s =>
+        s.source?.title?.toLowerCase().includes("the 33rd team")
+        );
+        return team33
+        ? renderCard(team33)
+        : <div className="bg-white shadow-lg rounded-lg p-4 h-full" />;
+    })()}
+  </div>
+)}
+
 
           {/* UP & COMING CHANNELS (Card Layout) */}
           {upAndComingSources.length > 0 && (() => {
@@ -948,128 +1009,31 @@ const spotifyPodcastSources = podcastSources;
             );
           })()}
 
-{/* Third chunk of remaining articles */}
-{remainingSourcesChunk3.length > 0 && (
-  <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 mb-6">
-    {remainingSourcesChunk3.map((source) => (
-      <div
-        key={source.source.link || source.source.title}
-        className="bg-white shadow-lg rounded-lg p-4"
-      >
-        <div className="flex items-center mb-4">
-          {source.source.image && (
-            <img
-              src={source.source.image}
-              alt={decodeHtmlEntities(source.source.title || "Unknown Source")}
-              className="w-10 h-10 mr-3 rounded-full object-cover"
-            />
-          )}
-          <div>
-            <a
-              href={source.source.link || "#"}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-blue-500 hover:text-blue-700"
-            >
-              <h2 className="text-lg font-bold uppercase text-black cursor-pointer">
-                {decodeHtmlEntities(source.source.title || "Unknown Source")}
-              </h2>
-            </a>
-            <p className="text-gray-500 text-xs">
-              Last Updated: {formatDate(source.source.updatedAt)}
-            </p>
-          </div>
-        </div>
-        <ul className="space-y-2">
-          {source.articles.slice(0, 5).map((article, index) => {  {/* Changed from 6 to 4 */}
-            const commentCount = commentCounts[article.title] || 0;
-            return (
-              <li key={index} className="border-b pb-2 flex items-start gap-2">
-                <div className="flex-1">
-                  <a
-                    href={article.link || "#"}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-black hover:underline hover:text-blue-500 font-medium"
-                  >
-                    <h3 className="flex items-center gap-2">
-                      {decodeHtmlEntities(article.title || "Untitled Article")}
-                      {article.isCustom && (
-                        <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">
-                          Custom
-                        </span>
-                      )}
-                    </h3>
-                  </a>
-                  <p className="text-gray-500 text-xs">
-                    {formatDate(article.pubDate)}
-                  </p>
-                </div>
-                <div className="flex items-center gap-2">
-                  {/* Edit button for custom articles (admin only) */}
-                  {article.isCustom && isAdmin && (
-                    <button
-                      onClick={() => handleEditArticle(source.source, article)}
-                      className="text-xs bg-yellow-500 text-white px-2 py-1 rounded hover:bg-yellow-600 transition-colors"
-                      title="Edit custom article"
-                    >
-                      Edit
-                    </button>
-                  )}
-                  {/* Comment count */}
-                  <div className="relative flex-shrink-0">
-                    <a
-                      href={`/comments/${encodeURIComponent(article.title)}?sourceTitle=${encodeURIComponent(source.title || 'Unknown Source')}&sourceImage=${encodeURIComponent(source.image || '')}&sourceLink=${encodeURIComponent(source.link || '')}`}
-                      className="hover:text-blue-500 relative inline-block"
-                    >
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        width="36"
-                        height="36"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        className="lucide lucide-message-circle"
-                      >
-                        <path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z" />
-                      </svg>
-                      {commentCount > 0 && (
-                        <span className="absolute inset-0 flex items-center justify-center text-sm font-black text-gray-700 tracking-tight">
-                          {commentCount > 99 ? '99+' : commentCount}
-                        </span>
-                      )}
-                    </a>
-                  </div>
-                </div>
-              </li>
-            );
-          })}
-        </ul>
-        <div className="flex items-center justify-between mt-2">
-          <a
-            href={source.source.link || "#"}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-base text-blue-500 font-semibold"
-          >
-            MORE ...
-          </a>
-          {isAdmin && (
-            <button
-              onClick={() => handleManageSource(source.source)}
-              className="text-sm bg-green-500 text-white px-3 py-1 rounded hover:bg-green-600 transition-colors"
-            >
-              Add Article
-            </button>
-          )}
-        </div>
-      </div>
-    ))}
-  </div>
-)}
+<div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 mb-6">
+  {/* LEFT: NFL Discussion */}
+  {(() => {
+    const left = remainingSourcesChunk3.find(s =>
+      s.source?.title?.toLowerCase().includes("national football league discussion")
+    );
+    return left
+      ? renderCard(left)
+      : <div className="bg-white shadow-lg rounded-lg p-4 h-full" />;
+  })()}
+
+  {/* MIDDLE: Empty */}
+  <div className="bg-white shadow-lg rounded-lg p-4 h-full" />
+
+  {/* RIGHT: Sportsnet */}
+  {(() => {
+    const right = remainingSourcesChunk3.find(s =>
+      s.source?.title?.toLowerCase().includes("sportsnet")
+    );
+    return right
+      ? renderCard(right)
+      : <div className="bg-white shadow-lg rounded-lg p-4 h-full" />;
+  })()}
+</div>
+
 
 
           {/* NFL PODCASTS (Card Layout) */}
@@ -1120,13 +1084,11 @@ const spotifyPodcastSources = podcastSources;
             );
           })()}
 
-{/* First 3 RSS Cards */}
+
+
+{/*6th row*/}
 <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 mb-6">
-  {[
-    "Substack",
-    "The Sporting News NFL",
-    "The Ringer",
-  ].map((sourceName, i) => {
+  {["Yardbarker NFL"].map((sourceName, i) => {
     const matchedSource = sources.find( 
       (s) => s.source?.title && s.source.title.toLowerCase().includes(sourceName.toLowerCase())
     ) || { 
@@ -1238,8 +1200,8 @@ const spotifyPodcastSources = podcastSources;
         <div className="flex items-center justify-between mt-2">
           <a
             href={matchedSource.source.link || "#"}
-            target="_blank"
-            rel="noopener noreferrer"
+              target="_blank"
+              rel="noopener noreferrer"
             className="text-base text-blue-500 font-semibold"
           >
             MORE ...
@@ -1256,7 +1218,505 @@ const spotifyPodcastSources = podcastSources;
       </div>
     );
   })}
+
+
+  <div className="bg-white shadow-lg rounded-lg p-4 h-full flex flex-col">
+    {/*Header*/}
+    <div className="flex items-center mb-4">
+      <div className="w-10 h-10 mr-3 bg-gray-300 rounded-full flex items-center justify-center text-xs font-bold">
+        ICON
+      </div>
+
+      <div>
+        <h2 className="text-lg font-bold uppercase text-black">
+          NFL Draft Central
+        </h2>
+        <p className="text-gray-500 text-xs">
+          Draft resources & tools
+        </p>
+      </div>
+    </div>
+
+
+    {/*Image*/}
+
+
+    {/*Links*/}
+    <ul className="space-y-2 flex-1">
+      {[
+        { name: "The Draft Network", link: "https://www.thedraftnetwork.com/" },
+        { name: "NFL Mock Draft Database", link: "https://www.nflmockdraftdatabase.com/" },
+        { name: "Walter Football", link: "https://walterfootball.com/" },
+        { name: "Tankathon (NFL)", link: "https://www.tankathon.com/nfl" },
+        { name: "ESPN Draft Rounds", link: "https://www.espn.com/nfl/draft/rounds" },
+      ].map((item, index) => (
+        <li key={index} className="border-b pb-2 flex items-start gap-2">
+          <div className="flex-1">
+            <a
+              href={item.link}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-black hover:underline hover:text-blue-500 font-medium"
+            >
+              <h3>{item.name}</h3>
+            </a>
+          </div>
+        </li>
+      ))}
+    </ul>
+  </div>
+
+
+  {["Substack"].map((sourceName, i) => {
+    const matchedSource = sources.find( 
+      (s) => s.source?.title && s.source.title.toLowerCase().includes(sourceName.toLowerCase())
+    ) || { 
+      source: { 
+        title: sourceName, 
+        link: "#", 
+        image: null, 
+        updatedAt: null 
+      }, 
+      articles: [] 
+    };
+
+    // Process articles (limit to 6)
+    const validArticles = (matchedSource.articles || [])
+      .filter(article => article?.title && article?.link)
+      .slice(0, 6);
+
+    return (
+      <div
+        key={`rss-card-second-${i}`}
+        className="bg-white shadow-lg rounded-lg p-4 h-full flex flex-col"
+      >
+        <div className="flex items-center mb-4">
+          {matchedSource.source.image ? (
+            <img
+              src={matchedSource.source.image}
+              alt={matchedSource.source.title}
+              className="w-10 h-10 mr-3 rounded-full object-cover"
+            />
+          ) : (
+            <div className="w-10 h-10 mr-3 bg-gray-300 rounded-full" />
+          )}
+          <div>
+            <a
+              href={matchedSource.source.link || "#"}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-blue-500 hover:text-blue-700"
+            >
+              <h2 className="text-lg font-bold uppercase text-black cursor-pointer">
+                {decodeHtmlEntities(matchedSource.source.title)}
+              </h2>
+            </a>
+            <p className="text-gray-500 text-xs">
+              Last Updated: {matchedSource.source.updatedAt ? formatDate(matchedSource.source.updatedAt) : "--"}
+            </p>
+          </div>
+        </div>
+        
+        <ul className="space-y-2 flex-1">
+          {validArticles.length > 0 ? (
+            validArticles.map((article, index) => {
+              const commentCount = commentCounts[article.title] || 0;
+              return (
+                <li key={index} className="border-b pb-2 flex items-start gap-2">
+                  <div className="flex-1">
+                    <a
+                      href={article.link || "#"}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-black hover:underline hover:text-blue-500 font-medium"
+                    >
+                      <h3>
+                        {decodeHtmlEntities(article.title || "Untitled Article")}
+                      </h3>
+                    </a>
+                    <p className="text-gray-500 text-xs">
+                      {formatDate(article.pubDate)}
+                    </p>
+                  </div>
+                  <div className="relative flex-shrink-0">
+                    <a
+                      href={`/comments/${encodeURIComponent(article.title)}?sourceTitle=${encodeURIComponent(matchedSource.source.title || 'Unknown Source')}&sourceImage=${encodeURIComponent(matchedSource.source.image || '')}&sourceLink=${encodeURIComponent(matchedSource.source.link || '')}`}
+                      className="hover:text-blue-500 relative inline-block"
+                    >
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="36"
+                        height="36"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        className="lucide lucide-message-circle"
+                      >
+                        <path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z" />
+                      </svg>
+                      {commentCount > 0 && (
+                        <span className="absolute inset-0 flex items-center justify-center text-sm font-black text-gray-700 tracking-tight">
+                          {commentCount > 99 ? '99+' : commentCount}
+                        </span>
+                      )}
+                    </a>
+                  </div>
+                </li>
+              );
+            })
+          ) : (
+            <li className="border-b pb-2 flex items-start gap-2">
+              <div className="flex-1">
+                <p className="text-gray-400">No articles found</p>
+              </div>
+            </li>
+          )}
+        </ul>
+
+        <div className="flex items-center justify-between mt-2">
+          <a
+            href={matchedSource.source.link || "#"}
+              target="_blank"
+              rel="noopener noreferrer"
+            className="text-base text-blue-500 font-semibold"
+          >
+            MORE ...
+          </a>
+          {isAdmin && (
+            <button
+              onClick={() => handleManageSource(matchedSource.source)}
+              className="text-sm bg-green-500 text-white px-3 py-1 rounded hover:bg-green-600 transition-colors"
+            >
+              Add Article
+            </button>
+          )}
+        </div>
+      </div>
+    );
+  })}
+
 </div>
+
+
+
+{/*7th row*/}
+<div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 mb-6">
+  {["The Sporting News NFL"].map((sourceName, i) => {
+    const matchedSource = sources.find( 
+      (s) => s.source?.title && s.source.title.toLowerCase().includes(sourceName.toLowerCase())
+    ) || { 
+      source: { 
+        title: sourceName, 
+        link: "#", 
+        image: null, 
+        updatedAt: null 
+      }, 
+      articles: [] 
+    };
+
+    // Process articles (limit to 6)
+    const validArticles = (matchedSource.articles || [])
+      .filter(article => article?.title && article?.link)
+      .slice(0, 6);
+
+    return (
+      <div
+        key={`rss-card-first-${i}`}
+        className="bg-white shadow-lg rounded-lg p-4 h-full flex flex-col"
+      >
+        <div className="flex items-center mb-4">
+          {matchedSource.source.image ? (
+            <img
+              src={matchedSource.source.image}
+              alt={matchedSource.source.title}
+              className="w-10 h-10 mr-3 rounded-full object-cover"
+            />
+          ) : (
+            <div className="w-10 h-10 mr-3 bg-gray-300 rounded-full" />
+          )}
+          <div>
+            <a
+              href={matchedSource.source.link || "#"}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-blue-500 hover:text-blue-700"
+            >
+              <h2 className="text-lg font-bold uppercase text-black cursor-pointer">
+                {decodeHtmlEntities(matchedSource.source.title)}
+              </h2>
+            </a>
+            <p className="text-gray-500 text-xs">
+              Last Updated: {matchedSource.source.updatedAt ? formatDate(matchedSource.source.updatedAt) : "--"}
+            </p>
+          </div>
+        </div>
+        
+        <ul className="space-y-2 flex-1">
+          {validArticles.length > 0 ? (
+            validArticles.map((article, index) => {
+              const commentCount = commentCounts[article.title] || 0;
+              return (
+                <li key={index} className="border-b pb-2 flex items-start gap-2">
+                  <div className="flex-1">
+                    <a
+                      href={article.link || "#"}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-black hover:underline hover:text-blue-500 font-medium"
+                    >
+                      <h3>
+                        {decodeHtmlEntities(article.title || "Untitled Article")}
+                      </h3>
+                    </a>
+                    <p className="text-gray-500 text-xs">
+                      {formatDate(article.pubDate)}
+                    </p>
+                  </div>
+                  <div className="relative flex-shrink-0">
+                    <a
+                      href={`/comments/${encodeURIComponent(article.title)}?sourceTitle=${encodeURIComponent(matchedSource.source.title || 'Unknown Source')}&sourceImage=${encodeURIComponent(matchedSource.source.image || '')}&sourceLink=${encodeURIComponent(matchedSource.source.link || '')}`}
+                      className="hover:text-blue-500 relative inline-block"
+                    >
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="36"
+                        height="36"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        className="lucide lucide-message-circle"
+                      >
+                        <path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z" />
+                      </svg>
+                      {commentCount > 0 && (
+                        <span className="absolute inset-0 flex items-center justify-center text-sm font-black text-gray-700 tracking-tight">
+                          {commentCount > 99 ? '99+' : commentCount}
+                        </span>
+                      )}
+                    </a>
+                  </div>
+                </li>
+              );
+            })
+          ) : (
+            <li className="border-b pb-2 flex items-start gap-2">
+              <div className="flex-1">
+                <p className="text-gray-400">No articles found</p>
+              </div>
+            </li>
+          )}
+        </ul>
+
+        <div className="flex items-center justify-between mt-2">
+          <a
+            href={matchedSource.source.link || "#"}
+              target="_blank"
+              rel="noopener noreferrer"
+            className="text-base text-blue-500 font-semibold"
+          >
+            MORE ...
+          </a>
+          {isAdmin && (
+            <button
+              onClick={() => handleManageSource(matchedSource.source)}
+              className="text-sm bg-green-500 text-white px-3 py-1 rounded hover:bg-green-600 transition-colors"
+            >
+              Add Article
+            </button>
+          )}
+        </div>
+      </div>
+    );
+  })}
+
+
+  <div className="bg-white shadow-lg rounded-lg p-4 h-full flex flex-col">
+    {/*Header*/}
+    <div className="flex items-center mb-4">
+      <div className="w-10 h-10 mr-3 bg-gray-300 rounded-full flex items-center justify-center text-xs font-bold">
+        ICON
+      </div>
+
+      <div>
+        <h2 className="text-lg font-bold uppercase text-black">
+          NFL Free Agency
+        </h2>
+        <p className="text-gray-500 text-xs">
+          Contracts, cap space, & signings
+        </p>
+      </div>
+    </div>
+
+
+    {/*Image*/}
+
+
+    {/*Links*/}
+    <ul className="space-y-2 flex-1">
+      {[
+        { name: "Over The Cap - Free Agency", link: "https://overthecap.com/free-agency" },
+        { name: "Spotrac - NFL Free Agents", link: "https://www.spotrac.com/nfl/free-agents" },
+        { name: "PFF - NFL Free Agency (2025)", link: "https://www.pff.com/nfl/free-agency?season=2025" },
+        { name: "SB Nation - NFL Free Agency", link: "https://www.sbnation.com/nfl-free-agency" },
+        { name: "ESPN - NFL Free Agency", link: "https://www.espn.com/nfl/nfl-free-agency/" },
+      ].map((item, index) => (
+                <li key={index} className="border-b pb-2 flex items-start gap-2">
+                  <div className="flex-1">
+                    <a
+                      href={item.link}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-black hover:underline hover:text-blue-500 font-medium"
+                    >
+                      <h3>{item.name}</h3>
+                    </a>
+                  </div>
+                </li>
+              ))}
+    </ul>
+  </div>
+
+
+  {["The Ringer"].map((sourceName, i) => {
+    const matchedSource = sources.find( 
+      (s) => s.source?.title && s.source.title.toLowerCase().includes(sourceName.toLowerCase())
+    ) || { 
+      source: { 
+        title: sourceName, 
+        link: "#", 
+        image: null, 
+        updatedAt: null 
+      }, 
+      articles: [] 
+    };
+
+    // Process articles (limit to 6)
+    const validArticles = (matchedSource.articles || [])
+      .filter(article => article?.title && article?.link)
+      .slice(0, 6);
+
+    return (
+      <div
+        key={`rss-card-second-${i}`}
+        className="bg-white shadow-lg rounded-lg p-4 h-full flex flex-col"
+      >
+        <div className="flex items-center mb-4">
+          {matchedSource.source.image ? (
+            <img
+              src={matchedSource.source.image}
+              alt={matchedSource.source.title}
+              className="w-10 h-10 mr-3 rounded-full object-cover"
+            />
+          ) : (
+            <div className="w-10 h-10 mr-3 bg-gray-300 rounded-full" />
+          )}
+          <div>
+            <a
+              href={matchedSource.source.link || "#"}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-blue-500 hover:text-blue-700"
+            >
+              <h2 className="text-lg font-bold uppercase text-black cursor-pointer">
+                {decodeHtmlEntities(matchedSource.source.title)}
+              </h2>
+            </a>
+            <p className="text-gray-500 text-xs">
+              Last Updated: {matchedSource.source.updatedAt ? formatDate(matchedSource.source.updatedAt) : "--"}
+            </p>
+          </div>
+        </div>
+        
+        <ul className="space-y-2 flex-1">
+          {validArticles.length > 0 ? (
+            validArticles.map((article, index) => {
+              const commentCount = commentCounts[article.title] || 0;
+              return (
+                <li key={index} className="border-b pb-2 flex items-start gap-2">
+                  <div className="flex-1">
+                    <a
+                      href={article.link || "#"}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-black hover:underline hover:text-blue-500 font-medium"
+                    >
+                      <h3>
+                        {decodeHtmlEntities(article.title || "Untitled Article")}
+                      </h3>
+                    </a>
+                    <p className="text-gray-500 text-xs">
+                      {formatDate(article.pubDate)}
+                    </p>
+                  </div>
+                  <div className="relative flex-shrink-0">
+                    <a
+                      href={`/comments/${encodeURIComponent(article.title)}?sourceTitle=${encodeURIComponent(matchedSource.source.title || 'Unknown Source')}&sourceImage=${encodeURIComponent(matchedSource.source.image || '')}&sourceLink=${encodeURIComponent(matchedSource.source.link || '')}`}
+                      className="hover:text-blue-500 relative inline-block"
+                    >
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="36"
+                        height="36"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        className="lucide lucide-message-circle"
+                      >
+                        <path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z" />
+                      </svg>
+                      {commentCount > 0 && (
+                        <span className="absolute inset-0 flex items-center justify-center text-sm font-black text-gray-700 tracking-tight">
+                          {commentCount > 99 ? '99+' : commentCount}
+                        </span>
+                      )}
+                    </a>
+                  </div>
+                </li>
+              );
+            })
+          ) : (
+            <li className="border-b pb-2 flex items-start gap-2">
+              <div className="flex-1">
+                <p className="text-gray-400">No articles found</p>
+              </div>
+            </li>
+          )}
+        </ul>
+
+        <div className="flex items-center justify-between mt-2">
+          <a
+            href={matchedSource.source.link || "#"}
+              target="_blank"
+              rel="noopener noreferrer"
+            className="text-base text-blue-500 font-semibold"
+          >
+            MORE ...
+          </a>
+          {isAdmin && (
+            <button
+              onClick={() => handleManageSource(matchedSource.source)}
+              className="text-sm bg-green-500 text-white px-3 py-1 rounded hover:bg-green-600 transition-colors"
+            >
+              Add Article
+            </button>
+          )}
+        </div>
+      </div>
+    );
+  })}
+
+</div>
+
+
 
 {/* APPLE PODCASTS - Final Production Version */}
 {(() => {
@@ -1510,13 +1970,11 @@ const spotifyPodcastSources = podcastSources;
   );
 })()}
 
-{/* Second 3 RSS Cards */}
+
+
+{/*8th row*/}
 <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 mb-6">
-  {[
-    "FANSIDED",
-    "Sports Illustrated NFL",
-    "The Draft Network",
-  ].map((sourceName, i) => {
+  {["FANSIDED"].map((sourceName, i) => {
     const matchedSource = sources.find( 
       (s) => s.source?.title && s.source.title.toLowerCase().includes(sourceName.toLowerCase())
     ) || { 
@@ -1628,8 +2086,8 @@ const spotifyPodcastSources = podcastSources;
         <div className="flex items-center justify-between mt-2">
           <a
             href={matchedSource.source.link || "#"}
-            target="_blank"
-            rel="noopener noreferrer"
+              target="_blank"
+              rel="noopener noreferrer"
             className="text-base text-blue-500 font-semibold"
           >
             MORE ...
@@ -1646,65 +2104,375 @@ const spotifyPodcastSources = podcastSources;
       </div>
     );
   })}
-</div>
 
-{/* SPOTIFY NFL PODCASTS (Card Layout) */}
-{topChannelSources.length > 0 && (() => {
-  // Prepare the videos array
-  const topSourceVideos = spotifyPodcastSources
-    .map(({ articles }) => articles?.[0])
-    .filter(Boolean);
 
-  // Merge custom videos with original top channel videos
-  const mergedTopVideos = mergeCustomVideos('spotify-nfl-podcasts', topSourceVideos);
+  <div className="bg-white shadow-lg rounded-lg p-4 h-full flex flex-col">
+    {/*Header*/}
+    <div className="flex items-center mb-4">
+      <div className="w-10 h-10 mr-3 bg-gray-300 rounded-full flex items-center justify-center text-xs font-bold">
+        ICON
+      </div>
 
-  return (
-    <div className="bg-white shadow-lg rounded-lg p-4 mb-6">
-      <div className="flex items-center justify-between mb-2">
-        <div className="flex items-center">
-          <img
-          src="https://upload.wikimedia.org/wikipedia/commons/1/19/Spotify_logo_without_text.svg"
-          alt="Spotify Logo"
-          className="w-12 h-12 mr-2"
-          />
+      <div>
+        <h2 className="text-lg font-bold uppercase text-black">
+          Salary Cap News
+        </h2>
+        <p className="text-gray-500 text-xs">
+          Top NFL salary cap resources        
+        </p>
+      </div>
+    </div>
+
+
+    {/*Image*/}
+
+
+    {/*Links*/}
+    <ul className="space-y-2 flex-1">
+      {[
+        { name: "Over The Cap - Salary Cap Space", link: "https://overthecap.com/salary-cap-space" },
+        { name: "Spotrac - NFL Cap Tracker", link: "https://www.spotrac.com/nfl/cap" },
+        { name: "NFL Trade Rumors - Cap Space", link: "https://nfltraderumors.co/nfl-cap-space-1/" },
+      ].map((item, index) => (
+                  <li key={index} className="border-b pb-2 flex items-start gap-2">
+                    <div className="flex-1">
+                      <a
+                        href={item.link}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-black hover:underline hover:text-blue-500 font-medium"
+                      >
+                        <h3>{item.name}</h3>
+                      </a>
+                    </div>
+                  </li>
+              ))}
+    </ul>
+  </div>
+
+
+  {["Sports Illustrated NFL"].map((sourceName, i) => {
+    const matchedSource = sources.find( 
+      (s) => s.source?.title && s.source.title.toLowerCase().includes(sourceName.toLowerCase())
+    ) || { 
+      source: { 
+        title: sourceName, 
+        link: "#", 
+        image: null, 
+        updatedAt: null 
+      }, 
+      articles: [] 
+    };
+
+    // Process articles (limit to 6)
+    const validArticles = (matchedSource.articles || [])
+      .filter(article => article?.title && article?.link)
+      .slice(0, 6);
+
+    return (
+      <div
+        key={`rss-card-second-${i}`}
+        className="bg-white shadow-lg rounded-lg p-4 h-full flex flex-col"
+      >
+        <div className="flex items-center mb-4">
+          {matchedSource.source.image ? (
+            <img
+              src={matchedSource.source.image}
+              alt={matchedSource.source.title}
+              className="w-10 h-10 mr-3 rounded-full object-cover"
+            />
+          ) : (
+            <div className="w-10 h-10 mr-3 bg-gray-300 rounded-full" />
+          )}
           <div>
-            <h2 className="text-lg font-bold text-black">Spotify NFL Podcasts</h2>
+            <a
+              href={matchedSource.source.link || "#"}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-blue-500 hover:text-blue-700"
+            >
+              <h2 className="text-lg font-bold uppercase text-black cursor-pointer">
+                {decodeHtmlEntities(matchedSource.source.title)}
+              </h2>
+            </a>
             <p className="text-gray-500 text-xs">
-              Last Updated: {formatDate(topChannelSources[0]?.source?.updatedAt)}
+              Last Updated: {matchedSource.source.updatedAt ? formatDate(matchedSource.source.updatedAt) : "--"}
             </p>
           </div>
         </div>
-        {isAdmin && (
-          <button
-            onClick={() => handleManageVideo('spotify-nfl-podcasts')}
-            className="text-sm bg-green-500 text-white px-3 py-1 rounded hover:bg-green-600 transition-colors"
+        
+        <ul className="space-y-2 flex-1">
+          {validArticles.length > 0 ? (
+            validArticles.map((article, index) => {
+              const commentCount = commentCounts[article.title] || 0;
+              return (
+                <li key={index} className="border-b pb-2 flex items-start gap-2">
+                  <div className="flex-1">
+                    <a
+                      href={article.link || "#"}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-black hover:underline hover:text-blue-500 font-medium"
+                    >
+                      <h3>
+                        {decodeHtmlEntities(article.title || "Untitled Article")}
+                      </h3>
+                    </a>
+                    <p className="text-gray-500 text-xs">
+                      {formatDate(article.pubDate)}
+                    </p>
+                  </div>
+                  <div className="relative flex-shrink-0">
+                    <a
+                      href={`/comments/${encodeURIComponent(article.title)}?sourceTitle=${encodeURIComponent(matchedSource.source.title || 'Unknown Source')}&sourceImage=${encodeURIComponent(matchedSource.source.image || '')}&sourceLink=${encodeURIComponent(matchedSource.source.link || '')}`}
+                      className="hover:text-blue-500 relative inline-block"
+                    >
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="36"
+                        height="36"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        className="lucide lucide-message-circle"
+                      >
+                        <path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z" />
+                      </svg>
+                      {commentCount > 0 && (
+                        <span className="absolute inset-0 flex items-center justify-center text-sm font-black text-gray-700 tracking-tight">
+                          {commentCount > 99 ? '99+' : commentCount}
+                        </span>
+                      )}
+                    </a>
+                  </div>
+                </li>
+              );
+            })
+          ) : (
+            <li className="border-b pb-2 flex items-start gap-2">
+              <div className="flex-1">
+                <p className="text-gray-400">No articles found</p>
+              </div>
+            </li>
+          )}
+        </ul>
+
+        <div className="flex items-center justify-between mt-2">
+          <a
+            href={matchedSource.source.link || "#"}
+              target="_blank"
+              rel="noopener noreferrer"
+            className="text-base text-blue-500 font-semibold"
           >
-            Add Video
-          </button>
-        )}
+            MORE ...
+          </a>
+          {isAdmin && (
+            <button
+              onClick={() => handleManageSource(matchedSource.source)}
+              className="text-sm bg-green-500 text-white px-3 py-1 rounded hover:bg-green-600 transition-colors"
+            >
+              Add Article
+            </button>
+          )}
+        </div>
+      </div>
+    );
+  })}
+
+</div>
+
+
+
+{/*9th row*/}
+<div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 mb-6">
+  {["The Draft Network"].map((sourceName, i) => {
+    const matchedSource = sources.find( 
+      (s) => s.source?.title && s.source.title.toLowerCase().includes(sourceName.toLowerCase())
+    ) || { 
+      source: { 
+        title: sourceName, 
+        link: "#", 
+        image: null, 
+        updatedAt: null 
+      }, 
+      articles: [] 
+    };
+
+    // Process articles (limit to 6)
+    const validArticles = (matchedSource.articles || [])
+      .filter(article => article?.title && article?.link)
+      .slice(0, 6);
+
+    return (
+      <div
+        key={`rss-card-second-${i}`}
+        className="bg-white shadow-lg rounded-lg p-4 h-full flex flex-col"
+      >
+        <div className="flex items-center mb-4">
+          {matchedSource.source.image ? (
+            <img
+              src={matchedSource.source.image}
+              alt={matchedSource.source.title}
+              className="w-10 h-10 mr-3 rounded-full object-cover"
+            />
+          ) : (
+            <div className="w-10 h-10 mr-3 bg-gray-300 rounded-full" />
+          )}
+          <div>
+            <a
+              href={matchedSource.source.link || "#"}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-blue-500 hover:text-blue-700"
+            >
+              <h2 className="text-lg font-bold uppercase text-black cursor-pointer">
+                {decodeHtmlEntities(matchedSource.source.title)}
+              </h2>
+            </a>
+            <p className="text-gray-500 text-xs">
+              Last Updated: {matchedSource.source.updatedAt ? formatDate(matchedSource.source.updatedAt) : "--"}
+            </p>
+          </div>
+        </div>
+        
+        <ul className="space-y-2 flex-1">
+          {validArticles.length > 0 ? (
+            validArticles.map((article, index) => {
+              const commentCount = commentCounts[article.title] || 0;
+              return (
+                <li key={index} className="border-b pb-2 flex items-start gap-2">
+                  <div className="flex-1">
+                    <a
+                      href={article.link || "#"}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-black hover:underline hover:text-blue-500 font-medium"
+                    >
+                      <h3>
+                        {decodeHtmlEntities(article.title || "Untitled Article")}
+                      </h3>
+                    </a>
+                    <p className="text-gray-500 text-xs">
+                      {formatDate(article.pubDate)}
+                    </p>
+                  </div>
+                  <div className="relative flex-shrink-0">
+                    <a
+                      href={`/comments/${encodeURIComponent(article.title)}?sourceTitle=${encodeURIComponent(matchedSource.source.title || 'Unknown Source')}&sourceImage=${encodeURIComponent(matchedSource.source.image || '')}&sourceLink=${encodeURIComponent(matchedSource.source.link || '')}`}
+                      className="hover:text-blue-500 relative inline-block"
+                    >
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="36"
+                        height="36"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        className="lucide lucide-message-circle"
+                      >
+                        <path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z" />
+                      </svg>
+                      {commentCount > 0 && (
+                        <span className="absolute inset-0 flex items-center justify-center text-sm font-black text-gray-700 tracking-tight">
+                          {commentCount > 99 ? '99+' : commentCount}
+                        </span>
+                      )}
+                    </a>
+                  </div>
+                </li>
+              );
+            })
+          ) : (
+            <li className="border-b pb-2 flex items-start gap-2">
+              <div className="flex-1">
+                <p className="text-gray-400">No articles found</p>
+              </div>
+            </li>
+          )}
+        </ul>
+
+        <div className="flex items-center justify-between mt-2">
+          <a
+            href={matchedSource.source.link || "#"}
+              target="_blank"
+              rel="noopener noreferrer"
+            className="text-base text-blue-500 font-semibold"
+          >
+            MORE ...
+          </a>
+          {isAdmin && (
+            <button
+              onClick={() => handleManageSource(matchedSource.source)}
+              className="text-sm bg-green-500 text-white px-3 py-1 rounded hover:bg-green-600 transition-colors"
+            >
+              Add Article
+            </button>
+          )}
+        </div>
+      </div>
+    );
+  })}
+
+
+  <div className="bg-white shadow-lg rounded-lg p-4 h-full flex flex-col">
+    {/*Header*/}
+    <div className="flex items-center mb-4">
+      <div className="w-10 h-10 mr-3 bg-gray-300 rounded-full flex items-center justify-center text-xs font-bold">
+        ICON
       </div>
 
-      <HorizontalScroller videos={mergedTopVideos} onEditVideo={isAdmin ? (video) => handleEditVideo('spotify-nfl-podcasts', video) : null} />
-
-      <a
-      href="https://open.spotify.com/search/NFL%20Podcast"
-      className="text-lg text-blue-500 block font-semibold"
-      target="_blank"
-      rel="noopener noreferrer"
-      >
-        Browse more on Spotify →
-      </a>
+      <div>
+        <h2 className="text-lg font-bold uppercase text-black">
+          Best of X
+        </h2>
+        <p className="text-gray-500 text-xs">
+          Top reporters on X       
+        </p>
+      </div>
     </div>
-  );
-})()}
 
-{/* Last 3 RSS Cards */}
-<div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 mb-6">
-  {[
-    "NFL Spin Zone",
-    "Bleacher Report",
-    "Fox Sports",
-  ].map((sourceName, i) => {
+
+    {/*Image*/}
+
+
+    {/*Links*/}
+    <ul className="space-y-2 flex-1">
+      {[
+        { name: "Adam Schefter (@AdamSchefter)", link: "https://x.com/AdamSchefter" },
+        { name: "Ian Rapoport (@RapSheet)", link: "https://x.com/RapSheet" },
+        { name: "Tom Pelissero (@TomPelissero)", link: "https://x.com/TomPelissero" },
+        { name: "Mike Reiss (@MikeReiss)", link: "https://x.com/MikeReiss" },
+        { name: "Robert Mays (@robertmays)", link: "https://x.com/robertmays" },
+        { name: "Dov Kleiman (@NFL_DovKleiman)", link: "https://x.com/NFL_DovKleiman" },
+        { name: "Jeff Darlington (@JeffDarlington)", link: "https://x.com/JeffDarlington" },
+        { name: "Jeff Howe (@Jeffphowe)", link: "https://x.com/Jeffphowe" },
+        { name: "John Keim (@john_keim)", link: "https://x.com/john_keim" },
+        { name: "Adam Teicher (@AdamTeicher)", link: "https://x.com/AdamTeicher" },
+      ].map((item, index) => (
+                  <li key={index} className="border-b pb-2 flex items-start gap-2">
+                    <div className="flex-1">
+                      <a
+                        href={item.link}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-black hover:underline hover:text-blue-500 font-medium"
+                      >
+                        <h3>{item.name}</h3>
+                      </a>
+                    </div>
+                  </li>
+              ))}
+    </ul>
+  </div>
+
+
+  {["NFL Spin Zone"].map((sourceName, i) => {
     const matchedSource = sources.find( 
       (s) => s.source?.title && s.source.title.toLowerCase().includes(sourceName.toLowerCase())
     ) || { 
@@ -1816,8 +2584,8 @@ const spotifyPodcastSources = podcastSources;
         <div className="flex items-center justify-between mt-2">
           <a
             href={matchedSource.source.link || "#"}
-            target="_blank"
-            rel="noopener noreferrer"
+              target="_blank"
+              rel="noopener noreferrer"
             className="text-base text-blue-500 font-semibold"
           >
             MORE ...
@@ -1834,6 +2602,327 @@ const spotifyPodcastSources = podcastSources;
       </div>
     );
   })}
+
+</div>
+
+{/* SPOTIFY NFL PODCASTS (Card Layout) */}
+{podcastSources.length > 0 && (() => {
+  // Prepare the videos array
+  const topSourceVideos = podcastSources
+    .map(({ articles }) => articles?.[0])
+    .filter(Boolean);
+
+  // Merge custom videos with original top channel videos
+  const mergedTopVideos = mergeCustomVideos('spotify-nfl-podcasts', topSourceVideos);
+
+  return (
+    <div className="bg-white shadow-lg rounded-lg p-4 mb-6">
+      <div className="flex items-center justify-between mb-2">
+        <div className="flex items-center">
+          <img
+            src="https://upload.wikimedia.org/wikipedia/commons/1/19/Spotify_logo_without_text.svg"
+            alt="Spotify Logo"
+            className="w-12 h-12 mr-2"
+          />
+          <div>
+            <h2 className="text-lg font-bold text-black">Spotify NFL Podcasts</h2>
+            <p className="text-gray-500 text-xs">
+              Last Updated: {formatDate(podcastSources[0]?.source?.updatedAt)}
+            </p>
+          </div>
+        </div>
+        {isAdmin && (
+          <button
+            onClick={() => handleManageVideo('spotify-nfl-podcasts')}
+            className="text-sm bg-green-500 text-white px-3 py-1 rounded hover:bg-green-600 transition-colors"
+          >
+            Add Video
+          </button>
+        )}
+      </div>
+
+      <HorizontalScroller videos={mergedTopVideos} onEditVideo={isAdmin ? (video) => handleEditVideo('spotify-nfl-podcasts', video) : null} />
+
+      <a
+        href="https://open.spotify.com/search/NFL%20Podcast"
+        className="text-lg text-blue-500 block font-semibold"
+        target="_blank"
+        rel="noopener noreferrer"
+      >
+        Browse more on Spotify →
+      </a>
+    </div>
+  );
+})()}
+
+{/*10th row*/} 
+<div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 mb-6">
+  {["Bleacher Report"].map((sourceName, i) => {
+    const matchedSource = sources.find( 
+      (s) => s.source?.title && s.source.title.toLowerCase().includes(sourceName.toLowerCase())
+    ) || { 
+      source: { 
+        title: sourceName, 
+        link: "#", 
+        image: null, 
+        updatedAt: null 
+      }, 
+      articles: [] 
+    };
+
+    // Process articles (limit to 6)
+    const validArticles = (matchedSource.articles || [])
+      .filter(article => article?.title && article?.link)
+      .slice(0, 6);
+
+    return (
+      <div
+        key={`rss-card-third-${i}`}
+        className="bg-white shadow-lg rounded-lg p-4 h-full flex flex-col"
+      >
+        <div className="flex items-center mb-4">
+          {matchedSource.source.image ? (
+            <img
+              src={matchedSource.source.image}
+              alt={matchedSource.source.title}
+              className="w-10 h-10 mr-3 rounded-full object-cover"
+            />
+          ) : (
+            <div className="w-10 h-10 mr-3 bg-gray-300 rounded-full" />
+          )}
+          <div>
+            <a
+              href={matchedSource.source.link || "#"}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-blue-500 hover:text-blue-700"
+            >
+              <h2 className="text-lg font-bold uppercase text-black cursor-pointer">
+                {decodeHtmlEntities(matchedSource.source.title)}
+              </h2>
+            </a>
+            <p className="text-gray-500 text-xs">
+              Last Updated: {matchedSource.source.updatedAt ? formatDate(matchedSource.source.updatedAt) : "--"}
+            </p>
+          </div>
+        </div>
+        
+        <ul className="space-y-2 flex-1">
+          {validArticles.length > 0 ? (
+            validArticles.map((article, index) => {
+              const commentCount = commentCounts[article.title] || 0;
+              return (
+                <li key={index} className="border-b pb-2 flex items-start gap-2">
+                  <div className="flex-1">
+                    <a
+                      href={article.link || "#"}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-black hover:underline hover:text-blue-500 font-medium"
+                    >
+                      <h3>
+                        {decodeHtmlEntities(article.title || "Untitled Article")}
+                      </h3>
+                    </a>
+                    <p className="text-gray-500 text-xs">
+                      {formatDate(article.pubDate)}
+                    </p>
+                  </div>
+                  <div className="relative flex-shrink-0">
+                    <a
+                      href={`/comments/${encodeURIComponent(article.title)}?sourceTitle=${encodeURIComponent(matchedSource.source.title || 'Unknown Source')}&sourceImage=${encodeURIComponent(matchedSource.source.image || '')}&sourceLink=${encodeURIComponent(matchedSource.source.link || '')}`}
+                      className="hover:text-blue-500 relative inline-block"
+                    >
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="36"
+                        height="36"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        className="lucide lucide-message-circle"
+                      >
+                        <path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z" />
+                      </svg>
+                      {commentCount > 0 && (
+                        <span className="absolute inset-0 flex items-center justify-center text-sm font-black text-gray-700 tracking-tight">
+                          {commentCount > 99 ? '99+' : commentCount}
+                        </span>
+                      )}
+                    </a>
+                  </div>
+                </li>
+              );
+            })
+          ) : (
+            <li className="border-b pb-2 flex items-start gap-2">
+              <div className="flex-1">
+                <p className="text-gray-400">No articles found</p>
+              </div>
+            </li>
+          )}
+        </ul>
+
+        <div className="flex items-center justify-between mt-2">
+          <a
+            href={matchedSource.source.link || "#"}
+              target="_blank"
+              rel="noopener noreferrer"
+            className="text-base text-blue-500 font-semibold"
+          >
+            MORE ...
+          </a>
+          {isAdmin && (
+            <button
+              onClick={() => handleManageSource(matchedSource.source)}
+              className="text-sm bg-green-500 text-white px-3 py-1 rounded hover:bg-green-600 transition-colors"
+            >
+              Add Article
+            </button>
+          )}
+        </div>
+      </div>
+    );
+  })}
+
+
+  <BlogCard key="blog-card-in-grid" />
+
+
+  {["Fox Sports"].map((sourceName, i) => {
+    const matchedSource = sources.find( 
+      (s) => s.source?.title && s.source.title.toLowerCase().includes(sourceName.toLowerCase())
+    ) || { 
+      source: { 
+        title: sourceName, 
+        link: "#", 
+        image: null, 
+        updatedAt: null 
+      }, 
+      articles: [] 
+    };
+
+    // Process articles (limit to 6)
+    const validArticles = (matchedSource.articles || [])
+      .filter(article => article?.title && article?.link)
+      .slice(0, 6);
+
+    return (
+      <div
+        key={`rss-card-third-${i}`}
+        className="bg-white shadow-lg rounded-lg p-4 h-full flex flex-col"
+      >
+        <div className="flex items-center mb-4">
+          {matchedSource.source.image ? (
+            <img
+              src={matchedSource.source.image}
+              alt={matchedSource.source.title}
+              className="w-10 h-10 mr-3 rounded-full object-cover"
+            />
+          ) : (
+            <div className="w-10 h-10 mr-3 bg-gray-300 rounded-full" />
+          )}
+          <div>
+            <a
+              href={matchedSource.source.link || "#"}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-blue-500 hover:text-blue-700"
+            >
+              <h2 className="text-lg font-bold uppercase text-black cursor-pointer">
+                {decodeHtmlEntities(matchedSource.source.title)}
+              </h2>
+            </a>
+            <p className="text-gray-500 text-xs">
+              Last Updated: {matchedSource.source.updatedAt ? formatDate(matchedSource.source.updatedAt) : "--"}
+            </p>
+          </div>
+        </div>
+        
+        <ul className="space-y-2 flex-1">
+          {validArticles.length > 0 ? (
+            validArticles.map((article, index) => {
+              const commentCount = commentCounts[article.title] || 0;
+              return (
+                <li key={index} className="border-b pb-2 flex items-start gap-2">
+                  <div className="flex-1">
+                    <a
+                      href={article.link || "#"}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-black hover:underline hover:text-blue-500 font-medium"
+                    >
+                      <h3>
+                        {decodeHtmlEntities(article.title || "Untitled Article")}
+                      </h3>
+                    </a>
+                    <p className="text-gray-500 text-xs">
+                      {formatDate(article.pubDate)}
+                    </p>
+                  </div>
+                  <div className="relative flex-shrink-0">
+                    <a
+                      href={`/comments/${encodeURIComponent(article.title)}?sourceTitle=${encodeURIComponent(matchedSource.source.title || 'Unknown Source')}&sourceImage=${encodeURIComponent(matchedSource.source.image || '')}&sourceLink=${encodeURIComponent(matchedSource.source.link || '')}`}
+                      className="hover:text-blue-500 relative inline-block"
+                    >
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="36"
+                        height="36"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        className="lucide lucide-message-circle"
+                      >
+                        <path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z" />
+                      </svg>
+                      {commentCount > 0 && (
+                        <span className="absolute inset-0 flex items-center justify-center text-sm font-black text-gray-700 tracking-tight">
+                          {commentCount > 99 ? '99+' : commentCount}
+                        </span>
+                      )}
+                    </a>
+                  </div>
+                </li>
+              );
+            })
+          ) : (
+            <li className="border-b pb-2 flex items-start gap-2">
+              <div className="flex-1">
+                <p className="text-gray-400">No articles found</p>
+              </div>
+            </li>
+          )}
+        </ul>
+
+        <div className="flex items-center justify-between mt-2">
+          <a
+            href={matchedSource.source.link || "#"}
+              target="_blank"
+              rel="noopener noreferrer"
+            className="text-base text-blue-500 font-semibold"
+          >
+            MORE ...
+          </a>
+          {isAdmin && (
+            <button
+              onClick={() => handleManageSource(matchedSource.source)}
+              className="text-sm bg-green-500 text-white px-3 py-1 rounded hover:bg-green-600 transition-colors"
+            >
+              Add Article
+            </button>
+          )}
+        </div>
+      </div>
+    );
+  })}
+
 </div>
 
         </div>
