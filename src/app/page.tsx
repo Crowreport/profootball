@@ -819,7 +819,42 @@ const upAndComingSources = mainPageSources.filter(
       })()}
 
       {/* Middle: Blank */}
-      <div className="bg-white shadow-lg rounded-lg p-4 h-full" />
+    {renderCard({
+      source: {
+    title: "By The Numbers",
+    link: "#",
+    image: null,
+    updatedAt: new Date().toISOString(),
+  },
+  articles: [
+    {
+      title: "StatMuse NFL",
+      link: "https://www.statmuse.com/nfl",
+      pubDate: new Date().toISOString(),
+    },
+    {
+      title: "FootballDB",
+      link: "https://www.footballdb.com/",
+      pubDate: new Date(Date.now() - 86400000).toISOString(), // 1 day ago
+    },
+    {
+      title: "Pro Football Reference",
+      link: "https://www.pro-football-reference.com/",
+      pubDate: new Date(Date.now() - 2 * 86400000).toISOString(),
+    },
+    {
+      title: "ESPN NFL Stats",
+      link: "https://www.espn.com/nfl/stats",
+      pubDate: new Date(Date.now() - 3 * 86400000).toISOString(),
+    },
+    {
+      title: "NFL Next Gen Stats",
+      link: "https://nextgenstats.nfl.com/",
+      pubDate: new Date(Date.now() - 4 * 86400000).toISOString(),
+    },
+  ],
+})}
+
 
       {/* Right: CBS Sports Headlines */}
       {(() => {
@@ -845,9 +880,32 @@ const upAndComingSources = mainPageSources.filter(
       })()}
 
       {/* Middle: Blank */}
-      <div className="bg-white shadow-lg rounded-lg p-4 h-full" />
+      {renderCard({
+         source: {
+         title: "NFL Power Rankings",
+         link: "#",
+         image: null,
+         updatedAt: new Date().toISOString(),
+           },
+      articles: [
+      {
+          title: "The Ringer – NFL Power Rankings",
+          link: "https://nflrankings.theringer.com/power-rankings",
+          pubDate: new Date().toISOString(),
+      },
+      {
+          title: "CBS Sports – NFL Power Rankings",
+          link: "https://www.cbssports.com/nfl/powerrankings/",
+          pubDate: new Date(Date.now() - 86400000).toISOString(), // 1 day ago
+      },
+      {
+          title: "NFL.com – Power Rankings",
+          link: "https://www.nfl.com/news/series/power-rankings-news",
+          pubDate: new Date(Date.now() - 2 * 86400000).toISOString(),
+       },
+  ],
+})}
 
-      {/* Right: Blank (reserved for future links) */}
       {/* Right: Pro Football Focus */}
       {(() => {
       const pff = remainingSourcesChunk2.find(s =>
@@ -930,7 +988,37 @@ const upAndComingSources = mainPageSources.filter(
           })()}
 
           {/* MIDDLE: Blank */}
-          <div className="bg-white shadow-lg rounded-lg p-4 h-full" />
+      {renderCard({
+      source: {
+      title: "Weekly Poll",
+      link: "#",
+      image: null,
+      updatedAt: new Date().toISOString(),
+      },
+      articles: [
+    {
+      title: "Who should be NFL MVP this week?",
+      link: "#",
+      pubDate: new Date().toISOString(),
+    },
+    {
+      title: "Best QB performance of the week?",
+      link: "#",
+      pubDate: new Date(Date.now() - 86400000).toISOString(),
+    },
+    {
+      title: "Which team impressed you the most?",
+      link: "#",
+      pubDate: new Date(Date.now() - 2 * 86400000).toISOString(),
+    },
+    {
+      title: "Biggest upset of the week?",
+      link: "#",
+      pubDate: new Date(Date.now() - 3 * 86400000).toISOString(),
+    },
+  ],
+})}
+
 
         {/* RIGHT: The 33rd Team */}
         {(() => {
@@ -1007,7 +1095,42 @@ const upAndComingSources = mainPageSources.filter(
   })()}
 
   {/* MIDDLE: Empty */}
-  <div className="bg-white shadow-lg rounded-lg p-4 h-full" />
+  {renderCard({
+    source: {
+    title: "NFL Injury Reports",
+    link: "#",
+    image: null,
+    updatedAt: new Date().toISOString(),
+  },
+  articles: [
+    {
+      title: "Rotoworld – Player Injury News",
+      link: "https://www.nbcsports.com/nfl/player-news",
+      pubDate: new Date().toISOString(),
+    },
+    {
+      title: "PFF – NFL Injury Updates",
+      link: "https://www.pff.com/nfl/injuries",
+      pubDate: new Date(Date.now() - 86400000).toISOString(), // 1 day ago
+    },
+    {
+      title: "NFL Official Injury Report",
+      link: "https://www.nfl.com/injuries/",
+      pubDate: new Date(Date.now() - 2 * 86400000).toISOString(),
+    },
+    {
+      title: "FantasyPros – Injury Tracker",
+      link: "https://www.fantasypros.com/nfl/injury-news.php",
+      pubDate: new Date(Date.now() - 3 * 86400000).toISOString(),
+    },
+    {
+      title: "CBS Sports – Injury Report",
+      link: "https://www.cbssports.com/nfl/injuries/",
+      pubDate: new Date(Date.now() - 4 * 86400000).toISOString(),
+    },
+  ],
+})}
+
 
   {/* RIGHT: Sportsnet */}
   {(() => {
