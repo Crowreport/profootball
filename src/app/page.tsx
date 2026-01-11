@@ -1200,7 +1200,6 @@ const upAndComingSources = mainPageSources.filter(
   })}
 
 
-
   <div className="bg-white shadow-lg rounded-lg p-4 h-full flex flex-col">
     {/*Header*/}
     <div className="flex items-center mb-4">
@@ -1217,6 +1216,7 @@ const upAndComingSources = mainPageSources.filter(
         </p>
       </div>
     </div>
+
 
     {/*Image*/}
 
@@ -1245,7 +1245,6 @@ const upAndComingSources = mainPageSources.filter(
       ))}
     </ul>
   </div>
-
 
 
   {["Substack"].map((sourceName, i) => {
@@ -1505,9 +1504,50 @@ const upAndComingSources = mainPageSources.filter(
   })}
 
 
-  {/* Blank Card - Visible but empty*/} 
-  <div className="bg-white shadow-lg rounded-lg p-4 h-full">
-    {/* Empty space - maintains grid layout */}
+  <div className="bg-white shadow-lg rounded-lg p-4 h-full flex flex-col">
+    {/*Header*/}
+    <div className="flex items-center mb-4">
+      <div className="w-10 h-10 mr-3 bg-gray-300 rounded-full flex items-center justify-center text-xs font-bold">
+        ICON
+      </div>
+
+      <div>
+        <h2 className="text-lg font-bold uppercase text-black">
+          NFL Free Agency
+        </h2>
+        <p className="text-gray-500 text-xs">
+          Contracts, cap space, & signings
+        </p>
+      </div>
+    </div>
+
+
+    {/*Image*/}
+
+
+    {/*Links*/}
+    <ul className="space-y-2 flex-1">
+      {[
+        { name: "Over The Cap - Free Agency", link: "https://overthecap.com/free-agency" },
+        { name: "Spotrac - NFL Free Agents", link: "https://www.spotrac.com/nfl/free-agents" },
+        { name: "PFF - NFL Free Agency (2025)", link: "https://www.pff.com/nfl/free-agency?season=2025" },
+        { name: "SB Nation - NFL Free Agency", link: "https://www.sbnation.com/nfl-free-agency" },
+        { name: "ESPN - NFL Free Agency", link: "https://www.espn.com/nfl/nfl-free-agency/" },
+      ].map((item, index) => (
+                <li key={index} className="border-b pb-2 flex items-start gap-2">
+                  <div className="flex-1">
+                    <a
+                      href={item.link}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-black hover:underline hover:text-blue-500 font-medium"
+                    >
+                      <h3>{item.name}</h3>
+                    </a>
+                  </div>
+                </li>
+              ))}
+    </ul>
   </div>
 
 
@@ -2022,9 +2062,48 @@ const upAndComingSources = mainPageSources.filter(
   })}
 
 
-  {/* Blank Card - Visible but empty*/} 
-  <div className="bg-white shadow-lg rounded-lg p-4 h-full">
-    {/* Empty space - maintains grid layout */}
+  <div className="bg-white shadow-lg rounded-lg p-4 h-full flex flex-col">
+    {/*Header*/}
+    <div className="flex items-center mb-4">
+      <div className="w-10 h-10 mr-3 bg-gray-300 rounded-full flex items-center justify-center text-xs font-bold">
+        ICON
+      </div>
+
+      <div>
+        <h2 className="text-lg font-bold uppercase text-black">
+          Salary Cap News
+        </h2>
+        <p className="text-gray-500 text-xs">
+          Top NFL salary cap resources        
+        </p>
+      </div>
+    </div>
+
+
+    {/*Image*/}
+
+
+    {/*Links*/}
+    <ul className="space-y-2 flex-1">
+      {[
+        { name: "Over The Cap - Salary Cap Space", link: "https://overthecap.com/salary-cap-space" },
+        { name: "Spotrac - NFL Cap Tracker", link: "https://www.spotrac.com/nfl/cap" },
+        { name: "NFL Trade Rumors - Cap Space", link: "https://nfltraderumors.co/nfl-cap-space-1/" },
+      ].map((item, index) => (
+                  <li key={index} className="border-b pb-2 flex items-start gap-2">
+                    <div className="flex-1">
+                      <a
+                        href={item.link}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-black hover:underline hover:text-blue-500 font-medium"
+                      >
+                        <h3>{item.name}</h3>
+                      </a>
+                    </div>
+                  </li>
+              ))}
+    </ul>
   </div>
 
 
@@ -2285,9 +2364,55 @@ const upAndComingSources = mainPageSources.filter(
   })}
 
 
-  {/* Blank Card - Visible but empty*/} 
-  <div className="bg-white shadow-lg rounded-lg p-4 h-full">
-    {/* Empty space - maintains grid layout */}
+  <div className="bg-white shadow-lg rounded-lg p-4 h-full flex flex-col">
+    {/*Header*/}
+    <div className="flex items-center mb-4">
+      <div className="w-10 h-10 mr-3 bg-gray-300 rounded-full flex items-center justify-center text-xs font-bold">
+        ICON
+      </div>
+
+      <div>
+        <h2 className="text-lg font-bold uppercase text-black">
+          Best of X
+        </h2>
+        <p className="text-gray-500 text-xs">
+          Top reporters on X       
+        </p>
+      </div>
+    </div>
+
+
+    {/*Image*/}
+
+
+    {/*Links*/}
+    <ul className="space-y-2 flex-1">
+      {[
+        { name: "Adam Schefter (@AdamSchefter)", link: "https://x.com/AdamSchefter" },
+        { name: "Ian Rapoport (@RapSheet)", link: "https://x.com/RapSheet" },
+        { name: "Tom Pelissero (@TomPelissero)", link: "https://x.com/TomPelissero" },
+        { name: "Mike Reiss (@MikeReiss)", link: "https://x.com/MikeReiss" },
+        { name: "Robert Mays (@robertmays)", link: "https://x.com/robertmays" },
+        { name: "Dov Kleiman (@NFL_DovKleiman)", link: "https://x.com/NFL_DovKleiman" },
+        { name: "Jeff Darlington (@JeffDarlington)", link: "https://x.com/JeffDarlington" },
+        { name: "Jeff Howe (@Jeffphowe)", link: "https://x.com/Jeffphowe" },
+        { name: "John Keim (@john_keim)", link: "https://x.com/john_keim" },
+        { name: "Adam Teicher (@AdamTeicher)", link: "https://x.com/AdamTeicher" },
+      ].map((item, index) => (
+                  <li key={index} className="border-b pb-2 flex items-start gap-2">
+                    <div className="flex-1">
+                      <a
+                        href={item.link}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-black hover:underline hover:text-blue-500 font-medium"
+                      >
+                        <h3>{item.name}</h3>
+                      </a>
+                    </div>
+                  </li>
+              ))}
+    </ul>
   </div>
 
 
