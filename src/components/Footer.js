@@ -41,25 +41,17 @@ const Footer = () => {
           </button>
         </div>
 
-        {/* Subscribe */}
+     {/* Sign Up */}
         <div className="flex flex-col items-center md:items-start w-[260px] max-w-full text-center md:text-left">
-          <h3 className="text-lg font-bold mb-2">Subscribe</h3>
-          <div className="flex flex-col gap-2 w-full">
-            <input
-              type="text"
-              placeholder="First Name"
-              className="w-full bg-white text-black placeholder-gray-500 p-2 text-sm rounded focus:outline-none focus:ring-0"
-            />
-            <input
-              type="email"
-              placeholder="Email"
-              className="w-full bg-white text-black placeholder-gray-500 p-2 text-sm rounded focus:outline-none focus:ring-0"
-            />
-            <button className="bg-black border border-white text-white px-4 py-2 rounded-md w-full text-base font-sans transition-colors duration-150 active:bg-white active:text-black">
-              Subscribe
-            </button>
-          </div>
-        </div>
+       <h3 className="text-lg font-bold mb-2">Get Started</h3>
+  <a
+       href="/signup"
+       className="bg-black border border-white text-white px-4 py-2 rounded-md w-full text-base font-sans text-center transition-colors duration-150 hover:bg-white hover:text-black"
+    >
+     Sign Up
+  </a>
+</div>
+
 
         {/* Email */}
         <div className="flex flex-col items-center md:items-start w-[260px] max-w-full text-center md:text-left">
