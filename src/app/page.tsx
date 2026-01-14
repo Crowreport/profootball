@@ -329,24 +329,32 @@ export default function Home() {
     );
   }
 
-  sources.forEach((sourceObj) => {
-    if (sourceObj.source.link === "https://www.nbcsports.com/profootballtalk") {
-      sourceObj.source.link = "https://www.nbcsports.com/nfl/profootballtalk";
-    }
-  });
+ const normalizedSources = sources.map((s) => {
+  if (s?.source?.link === "https://www.nbcsports.com/profootballtalk") {
+    return {
+      ...s,
+      source: { ...s.source, link: "https://www.nbcsports.com/nfl/profootballtalk" },
+    };
+  }
+  return s;
+});
+
 
   // 🚫 Feeds to only show in bottom section
 const bottomOnlyFeeds = ["USA Today NFL", "The Sporting News NFL", "The Ringer", "FANSIDED", "Sports Illustrated NFL", "The Draft Network", "NFL Spin Zone", "Bleacher Report", "Fox Sports", "AtoZ Sports", "Substack", "NFL News",];
 
 // Make a version of sources that excludes bottom-only feeds for main/top sections
 // Make a version of sources that excludes bottom-only feeds for main/top sections
-const mainPageSources = sources.filter(
+const mainPageSources = normalizedSources.filter(
   (source) =>
-    !bottomOnlyFeeds.some(name =>
-      source.source.title?.toLowerCase() === name.toLowerCase() ||
-      source.source.title?.toLowerCase().includes(name.toLowerCase())
-    )
+    !bottomOnlyFeeds.some((name) => {
+      const t = source?.source?.title?.toLowerCase() || "";
+      const n = name.toLowerCase();
+      return t === n || t.includes(n);
+    })
 );
+
+
   
 const regularSources = mainPageSources.filter(
   (source) =>
@@ -432,7 +440,7 @@ const spotifyPodcastSources = podcastSources;
       return (
         <div
           key="featured-nfl-video"
-          className="bg-white shadow-lg rounded-lg p-4 h-full flex flex-col"
+          className="bg-white shadow-lg rounded-lg p-4 h-[560px] flex flex-col"
         >
           {/* Header - fixed */}
           <div className="flex items-center justify-between mb-2 flex-shrink-0">
@@ -601,7 +609,12 @@ const spotifyPodcastSources = podcastSources;
     return (
       <div
         key={source.link || source.title}
+<<<<<<< Updated upstream
         className="bg-white shadow-lg rounded-lg p-4 h-full"
+=======
+        className="bg-white shadow-lg rounded-lg p-4 h-[560px] flex flex-col"
+
+>>>>>>> Stashed changes
       >
         <div className="flex items-center mb-4">
           {source.image && (
@@ -627,7 +640,7 @@ const spotifyPodcastSources = podcastSources;
             </p>
           </div>
         </div>
-        <ul className="space-y-2">
+        <ul className="space-y-2 flex-1">
           {displayArticles.slice(0, 6).map((article, index) => {
             const commentCount = commentCounts[article.title] || 0;
             return (
@@ -665,10 +678,14 @@ const spotifyPodcastSources = podcastSources;
                   )}
                   {/* Comment count */}
                   <div className="relative flex-shrink-0">
-                    <a
-                      href={`/comments/${encodeURIComponent(article.title)}?sourceTitle=${encodeURIComponent(source.title || 'Unknown Source')}&sourceImage=${encodeURIComponent(source.image || '')}&sourceLink=${encodeURIComponent(source.link || '')}`}
-                      className="hover:text-blue-500 relative inline-block"
-                    >
+                   <a
+  href={`/comments/${encodeURIComponent(article.title)}?sourceTitle=${encodeURIComponent(
+    source.title || "Unknown Source"
+  )}&sourceImage=${encodeURIComponent(source.image || "")}&sourceLink=${encodeURIComponent(
+    source.link || ""
+  )}`}
+>
+
                       <svg
                         xmlns="http://www.w3.org/2000/svg"
                         width="36"
@@ -695,7 +712,7 @@ const spotifyPodcastSources = podcastSources;
             );
           })}
         </ul>
-        <div className="flex items-center justify-between mt-2">
+        <div className="flex items-center justify-between mt-auto pt-2">
           <a
             href={source.link || "#"}
             className="text-base text-blue-500 font-semibold"
@@ -812,6 +829,7 @@ const spotifyPodcastSources = podcastSources;
           })()}
 
 {remainingSourcesChunk1.length > 0 && (
+<<<<<<< Updated upstream
   <>
     {/* ================= ROW 2 ================= */}
     <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 mb-6">
@@ -873,6 +891,29 @@ const spotifyPodcastSources = podcastSources;
       : <div className="bg-white shadow-lg rounded-lg p-4 h-full" />;
 })()}
 
+=======
+  <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 mb-6 items-stretch">
+
+    {remainingSourcesChunk1
+      .filter(source => !source.source?.title?.toLowerCase().includes("sportsnet"))
+      .map((source, idx) => {
+        if (idx === 1) {
+          return [<BlogCard key="blog-card-in-grid" />, renderCard(source)];
+        }
+        return renderCard(source);
+      })}
+
+    {/* ✅ Poll Card */}
+   <div className="bg-white shadow-lg rounded-lg p-4 flex items-center justify-center h-[560px]">
+  <PollCard />
+</div>
+
+
+    
+    {/* Blank Card - Visible but empty */}
+    <div className="bg-white shadow-lg rounded-lg p-4 h-[560px]">
+      {/* Empty space - maintains grid layout */}
+>>>>>>> Stashed changes
     </div>
   </>
 )}
@@ -929,6 +970,7 @@ const spotifyPodcastSources = podcastSources;
           })()}
 
 
+<<<<<<< Updated upstream
         {/* Second chunk of remaining articles */}
         {remainingSourcesChunk2.length > 0 && (
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 mb-6">
@@ -958,6 +1000,15 @@ const spotifyPodcastSources = podcastSources;
   </div>
 )}
 
+=======
+          {/* Second chunk of remaining articles */}
+          {remainingSourcesChunk2.length > 0 && (
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 mb-6 items-stretch">
+
+              {remainingSourcesChunk2.map(renderCard)}
+            </div>
+          )}
+>>>>>>> Stashed changes
 
           {/* UP & COMING CHANNELS (Card Layout) */}
           {upAndComingSources.length > 0 && (() => {
@@ -1009,6 +1060,7 @@ const spotifyPodcastSources = podcastSources;
             );
           })()}
 
+<<<<<<< Updated upstream
 <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 mb-6">
   {/* LEFT: NFL Discussion */}
   {(() => {
@@ -1034,6 +1086,130 @@ const spotifyPodcastSources = podcastSources;
   })()}
 </div>
 
+=======
+{/* Third chunk of remaining articles */}
+{remainingSourcesChunk3.length > 0 && (
+  <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 mb-6 items-stretch">
+
+    {remainingSourcesChunk3.map((source) => (
+      <div
+        key={source.source.link || source.source.title}
+        className="bg-white shadow-lg rounded-lg p-4 h-[560px] flex flex-col"
+
+      >
+        <div className="flex items-center mb-4">
+          {source.source.image && (
+            <img
+              src={source.source.image}
+              alt={decodeHtmlEntities(source.source.title || "Unknown Source")}
+              className="w-10 h-10 mr-3 rounded-full object-cover"
+            />
+          )}
+          <div>
+            <a
+              href={`/external/${encodeURIComponent(source.source.link || "#")}`}
+              className="text-blue-500 hover:text-blue-700"
+            >
+              <h2 className="text-lg font-bold uppercase text-black cursor-pointer">
+                {decodeHtmlEntities(source.source.title || "Unknown Source")}
+              </h2>
+            </a>
+            <p className="text-gray-500 text-xs">
+              Last Updated: {formatDate(source.source.updatedAt)}
+            </p>
+          </div>
+        </div>
+        <ul className="space-y-2 flex-1">
+          {source.articles.slice(0, 5).map((article, index) => {  {/* Changed from 6 to 4 */}
+            const commentCount = commentCounts[article.title] || 0;
+            return (
+              <li key={index} className="border-b pb-2 flex items-start gap-2">
+                <div className="flex-1">
+                  <a
+                    href={`/external/${encodeURIComponent(article.link || "#")}`}
+                    className="text-black hover:underline hover:text-blue-500 font-medium"
+                  >
+                    <h3 className="flex items-center gap-2">
+                      {decodeHtmlEntities(article.title || "Untitled Article")}
+                      {article.isCustom && (
+                        <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">
+                          Custom
+                        </span>
+                      )}
+                    </h3>
+                  </a>
+                  <p className="text-gray-500 text-xs">
+                    {formatDate(article.pubDate)}
+                  </p>
+                </div>
+                <div className="flex items-center gap-2">
+                  {/* Edit button for custom articles (admin only) */}
+                  {article.isCustom && isAdmin && (
+                    <button
+                      onClick={() => handleEditArticle(source.source, article)}
+                      className="text-xs bg-yellow-500 text-white px-2 py-1 rounded hover:bg-yellow-600 transition-colors"
+                      title="Edit custom article"
+                    >
+                      Edit
+                    </button>
+                  )}
+                  {/* Comment count */}
+                  <div className="relative flex-shrink-0">
+                   <a
+  href={`/comments/${encodeURIComponent(article.title)}?sourceTitle=${encodeURIComponent(
+    source.source?.title || "Unknown Source"
+  )}&sourceImage=${encodeURIComponent(source.source?.image || "")}&sourceLink=${encodeURIComponent(
+    source.source?.link || ""
+  )}`}
+>
+
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="36"
+                        height="36"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        className="lucide lucide-message-circle"
+                      >
+                        <path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z" />
+                      </svg>
+                      {commentCount > 0 && (
+                        <span className="absolute inset-0 flex items-center justify-center text-sm font-black text-gray-700 tracking-tight">
+                          {commentCount > 99 ? '99+' : commentCount}
+                        </span>
+                      )}
+                    </a>
+                  </div>
+                </div>
+              </li>
+            );
+          })}
+        </ul>
+        <div className="flex items-center justify-between mt-auto pt-2">
+          <a
+            href={`/external/${encodeURIComponent(source.source.link || "#")}`}
+            className="text-base text-blue-500 font-semibold"
+          >
+            MORE ...
+          </a>
+          {isAdmin && (
+            <button
+              onClick={() => handleManageSource(source.source)}
+              className="text-sm bg-green-500 text-white px-3 py-1 rounded hover:bg-green-600 transition-colors"
+            >
+              Add Article
+            </button>
+          )}
+        </div>
+      </div>
+    ))}
+  </div>
+)}
+>>>>>>> Stashed changes
 
 
           {/* NFL PODCASTS (Card Layout) */}
@@ -1084,6 +1260,7 @@ const spotifyPodcastSources = podcastSources;
             );
           })()}
 
+<<<<<<< Updated upstream
 
 
 {/*6th row*/}
@@ -1100,6 +1277,30 @@ const spotifyPodcastSources = podcastSources;
       }, 
       articles: [] 
     };
+=======
+{/* First 3 RSS Cards */}
+<div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 mb-6 items-stretch">
+
+  {[
+    "Substack",
+    "The Sporting News NFL",
+    "The Ringer",
+  ].map((sourceName, i) => {
+    const matchedSource =
+  normalizedSources.find((s) =>
+    s?.source?.title?.toLowerCase()?.includes(sourceName.toLowerCase())
+  ) || {
+    source: {
+      title: sourceName,
+      link: "#",
+      image: null,
+      updatedAt: null,
+    },
+    articles: [],
+  };
+
+
+>>>>>>> Stashed changes
 
     // Process articles (limit to 6)
     const validArticles = (matchedSource.articles || [])
@@ -1109,7 +1310,8 @@ const spotifyPodcastSources = podcastSources;
     return (
       <div
         key={`rss-card-first-${i}`}
-        className="bg-white shadow-lg rounded-lg p-4 h-full flex flex-col"
+       className="bg-white shadow-lg rounded-lg p-4 h-[560px] flex flex-col"
+
       >
         <div className="flex items-center mb-4">
           {matchedSource.source.image ? (
@@ -1160,10 +1362,16 @@ const spotifyPodcastSources = podcastSources;
                     </p>
                   </div>
                   <div className="relative flex-shrink-0">
-                    <a
-                      href={`/comments/${encodeURIComponent(article.title)}?sourceTitle=${encodeURIComponent(matchedSource.source.title || 'Unknown Source')}&sourceImage=${encodeURIComponent(matchedSource.source.image || '')}&sourceLink=${encodeURIComponent(matchedSource.source.link || '')}`}
-                      className="hover:text-blue-500 relative inline-block"
-                    >
+                   <a
+  href={`/comments/${encodeURIComponent(article.title)}?sourceTitle=${encodeURIComponent(
+    matchedSource.source?.title || "Unknown Source"
+  )}&sourceImage=${encodeURIComponent(
+    matchedSource.source?.image || ""
+  )}&sourceLink=${encodeURIComponent(
+    matchedSource.source?.link || ""
+  )}`}
+>
+
                       <svg
                         xmlns="http://www.w3.org/2000/svg"
                         width="36"
@@ -1197,7 +1405,7 @@ const spotifyPodcastSources = podcastSources;
           )}
         </ul>
 
-        <div className="flex items-center justify-between mt-2">
+        <div className="flex items-center justify-between mt-auto pt-2">
           <a
             href={matchedSource.source.link || "#"}
               target="_blank"
@@ -1970,6 +2178,7 @@ const spotifyPodcastSources = podcastSources;
   );
 })()}
 
+<<<<<<< Updated upstream
 
 
 {/*8th row*/}
@@ -1986,6 +2195,30 @@ const spotifyPodcastSources = podcastSources;
       }, 
       articles: [] 
     };
+=======
+{/* Second 3 RSS Cards */}
+<div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 mb-6 items-stretch">
+
+  {[
+    "FANSIDED",
+    "Sports Illustrated NFL",
+    "The Draft Network",
+  ].map((sourceName, i) => {
+   const matchedSource =
+  normalizedSources.find((s) =>
+    s?.source?.title?.toLowerCase()?.includes(sourceName.toLowerCase())
+  ) || {
+    source: {
+      title: sourceName,
+      link: "#",
+      image: null,
+      updatedAt: null,
+    },
+    articles: [],
+  };
+
+
+>>>>>>> Stashed changes
 
     // Process articles (limit to 6)
     const validArticles = (matchedSource.articles || [])
@@ -1995,7 +2228,8 @@ const spotifyPodcastSources = podcastSources;
     return (
       <div
         key={`rss-card-second-${i}`}
-        className="bg-white shadow-lg rounded-lg p-4 h-full flex flex-col"
+        className="bg-white shadow-lg rounded-lg p-4 h-[560px] flex flex-col"
+
       >
         <div className="flex items-center mb-4">
           {matchedSource.source.image ? (
@@ -2083,7 +2317,8 @@ const spotifyPodcastSources = podcastSources;
           )}
         </ul>
 
-        <div className="flex items-center justify-between mt-2">
+        <div className="flex items-center justify-between mt-auto pt-2">
+
           <a
             href={matchedSource.source.link || "#"}
               target="_blank"
@@ -2284,6 +2519,7 @@ const spotifyPodcastSources = podcastSources;
 
 </div>
 
+<<<<<<< Updated upstream
 
 
 {/*9th row*/}
@@ -2484,6 +2720,30 @@ const spotifyPodcastSources = podcastSources;
       }, 
       articles: [] 
     };
+=======
+{/* Last 3 RSS Cards */}
+<div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 mb-6 items-stretch">
+
+  {[
+    "NFL Spin Zone",
+    "Bleacher Report",
+    "Fox Sports",
+  ].map((sourceName, i) => {
+   const matchedSource =
+  normalizedSources.find((s) =>
+    s?.source?.title?.toLowerCase()?.includes(sourceName.toLowerCase())
+  ) || {
+    source: {
+      title: sourceName,
+      link: "#",
+      image: null,
+      updatedAt: null,
+    },
+    articles: [],
+  };
+
+
+>>>>>>> Stashed changes
 
     // Process articles (limit to 6)
     const validArticles = (matchedSource.articles || [])
@@ -2493,7 +2753,8 @@ const spotifyPodcastSources = podcastSources;
     return (
       <div
         key={`rss-card-third-${i}`}
-        className="bg-white shadow-lg rounded-lg p-4 h-full flex flex-col"
+       className="bg-white shadow-lg rounded-lg p-4 h-[560px] flex flex-col"
+
       >
         <div className="flex items-center mb-4">
           {matchedSource.source.image ? (
@@ -2581,7 +2842,8 @@ const spotifyPodcastSources = podcastSources;
           )}
         </ul>
 
-        <div className="flex items-center justify-between mt-2">
+        <div className="flex items-center justify-between mt-auto pt-2">
+
           <a
             href={matchedSource.source.link || "#"}
               target="_blank"
