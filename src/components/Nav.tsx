@@ -46,16 +46,7 @@ const Nav = () => {
       <div className="max-w-8xl mx-auto flex justify-between items-center">
         {/* Logo + Title */}
         <Link href="/" className="flex items-center space-x-4">
-<div className="w-12 h-12 flex items-center justify-center">
-  <Image
-    src="/images/Helmetlogo.png"
-    alt="Pro Football Report Helmet Logo"
-    width={48}
-    height={48}
-    priority
-    className="object-contain w-full h-full"
-  />
-</div>
+          <Image src="/images/PFRlogo.jpg" alt="Logo" width={48} height={48} />
           <div className="text-white uppercase leading-tight text-4xl sm:text-5xl md:text-6xl lg:text-6xl font-['montage']">
             <div>PRO FOOTBALL REPORT</div>
           </div>
