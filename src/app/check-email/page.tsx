@@ -32,7 +32,7 @@ function CheckEmailContent() {
       type: 'signup',
       email: email,
       options: {
-        emailRedirectTo: `${window.location.origin}/api/auth/confirm`
+        emailRedirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/api/auth/confirm`
       }
     })
 
