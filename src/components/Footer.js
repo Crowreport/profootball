@@ -52,7 +52,6 @@ const Footer = () => {
   </a>
 </div>
 
-
         {/* Email */}
         <div className="flex flex-col items-center md:items-start w-[260px] max-w-full text-center md:text-left">
           <h3 className="text-lg font-bold mb-2">Email</h3>

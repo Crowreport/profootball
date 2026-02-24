@@ -741,8 +741,130 @@ const spotifyPodcastSources = podcastSources;
           {topGridSources.length >= 3 && (
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6 items-stretch">
               {/* Card 1 */}
-              <div className="flex flex-col">
-                {renderCard(topGridSources.filter(source => !source.source.isFeatured)[0])}
+              <div className="h-full flex flex-col">
+                {["ESPN"].map((sourceName, i) => {
+                  const matchedSource = sources.find( 
+                    (s) => s.source?.title && s.source.title.toLowerCase().includes(sourceName.toLowerCase())
+                  ) || { 
+                    source: { 
+                      title: sourceName, 
+                      link: "#", 
+                      image: null, 
+                      updatedAt: null 
+                    }, 
+                    articles: [] 
+                  };
+
+                  // Process articles (limit to 6)
+                  const validArticles = (matchedSource.articles || [])
+                    .filter(article => article?.title && article?.link)
+                    .slice(0, 6);
+
+                  return (
+                    <div
+                      key={`rss-card-second-${i}`}
+                      className="bg-white shadow-lg rounded-lg p-4 h-full flex flex-col"
+                    >
+                      <div className="flex items-center mb-4">
+                        
+                          <img
+                            src="\images\new-favicons-home\ESPN-Favicon-400x400.svg"
+                            alt={matchedSource.source.title}
+                            className="w-10 h-10 mr-3 rounded-full object-cover"
+                          />
+                        
+                        <div>
+                          <a
+                            href={`/external/${encodeURIComponent(matchedSource.source.link)}`}
+                            className="text-blue-500 hover:text-blue-700"
+                          >
+                            <h2 className="text-lg font-bold uppercase text-black cursor-pointer">
+                              {decodeHtmlEntities(matchedSource.source.title)}
+                            </h2>
+                          </a>
+                          <p className="text-gray-500 text-xs">
+                            Last Updated: {matchedSource.source.updatedAt ? formatDate(matchedSource.source.updatedAt) : "--"}
+                          </p>
+                        </div>
+                      </div>
+                      
+                      <ul className="space-y-2 flex-1">
+                        {validArticles.length > 0 ? (
+                          validArticles.map((article, index) => {
+                            const commentCount = commentCounts[article.title] || 0;
+                            return (
+                              <li key={index} className="border-b pb-2 flex items-start gap-2">
+                                <div className="flex-1">
+                                  <a
+                                    href={`/external/${encodeURIComponent(article.link)}`}
+                                    className="text-black hover:underline hover:text-blue-500 font-medium"
+                                  >
+                                    <h3>
+                                      {decodeHtmlEntities(article.title || "Untitled Article")}
+                                    </h3>
+                                  </a>
+                                  <p className="text-gray-500 text-xs">
+                                    {formatDate(article.pubDate)}
+                                  </p>
+                                </div>
+                                <div className="relative flex-shrink-0">
+                                  <a
+                                    href={`/comments/${encodeURIComponent(article.title)}?sourceTitle=${encodeURIComponent(matchedSource.source.title || 'Unknown Source')}&sourceImage=${encodeURIComponent(matchedSource.source.image || '')}&sourceLink=${encodeURIComponent(matchedSource.source.link || '')}`}
+                                    className="hover:text-blue-500 relative inline-block"
+                                  >
+                                    <svg
+                                      xmlns="http://www.w3.org/2000/svg"
+                                      width="36"
+                                      height="36"
+                                      viewBox="0 0 24 24"
+                                      fill="none"
+                                      stroke="currentColor"
+                                      strokeWidth="2"
+                                      strokeLinecap="round"
+                                      strokeLinejoin="round"
+                                      className="lucide lucide-message-circle"
+                                    >
+                                      <path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z" />
+                                    </svg>
+                                    {commentCount > 0 && (
+                                      <span className="absolute inset-0 flex items-center justify-center text-sm font-black text-gray-700 tracking-tight">
+                                        {commentCount > 99 ? '99+' : commentCount}
+                                      </span>
+                                    )}
+                                  </a>
+                                </div>
+                              </li>
+                            );
+                          })
+                        ) : (
+                          <li className="border-b pb-2 flex items-start gap-2">
+                            <div className="flex-1">
+                              <p className="text-gray-400">No articles found</p>
+                            </div>
+                          </li>
+                        )}
+                      </ul>
+
+                      <div className="flex items-center justify-between mt-2">
+                        <a
+                          href={`/external/${encodeURIComponent(matchedSource.source.link)}`}
+                          className="text-base text-blue-500 font-semibold"
+                        >
+                          MORE ...
+                        </a>
+                        {isAdmin && (
+                          <button
+                            onClick={() => handleManageSource(matchedSource.source)}
+                            className="text-sm bg-green-500 text-white px-3 py-1 rounded hover:bg-green-600 transition-colors"
+                          >
+                            Add Article
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+
               </div>
               {/* Featured NFL Video */}
               <div className="flex flex-col">
@@ -826,52 +948,444 @@ const spotifyPodcastSources = podcastSources;
       })()}
 
       {/* Middle: Blank */}
-      <div className="bg-white shadow-lg rounded-lg p-4 h-full" />
+    {renderCard({
+      source: {
+    title: "By The Numbers",
+    link: "#",
+    image: null,
+    updatedAt: new Date().toISOString(),
+  },
+  articles: [
+    {
+      title: "StatMuse NFL",
+      link: "https://www.statmuse.com/nfl",
+      pubDate: new Date().toISOString(),
+    },
+    {
+      title: "FootballDB",
+      link: "https://www.footballdb.com/",
+      pubDate: new Date(Date.now() - 86400000).toISOString(), // 1 day ago
+    },
+    {
+      title: "Pro Football Reference",
+      link: "https://www.pro-football-reference.com/",
+      pubDate: new Date(Date.now() - 2 * 86400000).toISOString(),
+    },
+    {
+      title: "ESPN NFL Stats",
+      link: "https://www.espn.com/nfl/stats",
+      pubDate: new Date(Date.now() - 3 * 86400000).toISOString(),
+    },
+    {
+      title: "NFL Next Gen Stats",
+      link: "https://nextgenstats.nfl.com/",
+      pubDate: new Date(Date.now() - 4 * 86400000).toISOString(),
+    },
+  ],
+})}
+
 
       {/* Right: CBS Sports Headlines */}
-      {(() => {
-        const right = remainingSourcesChunk1.find(s =>
-          s.source?.title?.toLowerCase().includes("cbs")
-        );
-        return right
-          ? renderCard(right)
-          : <div className="bg-white shadow-lg rounded-lg p-4 h-full" />;
-      })()}
+      {["CBS Sports Headlines"].map((sourceName, i) => {
+                  const matchedSource = sources.find( 
+                    (s) => s.source?.title && s.source.title.toLowerCase().includes(sourceName.toLowerCase())
+                  ) || { 
+                    source: { 
+                      title: sourceName, 
+                      link: "#", 
+                      image: null, 
+                      updatedAt: null 
+                    }, 
+                    articles: [] 
+                  };
+
+                  // Process articles (limit to 6)
+                  const validArticles = (matchedSource.articles || [])
+                    .filter(article => article?.title && article?.link)
+                    .slice(0, 6);
+
+                  return (
+                    <div
+                      key={`rss-card-second-${i}`}
+                      className="bg-white shadow-lg rounded-lg p-4 h-full flex flex-col"
+                    >
+                      <div className="flex items-center mb-4">
+                        
+                          <img
+                            src="\images\new-favicons-home\CBS-Sports-Favicon-400x400.png"
+                            alt={matchedSource.source.title}
+                            className="w-10 h-10 mr-3 rounded-full object-cover"
+                          />
+                        
+                        <div>
+                          <a
+                            href={`/external/${encodeURIComponent(matchedSource.source.link)}`}
+                            className="text-blue-500 hover:text-blue-700"
+                          >
+                            <h2 className="text-lg font-bold uppercase text-black cursor-pointer">
+                              {decodeHtmlEntities(matchedSource.source.title)}
+                            </h2>
+                          </a>
+                          <p className="text-gray-500 text-xs">
+                            Last Updated: {matchedSource.source.updatedAt ? formatDate(matchedSource.source.updatedAt) : "--"}
+                          </p>
+                        </div>
+                      </div>
+                      
+                      <ul className="space-y-2 flex-1">
+                        {validArticles.length > 0 ? (
+                          validArticles.map((article, index) => {
+                            const commentCount = commentCounts[article.title] || 0;
+                            return (
+                              <li key={index} className="border-b pb-2 flex items-start gap-2">
+                                <div className="flex-1">
+                                  <a
+                                    href={`/external/${encodeURIComponent(article.link)}`}
+                                    className="text-black hover:underline hover:text-blue-500 font-medium"
+                                  >
+                                    <h3>
+                                      {decodeHtmlEntities(article.title || "Untitled Article")}
+                                    </h3>
+                                  </a>
+                                  <p className="text-gray-500 text-xs">
+                                    {formatDate(article.pubDate)}
+                                  </p>
+                                </div>
+                                <div className="relative flex-shrink-0">
+                                  <a
+                                    href={`/comments/${encodeURIComponent(article.title)}?sourceTitle=${encodeURIComponent(matchedSource.source.title || 'Unknown Source')}&sourceImage=${encodeURIComponent(matchedSource.source.image || '')}&sourceLink=${encodeURIComponent(matchedSource.source.link || '')}`}
+                                    className="hover:text-blue-500 relative inline-block"
+                                  >
+                                    <svg
+                                      xmlns="http://www.w3.org/2000/svg"
+                                      width="36"
+                                      height="36"
+                                      viewBox="0 0 24 24"
+                                      fill="none"
+                                      stroke="currentColor"
+                                      strokeWidth="2"
+                                      strokeLinecap="round"
+                                      strokeLinejoin="round"
+                                      className="lucide lucide-message-circle"
+                                    >
+                                      <path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z" />
+                                    </svg>
+                                    {commentCount > 0 && (
+                                      <span className="absolute inset-0 flex items-center justify-center text-sm font-black text-gray-700 tracking-tight">
+                                        {commentCount > 99 ? '99+' : commentCount}
+                                      </span>
+                                    )}
+                                  </a>
+                                </div>
+                              </li>
+                            );
+                          })
+                        ) : (
+                          <li className="border-b pb-2 flex items-start gap-2">
+                            <div className="flex-1">
+                              <p className="text-gray-400">No articles found</p>
+                            </div>
+                          </li>
+                        )}
+                      </ul>
+
+                      <div className="flex items-center justify-between mt-2">
+                        <a
+                          href={`/external/${encodeURIComponent(matchedSource.source.link)}`}
+                          className="text-base text-blue-500 font-semibold"
+                        >
+                          MORE ...
+                        </a>
+                        {isAdmin && (
+                          <button
+                            onClick={() => handleManageSource(matchedSource.source)}
+                            className="text-sm bg-green-500 text-white px-3 py-1 rounded hover:bg-green-600 transition-colors"
+                          >
+                            Add Article
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
     </div>
 
     {/* ================= ROW 3 ================= */}
     <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 mb-6">
       {/* Left: All Access Football */}
-      {(() => {
-        const left = remainingSourcesChunk1.find(s =>
-          s.source?.title?.toLowerCase().includes("all access football")
-        );
-        return left
-          ? renderCard(left)
-          : <div className="bg-white shadow-lg rounded-lg p-4 h-full" />;
-      })()}
+      {["All Access Football"].map((sourceName, i) => {
+                  const matchedSource = sources.find( 
+                    (s) => s.source?.title && s.source.title.toLowerCase().includes(sourceName.toLowerCase())
+                  ) || { 
+                    source: { 
+                      title: sourceName, 
+                      link: "#", 
+                      image: null, 
+                      updatedAt: null 
+                    }, 
+                    articles: [] 
+                  };
 
-      {/* Middle: Poll Card */}
-      <div className="bg-white shadow-lg rounded-lg p-4 h-full">
-        <PollCard
-          polls={polls}
-          onManagePoll={handleManagePoll}
-          onEditPoll={handleEditPoll}
-          onRefresh={fetchPolls}
-          limit={1}
-        />
-      </div>
+                  // Process articles (limit to 6)
+                  const validArticles = (matchedSource.articles || [])
+                    .filter(article => article?.title && article?.link)
+                    .slice(0, 6);
+
+                  return (
+                    <div
+                      key={`rss-card-second-${i}`}
+                      className="bg-white shadow-lg rounded-lg p-4 h-full flex flex-col"
+                    >
+                      <div className="flex items-center mb-4">
+                        
+                          <img
+                            src="\images\new-favicons-home\AllAccessFootball-Favicon-1024x1024.png"
+                            alt={matchedSource.source.title}
+                            className="w-10 h-10 mr-3 rounded-full object-cover"
+                          />
+                        
+                        <div>
+                          <a
+                            href={`/external/${encodeURIComponent(matchedSource.source.link)}`}
+                            className="text-blue-500 hover:text-blue-700"
+                          >
+                            <h2 className="text-lg font-bold uppercase text-black cursor-pointer">
+                              {decodeHtmlEntities(matchedSource.source.title)}
+                            </h2>
+                          </a>
+                          <p className="text-gray-500 text-xs">
+                            Last Updated: {matchedSource.source.updatedAt ? formatDate(matchedSource.source.updatedAt) : "--"}
+                          </p>
+                        </div>
+                      </div>
+                      
+                      <ul className="space-y-2 flex-1">
+                        {validArticles.length > 0 ? (
+                          validArticles.map((article, index) => {
+                            const commentCount = commentCounts[article.title] || 0;
+                            return (
+                              <li key={index} className="border-b pb-2 flex items-start gap-2">
+                                <div className="flex-1">
+                                  <a
+                                    href={`/external/${encodeURIComponent(article.link)}`}
+                                    className="text-black hover:underline hover:text-blue-500 font-medium"
+                                  >
+                                    <h3>
+                                      {decodeHtmlEntities(article.title || "Untitled Article")}
+                                    </h3>
+                                  </a>
+                                  <p className="text-gray-500 text-xs">
+                                    {formatDate(article.pubDate)}
+                                  </p>
+                                </div>
+                                <div className="relative flex-shrink-0">
+                                  <a
+                                    href={`/comments/${encodeURIComponent(article.title)}?sourceTitle=${encodeURIComponent(matchedSource.source.title || 'Unknown Source')}&sourceImage=${encodeURIComponent(matchedSource.source.image || '')}&sourceLink=${encodeURIComponent(matchedSource.source.link || '')}`}
+                                    className="hover:text-blue-500 relative inline-block"
+                                  >
+                                    <svg
+                                      xmlns="http://www.w3.org/2000/svg"
+                                      width="36"
+                                      height="36"
+                                      viewBox="0 0 24 24"
+                                      fill="none"
+                                      stroke="currentColor"
+                                      strokeWidth="2"
+                                      strokeLinecap="round"
+                                      strokeLinejoin="round"
+                                      className="lucide lucide-message-circle"
+                                    >
+                                      <path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z" />
+                                    </svg>
+                                    {commentCount > 0 && (
+                                      <span className="absolute inset-0 flex items-center justify-center text-sm font-black text-gray-700 tracking-tight">
+                                        {commentCount > 99 ? '99+' : commentCount}
+                                      </span>
+                                    )}
+                                  </a>
+                                </div>
+                              </li>
+                            );
+                          })
+                        ) : (
+                          <li className="border-b pb-2 flex items-start gap-2">
+                            <div className="flex-1">
+                              <p className="text-gray-400">No articles found</p>
+                            </div>
+                          </li>
+                        )}
+                      </ul>
+
+                      <div className="flex items-center justify-between mt-2">
+                        <a
+                          href={`/external/${encodeURIComponent(matchedSource.source.link)}`}
+                          className="text-base text-blue-500 font-semibold"
+                        >
+                          MORE ...
+                        </a>
+                        {isAdmin && (
+                          <button
+                            onClick={() => handleManageSource(matchedSource.source)}
+                            className="text-sm bg-green-500 text-white px-3 py-1 rounded hover:bg-green-600 transition-colors"
+                          >
+                            Add Article
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+
+      {/* Middle: Blank */}
+      {renderCard({
+         source: {
+         title: "NFL Power Rankings",
+         link: "#",
+         image: null,
+         updatedAt: new Date().toISOString(),
+           },
+      articles: [
+      {
+          title: "The Ringer – NFL Power Rankings",
+          link: "https://nflrankings.theringer.com/power-rankings",
+          pubDate: new Date().toISOString(),
+      },
+      {
+          title: "CBS Sports – NFL Power Rankings",
+          link: "https://www.cbssports.com/nfl/powerrankings/",
+          pubDate: new Date(Date.now() - 86400000).toISOString(), // 1 day ago
+      },
+      {
+          title: "NFL.com – Power Rankings",
+          link: "https://www.nfl.com/news/series/power-rankings-news",
+          pubDate: new Date(Date.now() - 2 * 86400000).toISOString(),
+       },
+  ],
+})}
 
       {/* Right: Pro Football Focus */}
-      {(() => {
-      const pff = remainingSourcesChunk2.find(s =>
-      s.source?.title?.toLowerCase().includes("pro football focus")
-      );
+      {["Pro Football Focus"].map((sourceName, i) => {
+                  const matchedSource = sources.find( 
+                    (s) => s.source?.title && s.source.title.toLowerCase().includes(sourceName.toLowerCase())
+                  ) || { 
+                    source: { 
+                      title: sourceName, 
+                      link: "#", 
+                      image: null, 
+                      updatedAt: null 
+                    }, 
+                    articles: [] 
+                  };
 
-      return pff
-      ? renderCard(pff)
-      : <div className="bg-white shadow-lg rounded-lg p-4 h-full" />;
-})()}
+                  // Process articles (limit to 6)
+                  const validArticles = (matchedSource.articles || [])
+                    .filter(article => article?.title && article?.link)
+                    .slice(0, 6);
+
+                  return (
+                    <div
+                      key={`rss-card-second-${i}`}
+                      className="bg-white shadow-lg rounded-lg p-4 h-full flex flex-col"
+                    >
+                      <div className="flex items-center mb-4">
+                        
+                          <img
+                            src="\images\new-favicons-home\Pro-Football-Focus-Favicon-180x180.png"
+                            alt={matchedSource.source.title}
+                            className="w-10 h-10 mr-3 rounded-full object-cover"
+                          />
+                        
+                        <div>
+                          <a
+                            href={`/external/${encodeURIComponent(matchedSource.source.link)}`}
+                            className="text-blue-500 hover:text-blue-700"
+                          >
+                            <h2 className="text-lg font-bold uppercase text-black cursor-pointer">
+                              {decodeHtmlEntities(matchedSource.source.title)}
+                            </h2>
+                          </a>
+                          <p className="text-gray-500 text-xs">
+                            Last Updated: {matchedSource.source.updatedAt ? formatDate(matchedSource.source.updatedAt) : "--"}
+                          </p>
+                        </div>
+                      </div>
+                      
+                      <ul className="space-y-2 flex-1">
+                        {validArticles.length > 0 ? (
+                          validArticles.map((article, index) => {
+                            const commentCount = commentCounts[article.title] || 0;
+                            return (
+                              <li key={index} className="border-b pb-2 flex items-start gap-2">
+                                <div className="flex-1">
+                                  <a
+                                    href={`/external/${encodeURIComponent(article.link)}`}
+                                    className="text-black hover:underline hover:text-blue-500 font-medium"
+                                  >
+                                    <h3>
+                                      {decodeHtmlEntities(article.title || "Untitled Article")}
+                                    </h3>
+                                  </a>
+                                  <p className="text-gray-500 text-xs">
+                                    {formatDate(article.pubDate)}
+                                  </p>
+                                </div>
+                                <div className="relative flex-shrink-0">
+                                  <a
+                                    href={`/comments/${encodeURIComponent(article.title)}?sourceTitle=${encodeURIComponent(matchedSource.source.title || 'Unknown Source')}&sourceImage=${encodeURIComponent(matchedSource.source.image || '')}&sourceLink=${encodeURIComponent(matchedSource.source.link || '')}`}
+                                    className="hover:text-blue-500 relative inline-block"
+                                  >
+                                    <svg
+                                      xmlns="http://www.w3.org/2000/svg"
+                                      width="36"
+                                      height="36"
+                                      viewBox="0 0 24 24"
+                                      fill="none"
+                                      stroke="currentColor"
+                                      strokeWidth="2"
+                                      strokeLinecap="round"
+                                      strokeLinejoin="round"
+                                      className="lucide lucide-message-circle"
+                                    >
+                                      <path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z" />
+                                    </svg>
+                                    {commentCount > 0 && (
+                                      <span className="absolute inset-0 flex items-center justify-center text-sm font-black text-gray-700 tracking-tight">
+                                        {commentCount > 99 ? '99+' : commentCount}
+                                      </span>
+                                    )}
+                                  </a>
+                                </div>
+                              </li>
+                            );
+                          })
+                        ) : (
+                          <li className="border-b pb-2 flex items-start gap-2">
+                            <div className="flex-1">
+                              <p className="text-gray-400">No articles found</p>
+                            </div>
+                          </li>
+                        )}
+                      </ul>
+
+                      <div className="flex items-center justify-between mt-2">
+                        <a
+                          href={`/external/${encodeURIComponent(matchedSource.source.link)}`}
+                          className="text-base text-blue-500 font-semibold"
+                        >
+                          MORE ...
+                        </a>
+                        {isAdmin && (
+                          <button
+                            onClick={() => handleManageSource(matchedSource.source)}
+                            className="text-sm bg-green-500 text-white px-3 py-1 rounded hover:bg-green-600 transition-colors"
+                          >
+                            Add Article
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
 
     </div>
   </>
@@ -934,27 +1448,285 @@ const spotifyPodcastSources = podcastSources;
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 mb-6">
     
           {/* LEFT: NFLTradeRumors.co */}
-          {(() => {
-            const nflTrade = remainingSourcesChunk2.find(s =>
-            s.source?.title?.toLowerCase().includes("nfltraderumors")
-            );
-            return nflTrade
-            ? renderCard(nflTrade)
-            : <div className="bg-white shadow-lg rounded-lg p-4 h-full" />;
-          })()}
+          {["nfltraderumors"].map((sourceName, i) => {
+                  const matchedSource = sources.find( 
+                    (s) => s.source?.title && s.source.title.toLowerCase().includes(sourceName.toLowerCase())
+                  ) || { 
+                    source: { 
+                      title: sourceName, 
+                      link: "#", 
+                      image: null, 
+                      updatedAt: null 
+                    }, 
+                    articles: [] 
+                  };
+
+                  // Process articles (limit to 6)
+                  const validArticles = (matchedSource.articles || [])
+                    .filter(article => article?.title && article?.link)
+                    .slice(0, 6);
+
+                  return (
+                    <div
+                      key={`rss-card-second-${i}`}
+                      className="bg-white shadow-lg rounded-lg p-4 h-full flex flex-col"
+                    >
+                      <div className="flex items-center mb-4">
+                        
+                          <img
+                            src="\images\new-favicons-home\NFL-Traderumors-Favicon-192x192-(TD).svg"
+                            alt={matchedSource.source.title}
+                            className="w-10 h-10 mr-3 rounded-full object-cover"
+                          />
+                        
+                        <div>
+                          <a
+                            href={`/external/${encodeURIComponent(matchedSource.source.link)}`}
+                            className="text-blue-500 hover:text-blue-700"
+                          >
+                            <h2 className="text-lg font-bold uppercase text-black cursor-pointer">
+                              {decodeHtmlEntities(matchedSource.source.title)}
+                            </h2>
+                          </a>
+                          <p className="text-gray-500 text-xs">
+                            Last Updated: {matchedSource.source.updatedAt ? formatDate(matchedSource.source.updatedAt) : "--"}
+                          </p>
+                        </div>
+                      </div>
+                      
+                      <ul className="space-y-2 flex-1">
+                        {validArticles.length > 0 ? (
+                          validArticles.map((article, index) => {
+                            const commentCount = commentCounts[article.title] || 0;
+                            return (
+                              <li key={index} className="border-b pb-2 flex items-start gap-2">
+                                <div className="flex-1">
+                                  <a
+                                    href={`/external/${encodeURIComponent(article.link)}`}
+                                    className="text-black hover:underline hover:text-blue-500 font-medium"
+                                  >
+                                    <h3>
+                                      {decodeHtmlEntities(article.title || "Untitled Article")}
+                                    </h3>
+                                  </a>
+                                  <p className="text-gray-500 text-xs">
+                                    {formatDate(article.pubDate)}
+                                  </p>
+                                </div>
+                                <div className="relative flex-shrink-0">
+                                  <a
+                                    href={`/comments/${encodeURIComponent(article.title)}?sourceTitle=${encodeURIComponent(matchedSource.source.title || 'Unknown Source')}&sourceImage=${encodeURIComponent(matchedSource.source.image || '')}&sourceLink=${encodeURIComponent(matchedSource.source.link || '')}`}
+                                    className="hover:text-blue-500 relative inline-block"
+                                  >
+                                    <svg
+                                      xmlns="http://www.w3.org/2000/svg"
+                                      width="36"
+                                      height="36"
+                                      viewBox="0 0 24 24"
+                                      fill="none"
+                                      stroke="currentColor"
+                                      strokeWidth="2"
+                                      strokeLinecap="round"
+                                      strokeLinejoin="round"
+                                      className="lucide lucide-message-circle"
+                                    >
+                                      <path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z" />
+                                    </svg>
+                                    {commentCount > 0 && (
+                                      <span className="absolute inset-0 flex items-center justify-center text-sm font-black text-gray-700 tracking-tight">
+                                        {commentCount > 99 ? '99+' : commentCount}
+                                      </span>
+                                    )}
+                                  </a>
+                                </div>
+                              </li>
+                            );
+                          })
+                        ) : (
+                          <li className="border-b pb-2 flex items-start gap-2">
+                            <div className="flex-1">
+                              <p className="text-gray-400">No articles found</p>
+                            </div>
+                          </li>
+                        )}
+                      </ul>
+
+                      <div className="flex items-center justify-between mt-2">
+                        <a
+                          href={`/external/${encodeURIComponent(matchedSource.source.link)}`}
+                          className="text-base text-blue-500 font-semibold"
+                        >
+                          MORE ...
+                        </a>
+                        {isAdmin && (
+                          <button
+                            onClick={() => handleManageSource(matchedSource.source)}
+                            className="text-sm bg-green-500 text-white px-3 py-1 rounded hover:bg-green-600 transition-colors"
+                          >
+                            Add Article
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
 
           {/* MIDDLE: Blank */}
-          <div className="bg-white shadow-lg rounded-lg p-4 h-full" />
+      {renderCard({
+      source: {
+      title: "Weekly Poll",
+      link: "#",
+      image: null,
+      updatedAt: new Date().toISOString(),
+      },
+      articles: [
+    {
+      title: "Who should be NFL MVP this week?",
+      link: "#",
+      pubDate: new Date().toISOString(),
+    },
+    {
+      title: "Best QB performance of the week?",
+      link: "#",
+      pubDate: new Date(Date.now() - 86400000).toISOString(),
+    },
+    {
+      title: "Which team impressed you the most?",
+      link: "#",
+      pubDate: new Date(Date.now() - 2 * 86400000).toISOString(),
+    },
+    {
+      title: "Biggest upset of the week?",
+      link: "#",
+      pubDate: new Date(Date.now() - 3 * 86400000).toISOString(),
+    },
+  ],
+})}
+
 
         {/* RIGHT: The 33rd Team */}
-        {(() => {
-        const team33 = remainingSourcesChunk2.find(s =>
-        s.source?.title?.toLowerCase().includes("the 33rd team")
-        );
-        return team33
-        ? renderCard(team33)
-        : <div className="bg-white shadow-lg rounded-lg p-4 h-full" />;
-    })()}
+        {["33rd Team"].map((sourceName, i) => {
+    const matchedSource = sources.find( 
+      (s) => s.source?.title && s.source.title.toLowerCase().includes(sourceName.toLowerCase())
+    ) || { 
+      source: { 
+        title: sourceName, 
+        link: "#", 
+        image: null, 
+        updatedAt: null 
+      }, 
+      articles: [] 
+    };
+
+    // Process articles (limit to 6)
+    const validArticles = (matchedSource.articles || [])
+      .filter(article => article?.title && article?.link)
+      .slice(0, 6);
+
+    return (
+      <div
+        key={`rss-card-first-${i}`}
+        className="bg-white shadow-lg rounded-lg p-4 h-full flex flex-col"
+      >
+        <div className="flex items-center mb-4">
+          
+            <img
+              src="\images\new-favicons-home\33rd-Favicon-400x400.png"
+              alt={matchedSource.source.title}
+              className="w-10 h-10 mr-3 rounded-full object-cover"
+            />
+          
+          <div>
+            <a
+              href={`/external/${encodeURIComponent(matchedSource.source.link)}`}
+              className="text-blue-500 hover:text-blue-700"
+            >
+              <h2 className="text-lg font-bold uppercase text-black cursor-pointer">
+                {decodeHtmlEntities(matchedSource.source.title)}
+              </h2>
+            </a>
+            <p className="text-gray-500 text-xs">
+              Last Updated: {matchedSource.source.updatedAt ? formatDate(matchedSource.source.updatedAt) : "--"}
+            </p>
+          </div>
+        </div>
+        
+        <ul className="space-y-2 flex-1">
+          {validArticles.length > 0 ? (
+            validArticles.map((article, index) => {
+              const commentCount = commentCounts[article.title] || 0;
+              return (
+                <li key={index} className="border-b pb-2 flex items-start gap-2">
+                  <div className="flex-1">
+                    <a
+                      href={`/external/${encodeURIComponent(article.link)}`}
+                      className="text-black hover:underline hover:text-blue-500 font-medium"
+                    >
+                      <h3>
+                        {decodeHtmlEntities(article.title || "Untitled Article")}
+                      </h3>
+                    </a>
+                    <p className="text-gray-500 text-xs">
+                      {formatDate(article.pubDate)}
+                    </p>
+                  </div>
+                  <div className="relative flex-shrink-0">
+                    <a
+                      href={`/comments/${encodeURIComponent(article.title)}?sourceTitle=${encodeURIComponent(matchedSource.source.title || 'Unknown Source')}&sourceImage=${encodeURIComponent(matchedSource.source.image || '')}&sourceLink=${encodeURIComponent(matchedSource.source.link || '')}`}
+                      className="hover:text-blue-500 relative inline-block"
+                    >
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="36"
+                        height="36"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        className="lucide lucide-message-circle"
+                      >
+                        <path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z" />
+                      </svg>
+                      {commentCount > 0 && (
+                        <span className="absolute inset-0 flex items-center justify-center text-sm font-black text-gray-700 tracking-tight">
+                          {commentCount > 99 ? '99+' : commentCount}
+                        </span>
+                      )}
+                    </a>
+                  </div>
+                </li>
+              );
+            })
+          ) : (
+            <li className="border-b pb-2 flex items-start gap-2">
+              <div className="flex-1">
+                <p className="text-gray-400">No articles found</p>
+              </div>
+            </li>
+          )}
+        </ul>
+
+        <div className="flex items-center justify-between mt-2">
+          <a
+            href={`/external/${encodeURIComponent(matchedSource.source.link)}`}
+            className="text-base text-blue-500 font-semibold"
+          >
+            MORE ...
+          </a>
+          {isAdmin && (
+            <button
+              onClick={() => handleManageSource(matchedSource.source)}
+              className="text-sm bg-green-500 text-white px-3 py-1 rounded hover:bg-green-600 transition-colors"
+            >
+              Add Article
+            </button>
+          )}
+        </div>
+      </div>
+    );
+  })}
   </div>
 )}
 
@@ -1009,6 +1781,7 @@ const spotifyPodcastSources = podcastSources;
             );
           })()}
 
+{/*5th row*/}
 <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 mb-6">
   {/* LEFT: NFL Discussion */}
   {(() => {
@@ -1021,7 +1794,42 @@ const spotifyPodcastSources = podcastSources;
   })()}
 
   {/* MIDDLE: Empty */}
-  <div className="bg-white shadow-lg rounded-lg p-4 h-full" />
+  {renderCard({
+    source: {
+    title: "NFL Injury Reports",
+    link: "#",
+    image: null,
+    updatedAt: new Date().toISOString(),
+  },
+  articles: [
+    {
+      title: "Rotoworld – Player Injury News",
+      link: "https://www.nbcsports.com/nfl/player-news",
+      pubDate: new Date().toISOString(),
+    },
+    {
+      title: "PFF – NFL Injury Updates",
+      link: "https://www.pff.com/nfl/injuries",
+      pubDate: new Date(Date.now() - 86400000).toISOString(), // 1 day ago
+    },
+    {
+      title: "NFL Official Injury Report",
+      link: "https://www.nfl.com/injuries/",
+      pubDate: new Date(Date.now() - 2 * 86400000).toISOString(),
+    },
+    {
+      title: "FantasyPros – Injury Tracker",
+      link: "https://www.fantasypros.com/nfl/injury-news.php",
+      pubDate: new Date(Date.now() - 3 * 86400000).toISOString(),
+    },
+    {
+      title: "CBS Sports – Injury Report",
+      link: "https://www.cbssports.com/nfl/injuries/",
+      pubDate: new Date(Date.now() - 4 * 86400000).toISOString(),
+    },
+  ],
+})}
+
 
   {/* RIGHT: Sportsnet */}
   {(() => {
@@ -1114,7 +1922,7 @@ const spotifyPodcastSources = podcastSources;
         <div className="flex items-center mb-4">
           {matchedSource.source.image ? (
             <img
-              src={matchedSource.source.image}
+              src="/images/new-favicons-home/Yardbarker%20Favicon%201000x1000.png"
               alt={matchedSource.source.title}
               className="w-10 h-10 mr-3 rounded-full object-cover"
             />
@@ -1123,9 +1931,7 @@ const spotifyPodcastSources = podcastSources;
           )}
           <div>
             <a
-              href={matchedSource.source.link || "#"}
-              target="_blank"
-              rel="noopener noreferrer"
+              href={`/external/${encodeURIComponent(matchedSource.source.link)}`}
               className="text-blue-500 hover:text-blue-700"
             >
               <h2 className="text-lg font-bold uppercase text-black cursor-pointer">
@@ -1146,9 +1952,7 @@ const spotifyPodcastSources = podcastSources;
                 <li key={index} className="border-b pb-2 flex items-start gap-2">
                   <div className="flex-1">
                     <a
-                      href={article.link || "#"}
-                      target="_blank"
-                      rel="noopener noreferrer"
+                      href={`/external/${encodeURIComponent(article.link)}`}
                       className="text-black hover:underline hover:text-blue-500 font-medium"
                     >
                       <h3>
@@ -1199,9 +2003,7 @@ const spotifyPodcastSources = podcastSources;
 
         <div className="flex items-center justify-between mt-2">
           <a
-            href={matchedSource.source.link || "#"}
-              target="_blank"
-              rel="noopener noreferrer"
+            href={`/external/${encodeURIComponent(matchedSource.source.link)}`}
             className="text-base text-blue-500 font-semibold"
           >
             MORE ...
@@ -1411,7 +2213,7 @@ const spotifyPodcastSources = podcastSources;
       source: { 
         title: sourceName, 
         link: "#", 
-        image: null, 
+        image: null,
         updatedAt: null 
       }, 
       articles: [] 
@@ -1430,7 +2232,7 @@ const spotifyPodcastSources = podcastSources;
         <div className="flex items-center mb-4">
           {matchedSource.source.image ? (
             <img
-              src={matchedSource.source.image}
+              src="images\new-favicons-home\Sporting-News-Favicon-530x530.png"
               alt={matchedSource.source.title}
               className="w-10 h-10 mr-3 rounded-full object-cover"
             />
@@ -1439,9 +2241,7 @@ const spotifyPodcastSources = podcastSources;
           )}
           <div>
             <a
-              href={matchedSource.source.link || "#"}
-              target="_blank"
-              rel="noopener noreferrer"
+              href={`/external/${encodeURIComponent(matchedSource.source.link)}`}
               className="text-blue-500 hover:text-blue-700"
             >
               <h2 className="text-lg font-bold uppercase text-black cursor-pointer">
@@ -1462,9 +2262,7 @@ const spotifyPodcastSources = podcastSources;
                 <li key={index} className="border-b pb-2 flex items-start gap-2">
                   <div className="flex-1">
                     <a
-                      href={article.link || "#"}
-                      target="_blank"
-                      rel="noopener noreferrer"
+                      href={`/external/${encodeURIComponent(article.link)}`}
                       className="text-black hover:underline hover:text-blue-500 font-medium"
                     >
                       <h3>
@@ -1515,9 +2313,7 @@ const spotifyPodcastSources = podcastSources;
 
         <div className="flex items-center justify-between mt-2">
           <a
-            href={matchedSource.source.link || "#"}
-              target="_blank"
-              rel="noopener noreferrer"
+            href={`/external/${encodeURIComponent(matchedSource.source.link)}`}
             className="text-base text-blue-500 font-semibold"
           >
             MORE ...
@@ -1609,7 +2405,7 @@ const spotifyPodcastSources = podcastSources;
         <div className="flex items-center mb-4">
           {matchedSource.source.image ? (
             <img
-              src={matchedSource.source.image}
+              src="images\new-favicons-home\The-Ringer-Favicon-324x324-(Black-BG)-02.png"
               alt={matchedSource.source.title}
               className="w-10 h-10 mr-3 rounded-full object-cover"
             />
@@ -1618,9 +2414,7 @@ const spotifyPodcastSources = podcastSources;
           )}
           <div>
             <a
-              href={matchedSource.source.link || "#"}
-              target="_blank"
-              rel="noopener noreferrer"
+              href={`/external/${encodeURIComponent(matchedSource.source.link)}`}
               className="text-blue-500 hover:text-blue-700"
             >
               <h2 className="text-lg font-bold uppercase text-black cursor-pointer">
@@ -1641,9 +2435,7 @@ const spotifyPodcastSources = podcastSources;
                 <li key={index} className="border-b pb-2 flex items-start gap-2">
                   <div className="flex-1">
                     <a
-                      href={article.link || "#"}
-                      target="_blank"
-                      rel="noopener noreferrer"
+                      href={`/external/${encodeURIComponent(article.link)}`}
                       className="text-black hover:underline hover:text-blue-500 font-medium"
                     >
                       <h3>
@@ -1694,9 +2486,7 @@ const spotifyPodcastSources = podcastSources;
 
         <div className="flex items-center justify-between mt-2">
           <a
-            href={matchedSource.source.link || "#"}
-              target="_blank"
-              rel="noopener noreferrer"
+            href={`/external/${encodeURIComponent(matchedSource.source.link)}`}
             className="text-base text-blue-500 font-semibold"
           >
             MORE ...
@@ -1998,20 +2788,16 @@ const spotifyPodcastSources = podcastSources;
         className="bg-white shadow-lg rounded-lg p-4 h-full flex flex-col"
       >
         <div className="flex items-center mb-4">
-          {matchedSource.source.image ? (
+         
             <img
-              src={matchedSource.source.image}
+              src="\images\new-favicons-home\Fansided-Favicon.png"
               alt={matchedSource.source.title}
               className="w-10 h-10 mr-3 rounded-full object-cover"
             />
-          ) : (
-            <div className="w-10 h-10 mr-3 bg-gray-300 rounded-full" />
-          )}
+          
           <div>
             <a
-              href={matchedSource.source.link || "#"}
-              target="_blank"
-              rel="noopener noreferrer"
+              href={`/external/${encodeURIComponent(matchedSource.source.link)}`}
               className="text-blue-500 hover:text-blue-700"
             >
               <h2 className="text-lg font-bold uppercase text-black cursor-pointer">
@@ -2032,9 +2818,7 @@ const spotifyPodcastSources = podcastSources;
                 <li key={index} className="border-b pb-2 flex items-start gap-2">
                   <div className="flex-1">
                     <a
-                      href={article.link || "#"}
-                      target="_blank"
-                      rel="noopener noreferrer"
+                      href={`/external/${encodeURIComponent(article.link)}`}
                       className="text-black hover:underline hover:text-blue-500 font-medium"
                     >
                       <h3>
@@ -2085,9 +2869,7 @@ const spotifyPodcastSources = podcastSources;
 
         <div className="flex items-center justify-between mt-2">
           <a
-            href={matchedSource.source.link || "#"}
-              target="_blank"
-              rel="noopener noreferrer"
+            href={`/external/${encodeURIComponent(matchedSource.source.link)}`}
             className="text-base text-blue-500 font-semibold"
           >
             MORE ...
@@ -2177,7 +2959,7 @@ const spotifyPodcastSources = podcastSources;
         <div className="flex items-center mb-4">
           {matchedSource.source.image ? (
             <img
-              src={matchedSource.source.image}
+              src="images\new-favicons-home\SportsIllustrated-Favicon-528x528.png"
               alt={matchedSource.source.title}
               className="w-10 h-10 mr-3 rounded-full object-cover"
             />
@@ -2186,9 +2968,7 @@ const spotifyPodcastSources = podcastSources;
           )}
           <div>
             <a
-              href={matchedSource.source.link || "#"}
-              target="_blank"
-              rel="noopener noreferrer"
+              href={`/external/${encodeURIComponent(matchedSource.source.link)}`}
               className="text-blue-500 hover:text-blue-700"
             >
               <h2 className="text-lg font-bold uppercase text-black cursor-pointer">
@@ -2209,9 +2989,7 @@ const spotifyPodcastSources = podcastSources;
                 <li key={index} className="border-b pb-2 flex items-start gap-2">
                   <div className="flex-1">
                     <a
-                      href={article.link || "#"}
-                      target="_blank"
-                      rel="noopener noreferrer"
+                      href={`/external/${encodeURIComponent(article.link)}`}
                       className="text-black hover:underline hover:text-blue-500 font-medium"
                     >
                       <h3>
@@ -2262,9 +3040,7 @@ const spotifyPodcastSources = podcastSources;
 
         <div className="flex items-center justify-between mt-2">
           <a
-            href={matchedSource.source.link || "#"}
-              target="_blank"
-              rel="noopener noreferrer"
+            href={`/external/${encodeURIComponent(matchedSource.source.link)}`}
             className="text-base text-blue-500 font-semibold"
           >
             MORE ...
@@ -2479,7 +3255,7 @@ const spotifyPodcastSources = podcastSources;
       source: { 
         title: sourceName, 
         link: "#", 
-        image: null, 
+        image: "null", 
         updatedAt: null 
       }, 
       articles: [] 
@@ -2496,20 +3272,16 @@ const spotifyPodcastSources = podcastSources;
         className="bg-white shadow-lg rounded-lg p-4 h-full flex flex-col"
       >
         <div className="flex items-center mb-4">
-          {matchedSource.source.image ? (
+          
             <img
-              src={matchedSource.source.image}
+              src="images\new-favicons-home\NFL-Spinzone.png"
               alt={matchedSource.source.title}
               className="w-10 h-10 mr-3 rounded-full object-cover"
             />
-          ) : (
-            <div className="w-10 h-10 mr-3 bg-gray-300 rounded-full" />
-          )}
+          
           <div>
             <a
-              href={matchedSource.source.link || "#"}
-              target="_blank"
-              rel="noopener noreferrer"
+              href={`/external/${encodeURIComponent(matchedSource.source.link)}`}
               className="text-blue-500 hover:text-blue-700"
             >
               <h2 className="text-lg font-bold uppercase text-black cursor-pointer">
@@ -2530,9 +3302,7 @@ const spotifyPodcastSources = podcastSources;
                 <li key={index} className="border-b pb-2 flex items-start gap-2">
                   <div className="flex-1">
                     <a
-                      href={article.link || "#"}
-                      target="_blank"
-                      rel="noopener noreferrer"
+                      href={`/external/${encodeURIComponent(article.link)}`}
                       className="text-black hover:underline hover:text-blue-500 font-medium"
                     >
                       <h3>
@@ -2583,9 +3353,7 @@ const spotifyPodcastSources = podcastSources;
 
         <div className="flex items-center justify-between mt-2">
           <a
-            href={matchedSource.source.link || "#"}
-              target="_blank"
-              rel="noopener noreferrer"
+            href={`/external/${encodeURIComponent(matchedSource.source.link)}`}
             className="text-base text-blue-500 font-semibold"
           >
             MORE ...
@@ -2605,55 +3373,7 @@ const spotifyPodcastSources = podcastSources;
 
 </div>
 
-{/* SPOTIFY NFL PODCASTS (Card Layout) */}
-{podcastSources.length > 0 && (() => {
-  // Prepare the videos array
-  const topSourceVideos = podcastSources
-    .map(({ articles }) => articles?.[0])
-    .filter(Boolean);
 
-  // Merge custom videos with original top channel videos
-  const mergedTopVideos = mergeCustomVideos('spotify-nfl-podcasts', topSourceVideos);
-
-  return (
-    <div className="bg-white shadow-lg rounded-lg p-4 mb-6">
-      <div className="flex items-center justify-between mb-2">
-        <div className="flex items-center">
-          <img
-            src="https://upload.wikimedia.org/wikipedia/commons/1/19/Spotify_logo_without_text.svg"
-            alt="Spotify Logo"
-            className="w-12 h-12 mr-2"
-          />
-          <div>
-            <h2 className="text-lg font-bold text-black">Spotify NFL Podcasts</h2>
-            <p className="text-gray-500 text-xs">
-              Last Updated: {formatDate(podcastSources[0]?.source?.updatedAt)}
-            </p>
-          </div>
-        </div>
-        {isAdmin && (
-          <button
-            onClick={() => handleManageVideo('spotify-nfl-podcasts')}
-            className="text-sm bg-green-500 text-white px-3 py-1 rounded hover:bg-green-600 transition-colors"
-          >
-            Add Video
-          </button>
-        )}
-      </div>
-
-      <HorizontalScroller videos={mergedTopVideos} onEditVideo={isAdmin ? (video) => handleEditVideo('spotify-nfl-podcasts', video) : null} />
-
-      <a
-        href="https://open.spotify.com/search/NFL%20Podcast"
-        className="text-lg text-blue-500 block font-semibold"
-        target="_blank"
-        rel="noopener noreferrer"
-      >
-        Browse more on Spotify →
-      </a>
-    </div>
-  );
-})()}
 
 {/*10th row*/} 
 <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 mb-6">
@@ -2683,7 +3403,7 @@ const spotifyPodcastSources = podcastSources;
         <div className="flex items-center mb-4">
           {matchedSource.source.image ? (
             <img
-              src={matchedSource.source.image}
+              src="images\new-favicons-home\Bleacher-Report-Favicon-256x256(TD).png"
               alt={matchedSource.source.title}
               className="w-10 h-10 mr-3 rounded-full object-cover"
             />
@@ -2818,7 +3538,7 @@ const spotifyPodcastSources = podcastSources;
         <div className="flex items-center mb-4">
           {matchedSource.source.image ? (
             <img
-              src={matchedSource.source.image}
+              src="images\new-favicons-home\Fox-Sports-530x530.png"
               alt={matchedSource.source.title}
               className="w-10 h-10 mr-3 rounded-full object-cover"
             />
@@ -2827,9 +3547,7 @@ const spotifyPodcastSources = podcastSources;
           )}
           <div>
             <a
-              href={matchedSource.source.link || "#"}
-              target="_blank"
-              rel="noopener noreferrer"
+              href={`/external/${encodeURIComponent(matchedSource.source.link)}`}
               className="text-blue-500 hover:text-blue-700"
             >
               <h2 className="text-lg font-bold uppercase text-black cursor-pointer">
@@ -2850,9 +3568,7 @@ const spotifyPodcastSources = podcastSources;
                 <li key={index} className="border-b pb-2 flex items-start gap-2">
                   <div className="flex-1">
                     <a
-                      href={article.link || "#"}
-                      target="_blank"
-                      rel="noopener noreferrer"
+                      href={`/external/${encodeURIComponent(article.link)}`}
                       className="text-black hover:underline hover:text-blue-500 font-medium"
                     >
                       <h3>
@@ -2903,9 +3619,7 @@ const spotifyPodcastSources = podcastSources;
 
         <div className="flex items-center justify-between mt-2">
           <a
-            href={matchedSource.source.link || "#"}
-              target="_blank"
-              rel="noopener noreferrer"
+            href={`/external/${encodeURIComponent(matchedSource.source.link)}`}
             className="text-base text-blue-500 font-semibold"
           >
             MORE ...
@@ -2924,6 +3638,10 @@ const spotifyPodcastSources = podcastSources;
   })}
 
 </div>
+
+
+
+
 
         </div>
 
