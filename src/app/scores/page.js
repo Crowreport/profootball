@@ -42,6 +42,10 @@ const teamLogos = {
 
 // Function to get team logo
 function getTeamLogo(teamName) {
+  if (!teamName || typeof teamName !== "string") {
+    console.warn("⚠️ getTeamLogo called with invalid teamName:", teamName);
+    return null; // or a default logo
+  }
   console.log(`🔍 Looking for logo for team: "${teamName}"`);
   
   // First try exact match
@@ -201,7 +205,7 @@ async function fetchGamesForWeek(week) {
     
     // Try the primary API endpoint first (same as standings)
     console.log("📡 Trying primary API: site.api.espn.com");
-    let response = await fetch(`https://site.api.espn.com/apis/site/v2/sports/football/nfl/scoreboard?week=${week}&year=${showYear}`);
+    let response = await fetch(`https://site.api.espn.com/apis/site/v2/sports/football/nfl/scoreboard?seasontype=3&week=${week}&year=${showYear}`);
     console.log("📡 Primary API response status:", response.status);
     
     if (response.ok) {
@@ -381,25 +385,25 @@ async function fetchGamesForWeek(week) {
                   if (homeTeam && awayTeam) {
                     games.push({
                       id: eventData.id,
-                      date: eventData.date,
-                      status: eventData.status,
+                      date: toText(eventData.date, ""),
+                      status: competition.status?.type?.description || eventData.status?.type?.description || "Scheduled",
                       week: week,
                       homeTeam: {
                         name: homeTeam.team?.name || 'Unknown Team',
                         score: homeTeam.score || 0,
                         logo: getTeamLogo(homeTeam.team?.name),
-                        record: homeTeam.records?.[0]?.summary || '0-0',
+                        record: toText(homeTeam.records?.[0]?.summary, "0-0"),
                         id: homeTeam.team?.id || 'unknown'
                       },
                       awayTeam: {
                         name: awayTeam.team?.name || 'Unknown Team',
                         score: awayTeam.score || 0,
                         logo: getTeamLogo(awayTeam.team?.name),
-                        record: awayTeam.records?.[0]?.summary || '0-0',
+record: toText(awayTeam.records?.[0]?.summary, "0-0"),
                         id: awayTeam.team?.id || 'unknown'
                       },
-                      venue: competition.venue?.fullName || 'TBD',
-                      broadcast: competition.broadcasts?.[0]?.media?.shortName || 'TBD'
+                      venue: toText(competition.venue, "TBD"),
+                      broadcast: toText(competition.broadcasts?.[0]?.media, "TBD")
                     });
                   }
                 }
@@ -440,7 +444,22 @@ export default function ScoresPage() {
       setError(null);
       
       try {
+        function toText(value, fallback = "TBD") {
+  if (value == null) return fallback;
+  if (typeof value === "string" || typeof value === "number") return value;
+  if (typeof value === "object") {
+    if (typeof value.$ref === "string") return fallback; // avoid rendering ref objects
+    if (typeof value.fullName === "string") return value.fullName;
+    if (typeof value.name === "string") return value.name;
+    if (typeof value.shortName === "string") return value.shortName;
+    if (typeof value.description === "string") return value.description;
+    if (typeof value.summary === "string") return value.summary;
+  }
+  return fallback;
+}
+
         const weekGames = await fetchGamesForWeek(selectedWeek);
+    
         setGames(weekGames);
       } catch (err) {
         setError('Failed to load games');
