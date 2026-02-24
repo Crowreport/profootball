@@ -97,21 +97,21 @@ export default function ManageVideoModal({
       }
     }
 
-    const requestData = editingVideo 
+    const requestData = editingVideo
       ? {
           sectionType,
           originalTitle: editingVideo.title,
           title: formData.title.trim(),
           link: formData.link.trim(),
           thumbnail: thumbnailUrl,
-          userEmail: profile?.email
+          userId: profile?.id
         }
       : {
           sectionType,
           title: formData.title.trim(),
           link: formData.link.trim(),
           thumbnail: thumbnailUrl,
-          userEmail: profile?.email
+          userId: profile?.id
         };
 
     console.log('Submitting video with data:', requestData);
@@ -167,7 +167,7 @@ export default function ManageVideoModal({
         body: JSON.stringify({
           sectionType,
           title: editingVideo.title,
-          userEmail: profile?.email
+          userId: profile?.id
         }),
       });
 

@@ -6,6 +6,7 @@ import Card from "./Card";
 import { TeamInfoEditModal, TeamStatsEditModal, TeamScheduleEditModal, TeamNewsEditModal } from "@/components/modal";
 // Removed AuthContext import - now using Zustand for auth
 import { useState, useEffect } from "react";
+import { useUserStore } from "@/store/useUserStore";
 
 // Helper: Map team names to primary colors
 const teamColors = {
@@ -326,6 +327,8 @@ export default function TeamPage({ params }) {
   const [newsModalOpen, setNewsModalOpen] = useState(false);
   const [editingNews, setEditingNews] = useState(null);
   const [loading, setLoading] = useState(true);
+  const { profile } = useUserStore();
+  const isAdmin = profile?.role === 'admin';
 
   useEffect(() => {
     const initializeTeam = async () => {
@@ -558,7 +561,7 @@ export default function TeamPage({ params }) {
           <Card accent={accent}>
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-2xl font-bold" style={{ color: accent }}>Latest News</h2>
-              {isAdmin() && (
+              {isAdmin && (
                 <div className="flex space-x-2">
                   <button
                     onClick={handleAddNews}
@@ -589,7 +592,7 @@ export default function TeamPage({ params }) {
                           {formatDate(newsArticle.updatedAt)}
                         </span>
                       </div>
-                      {isAdmin() && (
+                      {isAdmin && (
                         <button
                           onClick={() => handleEditNews(newsArticle)}
                           className="text-xs bg-yellow-500 text-white px-2 py-1 rounded hover:bg-yellow-600 transition-colors ml-4"
@@ -603,12 +606,12 @@ export default function TeamPage({ params }) {
               ) : (
                 <div className="text-center py-8">
                   <p className="text-gray-500">No news available</p>
-                  {isAdmin() && (
+                  {isAdmin && (
                     <p className="text-gray-400 text-sm mt-1">Click &quot;Add News&quot; to create a news article</p>
                   )}
                 </div>
               )}
-              {teamNews && teamNews.length >= 5 && isAdmin() && (
+              {teamNews && teamNews.length >= 5 && isAdmin && (
                 <div className="text-center pt-2">
                   <p className="text-xs text-gray-500">
                     Maximum 5 news articles reached. Adding new articles will remove the oldest ones.
@@ -622,7 +625,7 @@ export default function TeamPage({ params }) {
           <Card accent={accent}>
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-2xl font-bold" style={{ color: accent }}>Schedule</h2>
-              {isAdmin() && (
+              {isAdmin && (
                 <button
                   onClick={handleEditSchedule}
                   className="text-sm bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600 transition-colors"
@@ -651,7 +654,7 @@ export default function TeamPage({ params }) {
               ) : (
                 <div className="text-center py-8">
                   <p className="text-gray-500">No games scheduled</p>
-                  {isAdmin() && (
+                  {isAdmin && (
                     <p className="text-gray-400 text-sm mt-1">Click &quot;Edit&quot; to add games</p>
                   )}
                 </div>
@@ -673,7 +676,7 @@ export default function TeamPage({ params }) {
           <Card accent={accent}>
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-2xl font-bold" style={{ color: accent }}>Team Info</h2>
-              {isAdmin() && (
+              {isAdmin && (
                 <button
                   onClick={handleEditTeamInfo}
                   className="text-sm bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600 transition-colors"
@@ -702,7 +705,7 @@ export default function TeamPage({ params }) {
           <Card accent={accent}>
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-2xl font-bold" style={{ color: accent }}>Team Stats</h2>
-              {isAdmin() && (
+              {isAdmin && (
                 <button
                   onClick={handleEditTeamStats}
                   className="text-sm bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600 transition-colors"
@@ -726,7 +729,7 @@ export default function TeamPage({ params }) {
       </div>
       <Footer />
 
-      {isAdmin() && (
+      {isAdmin && (
         <>
           <TeamInfoEditModal
             isOpen={editModalOpen}

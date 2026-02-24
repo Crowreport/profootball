@@ -6,10 +6,10 @@ import { createClient } from '@supabase/supabase-js';
 
 export async function POST(request) {
   try {
-    const { teamName, wins, losses, ties, divisionPosition, userEmail } = await request.json();
+    const { teamName, wins, losses, ties, divisionPosition, userId } = await request.json();
 
     // Validate admin user
-    const isAdmin = await checkAdminRole(userEmail);
+    const isAdmin = await checkAdminRole(userId);
     if (!isAdmin) {
       return Response.json({ error: 'Unauthorized. Admin access required.' }, { status: 403 });
     }

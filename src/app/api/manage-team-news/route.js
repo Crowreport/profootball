@@ -6,10 +6,10 @@ import { createClient } from '@supabase/supabase-js';
 
 export async function POST(request) {
   try {
-    const { teamName, title, link, userEmail } = await request.json();
+    const { teamName, title, link, userId } = await request.json();
 
     // Validate admin user
-    const isAdmin = await checkAdminRole(userEmail);
+    const isAdmin = await checkAdminRole(userId);
     if (!isAdmin) {
       return Response.json({ error: 'Unauthorized. Admin access required.' }, { status: 403 });
     }
@@ -108,10 +108,10 @@ export async function POST(request) {
 
 export async function PUT(request) {
   try {
-    const { teamName, title, link, originalTitle, userEmail } = await request.json();
+    const { teamName, title, link, originalTitle, userId } = await request.json();
 
     // Validate admin user
-    const isAdmin = await checkAdminRole(userEmail);
+    const isAdmin = await checkAdminRole(userId);
     if (!isAdmin) {
       return Response.json({ error: 'Unauthorized. Admin access required.' }, { status: 403 });
     }
@@ -189,10 +189,10 @@ export async function PUT(request) {
 
 export async function DELETE(request) {
   try {
-    const { teamName, title, userEmail } = await request.json();
+    const { teamName, title, userId } = await request.json();
 
     // Validate admin user
-    const isAdmin = await checkAdminRole(userEmail);
+    const isAdmin = await checkAdminRole(userId);
     if (!isAdmin) {
       return Response.json({ error: 'Unauthorized. Admin access required.' }, { status: 403 });
     }

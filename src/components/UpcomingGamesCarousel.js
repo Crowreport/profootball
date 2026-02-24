@@ -4,18 +4,14 @@ import React, { useState, useEffect } from 'react';
 // Get the correct NFL season year to display
 function getNflSeasonYear() {
   const now = new Date();
-  const currentYear = now.getFullYear();
-  const currentMonth = now.getMonth(); // 0-11
-  
-  // Since we're in July 2025 and the 2025 season hasn't started yet,
-  // we should look for upcoming games in the 2025 season
-  // NFL season typically starts in September (month 8)
-  if (currentMonth < 8) {
-    return currentYear; // Return current year for upcoming season
-  }
-  
-  // If we're in September or later, we're in the current year's season
-  return currentYear;
+  const year = now.getFullYear();
+  const month = now.getMonth(); // 0-11
+
+  // NFL season year is the year the season STARTS (Sep–Feb)
+  // Jan–Feb are still part of the previous season.
+  if (month <= 1) return year - 1;
+
+  return year;
 }
 
 // Team logo mapping using CBS Sports logos (same as teams page)
@@ -60,30 +56,36 @@ function getTeamLogo(teamName) {
 }
 
 const showYear = getNflSeasonYear();
+console.log("🏈 showYear:", showYear);
+
 
 // Function to fetch upcoming games from ESPN API
 async function fetchUpcomingGames() {
-  console.log("🔍 Starting fetchUpcomingGames for 2025 season");
+  console.log("🔍 Starting fetchUpcomingGames");
   
   try {
     // Go directly to 2025 season since that's where the future games are
-    console.log("📡 Fetching 2025 season events");
+    console.log("📡 Fetching season events");
     
     // Add timeout and better error handling
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 15000); // 15 second timeout
     
-    const seasonResponse = await fetch(`https://sports.core.api.espn.com/v2/sports/football/leagues/nfl/seasons/2025/types/2/events?limit=50`, {
-      signal: controller.signal,
-      headers: {
-        'Accept': 'application/json',
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-        'Origin': 'https://pro-football.netlify.app',
-        'Referer': 'https://pro-football.netlify.app/'
-      },
-      mode: 'cors',
-      credentials: 'omit'
-    });
+    const seasonResponse = await fetch(
+  `https://sports.core.api.espn.com/v2/sports/football/leagues/nfl/seasons/${showYear}/types/2/events?limit=50`,
+  {
+    signal: controller.signal,
+    headers: {
+      Accept: "application/json",
+      "User-Agent": "Mozilla/5.0",
+      Origin: "https://pro-football.netlify.app",
+      Referer: "https://pro-football.netlify.app/",
+    },
+    mode: "cors",
+    credentials: "omit",
+  }
+);
+
     
     clearTimeout(timeoutId);
     
@@ -92,6 +94,7 @@ async function fetchUpcomingGames() {
     }
     
     const seasonData = await seasonResponse.json();
+    console.log("📦 seasonData.items length:", seasonData?.items?.length);
     console.log(`📡 Found ${seasonData.items?.length || 0} events in 2025 season`);
     
     if (!seasonData.items || seasonData.items.length === 0) {
@@ -138,42 +141,43 @@ async function fetchUpcomingGames() {
         }
         
         const eventData = await eventResponse.json();
-        const gameDate = new Date(eventData.date);
+        const fixedDateStr = (eventData?.date || "").replace(/Z$/, ":00Z");
+        const gameDate = new Date(fixedDateStr);
+
         const now = new Date();
         
-        if (gameDate > now) {
-          // Extract team names from event name
-          const eventName = eventData.name || '';
-          let awayTeamName = 'Unknown';
-          let homeTeamName = 'Unknown';
-          
-          if (eventName.includes(' at ')) {
-            const parts = eventName.split(' at ');
-            if (parts.length === 2) {
-              awayTeamName = parts[0].trim();
-              homeTeamName = parts[1].trim();
-            }
-          }
-          
-          const game = {
-            id: eventData.id,
-            homeTeam: {
-              name: homeTeamName,
-              logo: getTeamLogo(homeTeamName),
-              record: '0-0'
-            },
-            awayTeam: {
-              name: awayTeamName,
-              logo: getTeamLogo(awayTeamName),
-              record: '0-0'
-            },
-            date: eventData.date,
-            week: `Week ${eventData.week?.number || 'TBD'}`
-          };
-          
-          futureGames.push(game);
-          console.log(`✅ Added game ${i + 1}: ${game.awayTeam.name} @ ${game.homeTeam.name}`);
-        }
+        // Extract team names from event name (always add the next scheduled games)
+const eventName = eventData.name || '';
+let awayTeamName = 'Unknown';
+let homeTeamName = 'Unknown';
+
+if (eventName.includes(' at ')) {
+  const parts = eventName.split(' at ');
+  if (parts.length === 2) {
+    awayTeamName = parts[0].trim();
+    homeTeamName = parts[1].trim();
+  }
+}
+
+const game = {
+  id: eventData.id,
+  homeTeam: {
+    name: homeTeamName,
+    logo: getTeamLogo(homeTeamName),
+    record: '0-0'
+  },
+  awayTeam: {
+    name: awayTeamName,
+    logo: getTeamLogo(awayTeamName),
+    record: '0-0'
+  },
+  date: eventData.date,
+  week: `Week ${eventData.week?.number || 'TBD'}`
+};
+
+futureGames.push(game);
+console.log(`✅ Added game ${i + 1}: ${game.awayTeam.name} @ ${game.homeTeam.name}`);
+
       } catch (error) {
         console.error(`❌ Error processing event ${i + 1}:`, error);
         continue;

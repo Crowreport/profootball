@@ -51,13 +51,13 @@ export default function TeamForumEditModal({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!isAuthenticated || !profile?.email) {
+    if (!isAuthenticated || !profile?.id) {
       alert('You must be logged in to edit forums');
       return;
     }
 
     // Filter out empty forums
-    const validForums = forumList.filter(forum => 
+    const validForums = forumList.filter(forum =>
       forum.name && forum.url
     );
 
@@ -71,7 +71,7 @@ export default function TeamForumEditModal({
         body: JSON.stringify({
           teamName,
           forums: validForums,
-          userEmail: profile.email
+          userId: profile.id
         }),
       });
 

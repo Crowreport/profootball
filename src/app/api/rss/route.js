@@ -1,273 +1,175 @@
 import { NextResponse } from "next/server";
-import Parser from "rss-parser";
-import fs from "fs";
-import path from "path";
 import { checkRateLimit } from "@/utils/ratelimit";
+import {
+  getCachedFeeds,
+  setCachedFeeds,
+  clearCache,
+  getCacheStatus
+} from "@/lib/blobCache";
+import { fetchAllFeeds } from "@/lib/rssFetcher";
 
-// In-memory cache for RSS feeds
-let cache = {
-  data: null,
-  timestamp: null,
-  ttl: 5 * 60 * 1000, // 5 minutes cache
-};
-
-const decodeHtmlEntities = (str) => {
-  if (!str) return "";
-  return str.replace(/&#(\d+);/g, (match, dec) => String.fromCharCode(dec));
-};
-
-const sanitizeXml = (xmlText) => {
-  if (!xmlText) return "";
-
-  return (
-    xmlText
-      // Fix attributes without values (e.g., <tag attr> to <tag attr="">)
-      .replace(/(<[^>]*\s+)([a-zA-Z0-9_\-]+)(\s*[^=]*?>)/g, '$1$2=""$3')
-      // Fix unescaped ampersands not part of entities
-      .replace(/&(?!(amp;|lt;|gt;|quot;|apos;|#\d+;))/g, "&amp;")
-      // Fix HTML entities that aren't valid in XML
-      .replace(/&ldquo;/g, '"')
-      .replace(/&rdquo;/g, '"')
-      .replace(/&lsquo;/g, "'")
-      .replace(/&rsquo;/g, "'")
-      .replace(/&mdash;/g, "-")
-      .replace(/&ndash;/g, "-")
-      .replace(/&nbsp;/g, " ")
-  );
-};
-
-// Process a single feed
-async function processFeed(feedConfig, parser) {
-  const {
-    image,
-    url: feedUrl,
-    isPodcast = false,
-    isTopChannel = false,
-    isUpAndComing = false,
-  } = feedConfig;
-
-  try {
-    console.log(`Fetching feed: ${feedUrl}`);
-
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 10000); // Reduced to 10 seconds
-
-    try {
-      const response = await fetch(feedUrl, {
-        method: "GET",
-        headers: {
-          "User-Agent": "Mozilla/5.0 (compatible; NFLNewsReader/1.0)",
-          Accept: "application/rss+xml, application/xml, text/xml, */*",
-        },
-        signal: controller.signal,
-      });
-
-      clearTimeout(timeoutId);
-
-      if (!response.ok) {
-        console.warn(
-          `Skipping feed due to HTTP error: ${feedUrl} (${response.status})`
-        );
-        return null;
-      }
-
-      let xmlText = await response.text();
-      let parsedFeed;
-
-      try {
-        parsedFeed = await parser.parseString(xmlText);
-      } catch (parseError) {
-        console.warn(`Error parsing feed ${feedUrl}: ${parseError.message}`);
-        try {
-          const sanitizedXml = sanitizeXml(xmlText);
-          parsedFeed = await parser.parseString(sanitizedXml);
-          console.log(`Successfully parsed ${feedUrl} after sanitization`);
-        } catch (sanitizeError) {
-          console.error(
-            `Failed to parse ${feedUrl} even after sanitizing:`,
-            sanitizeError.message
-          );
-          return null;
-        }
-      }
-
-      const feedTitle = decodeHtmlEntities(parsedFeed.title || "Unknown Feed");
-      const feedImage =
-        image || parsedFeed.image?.url || parsedFeed.itunes?.image || null;
-      const feedLink = parsedFeed.link?.startsWith("http")
-        ? parsedFeed.link
-        : parsedFeed.items?.[0]?.link
-        ? new URL(parsedFeed.items[0].link).origin
-        : feedUrl;
-      // Get feed updated date, but validate it's not in the future
-      let feedUpdatedAt = parsedFeed.lastBuildDate || parsedFeed.items?.[0]?.pubDate || null;
-      if (feedUpdatedAt) {
-        const date = new Date(feedUpdatedAt);
-        const now = new Date();
-        // If date is in the future, use current date instead
-        if (date > now) {
-          console.warn(`Feed ${feedUrl} has future date ${feedUpdatedAt}, using current date`);
-          feedUpdatedAt = now.toISOString();
-        }
-      }
-
-      const articles = (parsedFeed.items || [])
-        .map((item) => {
-          try {
-            const articleLink = item.link?.startsWith("http")
-              ? item.link
-              : feedLink;
-            if (!articleLink) return null;
-
-            const thumbnail =
-              item["media:group"]?.["media:thumbnail"]?.[0]?.["$"]?.url ||
-              item["media:thumbnail"]?.url ||
-              item.enclosure?.url ||
-              item["media:content"]?.url ||
-              null;
-
-            // Validate article date is not in the future
-            let articleDate = item.pubDate || feedUpdatedAt;
-            if (articleDate) {
-              const date = new Date(articleDate);
-              const now = new Date();
-              if (date > now) {
-                articleDate = now.toISOString();
-              }
-            }
-
-            return {
-              title: decodeHtmlEntities(item.title || "Untitled"),
-              link: articleLink,
-              thumbnail,
-              pubDate: articleDate,
-              contentSnippet: decodeHtmlEntities(item.contentSnippet || ""),
-            };
-          } catch (itemError) {
-            console.warn(
-              `Error processing item in feed ${feedUrl}:`,
-              itemError.message
-            );
-            return null;
-          }
-        })
-        .filter(Boolean);
-
-      if (articles.length > 0) {
-        return {
-          source: {
-            title: feedTitle,
-            link: feedLink,
-            image: feedImage,
-            updatedAt: feedUpdatedAt,
-            isPodcast,
-            isTopChannel,
-            isUpAndComing,
-          },
-          articles,
-        };
-      }
-
-      console.log(`No articles found in feed: ${feedUrl}`);
-      return null;
-    } catch (fetchError) {
-      console.warn(`Failed to fetch feed ${feedUrl}:`, fetchError.message);
-      return null;
-    }
-  } catch (feedError) {
-    console.error(`Error processing feed ${feedUrl}:`, feedError);
-    return null;
-  }
+/**
+ * Create consistent cache metadata for API responses
+ */
+function createCacheMetadata({ age = 0, stale = false, refreshing = false, error = null, fetchDuration = null }) {
+  return {
+    age,
+    ageMinutes: Math.round(age / 60000),
+    stale,
+    refreshing,
+    ...(error && { error }),
+    ...(fetchDuration !== null && { fetchDuration }),
+  };
 }
 
+/**
+ * GET /api/rss
+ *
+ * Returns RSS feed data with stale-while-revalidate caching:
+ * - Fresh cache (< 15 min): Return immediately
+ * - Stale cache (15-30 min): Return immediately + trigger background refresh
+ * - Expired cache (> 30 min): Fetch fresh data (blocking)
+ *
+ * Query params:
+ * - clearCache=true: Force clear the cache and fetch fresh
+ */
 export async function GET(request) {
-  // Check for cache clearing parameter
   const url = new URL(request.url);
-  const clearCache = url.searchParams.get('clearCache');
-  
-  if (clearCache === 'true') {
-    cache.data = null;
-    cache.timestamp = null;
-    console.log("RSS cache cleared - will fetch fresh data");
-  }
+  const forceClear = url.searchParams.get("clearCache") === "true";
 
   // Rate limiting: max 10 requests per minute per IP
-  const ip = request.headers.get('x-forwarded-for') || 'unknown';
+  const ip = request.headers.get("x-forwarded-for") || "unknown";
   if (!checkRateLimit(`rss-${ip}`, 10)) {
     return NextResponse.json(
-      { error: 'Too many requests. Please try again later.' },
+      { error: "Too many requests. Please try again later." },
       { status: 429 }
     );
   }
 
-  // Check cache first
-  if (
-    cache.data &&
-    cache.timestamp &&
-    Date.now() - cache.timestamp < cache.ttl
-  ) {
-    console.log("Returning cached RSS data");
-    return NextResponse.json(cache.data);
+  // Handle forced cache clear
+  if (forceClear) {
+    console.log("Cache clear requested via query param");
+    await clearCache();
   }
 
-  const parser = new Parser({
-    customFields: {
-      feed: ["lastBuildDate"],
-      item: [["media:group", "media:group"]],
-    },
-    timeout: 60000,
-    defaultRSS: "2.0",
-  });
+  // Check Netlify Blobs cache
+  const cached = await getCachedFeeds();
 
-  const filePath = path.join(process.cwd(), "data", "feeds.json");
+  if (cached && cached.timestamp && !forceClear) {
+    const status = getCacheStatus(cached.timestamp);
 
-  let feeds;
+    // Fresh cache - return immediately
+    if (!status.isStale && !status.isExpired) {
+      console.log(`Returning fresh cache (age: ${status.ageMinutes} min)`);
+      return NextResponse.json(
+        {
+          ...cached.data,
+          _cache: createCacheMetadata({ age: status.age, stale: false, refreshing: false }),
+        },
+        {
+          headers: {
+            "Cache-Control": "public, s-maxage=60, stale-while-revalidate=900",
+          },
+        }
+      );
+    }
+
+    // Stale but not expired - return stale data + trigger background refresh
+    if (status.isStale && !status.isExpired) {
+      console.log(`Returning stale cache (age: ${status.ageMinutes} min), triggering background refresh`);
+
+      // Trigger background refresh (fire-and-forget)
+      triggerBackgroundRefresh(url.origin);
+
+      return NextResponse.json(
+        {
+          ...cached.data,
+          _cache: createCacheMetadata({ age: status.age, stale: true, refreshing: true }),
+        },
+        {
+          headers: {
+            "Cache-Control": "public, s-maxage=0, stale-while-revalidate=1800",
+            "X-Cache-Status": "STALE",
+          },
+        }
+      );
+    }
+
+    // Expired - will fetch fresh below
+    console.log(`Cache expired (age: ${status.ageMinutes} min), fetching fresh data`);
+  } else if (!cached) {
+    console.log("No cache found, fetching fresh data");
+  }
+
+  // No valid cache - fetch fresh data (blocking)
   try {
-    feeds = JSON.parse(fs.readFileSync(filePath, "utf8")).feeds;
-    console.log(`Loaded ${feeds.length} feeds from feeds.json`);
-  } catch (error) {
-    console.error("Error loading feeds.json:", error);
-    return NextResponse.json({ sources: [] }, { status: 200 });
-  }
+    const startTime = Date.now();
+    const freshData = await fetchAllFeeds(15); // Process 15 feeds at a time
+    const duration = Date.now() - startTime;
 
-  // Remove duplicate feed URL
-  const uniqueFeeds = feeds.filter(
-    (feed, index, self) => index === self.findIndex((f) => f.url === feed.url)
-  );
+    console.log(`Fresh fetch completed: ${freshData.sources?.length || 0} feeds in ${Math.round(duration / 1000)}s`);
 
-  console.log(
-    `Processing ${uniqueFeeds.length} unique feeds (removed ${
-      feeds.length - uniqueFeeds.length
-    } duplicates)`
-  );
+    // Update Netlify Blobs cache
+    await setCachedFeeds(freshData);
 
-  // Process feeds in parallel with batching to avoid overwhelming the system
-  const BATCH_SIZE = 10;
-  const sources = [];
-
-  for (let i = 0; i < uniqueFeeds.length; i += BATCH_SIZE) {
-    const batch = uniqueFeeds.slice(i, i + BATCH_SIZE);
-    const batchPromises = batch.map((feed) => processFeed(feed, parser));
-
-    const batchResults = await Promise.allSettled(batchPromises);
-
-    batchResults.forEach((result, index) => {
-      if (result.status === "fulfilled" && result.value) {
-        sources.push(result.value);
-      } else if (result.status === "rejected") {
-        console.error(`Feed ${batch[index].url} failed:`, result.reason);
+    return NextResponse.json(
+      {
+        ...freshData,
+        _cache: createCacheMetadata({ age: 0, stale: false, refreshing: false, fetchDuration: duration }),
+      },
+      {
+        headers: {
+          "Cache-Control": "public, s-maxage=60, stale-while-revalidate=900",
+        },
       }
-    });
+    );
+  } catch (error) {
+    console.error("Error fetching RSS feeds:", error);
+
+    // If we have stale cached data, return it as fallback
+    if (cached && cached.data) {
+      console.log("Returning stale cache as fallback due to fetch error");
+      const age = Date.now() - cached.timestamp;
+      return NextResponse.json(
+        {
+          ...cached.data,
+          _cache: createCacheMetadata({
+            age,
+            stale: true,
+            refreshing: false,
+            error: "Fresh fetch failed, serving cached data"
+          }),
+        },
+        { status: 200 }
+      );
+    }
+
+    return NextResponse.json(
+      { sources: [], error: "Failed to fetch RSS feeds" },
+      { status: 500 }
+    );
   }
+}
 
-  console.log(`Successfully processed ${sources.length} feeds`);
+/**
+ * Trigger a background refresh by calling the refresh endpoint
+ * This is fire-and-forget - we don't wait for the result
+ */
+function triggerBackgroundRefresh(origin) {
+  const refreshUrl = `${origin}/api/rss/refresh`;
 
-  console.log(sources.map(s => s.source.title));
-
-  // Update cache
-  const responseData = { sources };
-  cache.data = responseData;
-  cache.timestamp = Date.now();
-
-  return NextResponse.json(responseData);
+  fetch(refreshUrl, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+  })
+    .then((res) => {
+      if (res.ok) {
+        console.log("Background refresh triggered successfully");
+      } else {
+        console.warn("Background refresh request failed:", res.status);
+      }
+    })
+    .catch((err) => {
+      console.error("Failed to trigger background refresh:", err.message);
+    });
 }

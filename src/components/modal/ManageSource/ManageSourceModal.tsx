@@ -90,19 +90,19 @@ export default function ManageSourceModal({
 
     console.log('Using source URL:', sourceUrl);
 
-    const requestData = editingArticle 
+    const requestData = editingArticle
       ? {
           sourceUrl: sourceUrl,
           originalTitle: editingArticle.title,
           title: formData.title.trim(),
           link: formData.link.trim(),
-          userEmail: profile?.email
+          userId: profile?.id
         }
       : {
           sourceUrl: sourceUrl,
           title: formData.title.trim(),
           link: formData.link.trim(),
-          userEmail: profile?.email
+          userId: profile?.id
         };
 
     console.log('Submitting article with data:', requestData);
@@ -159,7 +159,7 @@ export default function ManageSourceModal({
         body: JSON.stringify({
           sourceUrl: sourceUrl,
           title: editingArticle.title,
-          userEmail: profile.email
+          userId: profile.id
         }),
       });
 

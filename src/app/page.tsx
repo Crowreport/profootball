@@ -364,6 +364,8 @@ const upAndComingSources = mainPageSources.filter(
   (source) => source.source.isUpAndComing
 );
 
+const spotifyPodcastSources = podcastSources;
+
   const nflYoutubeSource = regularSources.find(
     (s) =>
       s.source.title &&
@@ -432,7 +434,8 @@ const upAndComingSources = mainPageSources.filter(
           key="featured-nfl-video"
           className="bg-white shadow-lg rounded-lg p-4 h-full flex flex-col"
         >
-          <div className="flex items-center justify-between mb-2">
+          {/* Header - fixed */}
+          <div className="flex items-center justify-between mb-2 flex-shrink-0">
             <div className="flex items-center">
               <img
                 src={source.image}
@@ -451,13 +454,13 @@ const upAndComingSources = mainPageSources.filter(
             )}
           </div>
 
-          {/* Vertical scrolling container for up to 3 featured videos */}
+          {/* Scrollable content area */}
+          <div className="flex-1 min-h-0 overflow-y-auto">
           {featuredVideos.length > 0 ? (
-            <div className="max-h-[600px] overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
-              <div className="space-y-3 pr-2">
-                {featuredVideos.map((video, index) => (
-                  <div key={index}>
-                    <div className="relative overflow-hidden group aspect-video rounded-lg">
+            <div className="space-y-3">
+              {featuredVideos.map((video, index) => (
+                <div key={index}>
+                  <div className="relative overflow-hidden group aspect-video rounded-lg">
                       <a
                         href={video?.link}
                         target="_blank"
@@ -501,7 +504,6 @@ const upAndComingSources = mainPageSources.filter(
                     </p>
                   </div>
                 ))}
-              </div>
             </div>
           ) : (
             /* Show placeholder if no videos */
@@ -546,10 +548,10 @@ const upAndComingSources = mainPageSources.filter(
               const featuredPodcast = customVideos['featured-podcast']?.[0] || podcastSources?.[0]?.articles?.[0];
               
               return featuredPodcast ? (
-                <div className="aspect-video bg-gray-50 rounded-lg flex items-center p-4">
-                  <div className="flex items-center space-x-4">
-                    <div className="w-16 h-16 bg-gray-300 rounded-lg flex items-center justify-center flex-shrink-0">
-                      <svg className="w-8 h-8 text-gray-600" fill="currentColor" viewBox="0 0 24 24">
+                <div className="bg-gray-50 rounded-lg p-3">
+                  <div className="flex items-center space-x-3">
+                    <div className="w-12 h-12 bg-gray-300 rounded-lg flex items-center justify-center flex-shrink-0">
+                      <svg className="w-6 h-6 text-gray-600" fill="currentColor" viewBox="0 0 24 24">
                         <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 14.5v-9l6 4.5-6 4.5z"/>
                       </svg>
                     </div>
@@ -578,7 +580,7 @@ const upAndComingSources = mainPageSources.filter(
                   </div>
                 </div>
               ) : (
-                <div className="aspect-video bg-gray-100 rounded-lg flex items-center justify-center">
+                <div className="bg-gray-100 rounded-lg p-3 flex items-center justify-center">
                   <div className="text-center">
                     <div className="w-8 h-8 mx-auto mb-2 bg-gray-300 rounded-full flex items-center justify-center">
                       <svg className="w-4 h-4 text-gray-500" fill="currentColor" viewBox="0 0 24 24">
@@ -591,14 +593,15 @@ const upAndComingSources = mainPageSources.filter(
               );
             })()}
           </div>
+          </div> {/* Close scrollable area */}
         </div>
       );
     }
-  
+
     return (
       <div
         key={source.link || source.title}
-        className="bg-white shadow-lg rounded-lg p-4"
+        className="bg-white shadow-lg rounded-lg p-4 h-full"
       >
         <div className="flex items-center mb-4">
           {source.image && (
@@ -610,7 +613,9 @@ const upAndComingSources = mainPageSources.filter(
           )}
           <div>
             <a
-              href={`/external/${encodeURIComponent(source.link || "#")}`}
+              href={source.link || "#"}
+              target="_blank"
+              rel="noopener noreferrer"
               className="text-blue-500 hover:text-blue-700"
             >
               <h2 className="text-lg font-bold uppercase text-black cursor-pointer">
@@ -629,7 +634,9 @@ const upAndComingSources = mainPageSources.filter(
               <li key={index} className="border-b pb-2 flex items-start gap-2">
                 <div className="flex-1">
                   <a
-                    href={`/external/${encodeURIComponent(article.link || "#")}`}
+                    href={article.link || "#"}
+                    target="_blank"
+                    rel="noopener noreferrer"
                     className="text-black hover:underline hover:text-blue-500 font-medium"
                   >
                     <h3 className="flex items-center gap-2">
@@ -860,11 +867,11 @@ const upAndComingSources = mainPageSources.filter(
 
               </div>
               {/* Featured NFL Video */}
-              <div className="h-full flex flex-col">
+              <div className="flex flex-col">
                 {renderCard(topGridSources.find(source => source.source.isFeatured))}
               </div>
               {/* Card 2 */}
-              <div className="h-full flex flex-col">
+              <div className="flex flex-col">
                 {renderCard(topGridSources.filter(source => !source.source.isFeatured)[1])}
               </div>
             </div>
@@ -2097,7 +2104,9 @@ const upAndComingSources = mainPageSources.filter(
           )}
           <div>
             <a
-              href={`/external/${encodeURIComponent(matchedSource.source.link)}`}
+              href={matchedSource.source.link || "#"}
+              target="_blank"
+              rel="noopener noreferrer"
               className="text-blue-500 hover:text-blue-700"
             >
               <h2 className="text-lg font-bold uppercase text-black cursor-pointer">
@@ -2118,7 +2127,9 @@ const upAndComingSources = mainPageSources.filter(
                 <li key={index} className="border-b pb-2 flex items-start gap-2">
                   <div className="flex-1">
                     <a
-                      href={`/external/${encodeURIComponent(article.link)}`}
+                      href={article.link || "#"}
+                      target="_blank"
+                      rel="noopener noreferrer"
                       className="text-black hover:underline hover:text-blue-500 font-medium"
                     >
                       <h3>
@@ -2169,7 +2180,9 @@ const upAndComingSources = mainPageSources.filter(
 
         <div className="flex items-center justify-between mt-2">
           <a
-            href={`/external/${encodeURIComponent(matchedSource.source.link)}`}
+            href={matchedSource.source.link || "#"}
+              target="_blank"
+              rel="noopener noreferrer"
             className="text-base text-blue-500 font-semibold"
           >
             MORE ...
@@ -3086,7 +3099,9 @@ const upAndComingSources = mainPageSources.filter(
           )}
           <div>
             <a
-              href={`/external/${encodeURIComponent(matchedSource.source.link)}`}
+              href={matchedSource.source.link || "#"}
+              target="_blank"
+              rel="noopener noreferrer"
               className="text-blue-500 hover:text-blue-700"
             >
               <h2 className="text-lg font-bold uppercase text-black cursor-pointer">
@@ -3107,7 +3122,9 @@ const upAndComingSources = mainPageSources.filter(
                 <li key={index} className="border-b pb-2 flex items-start gap-2">
                   <div className="flex-1">
                     <a
-                      href={`/external/${encodeURIComponent(article.link)}`}
+                      href={article.link || "#"}
+                      target="_blank"
+                      rel="noopener noreferrer"
                       className="text-black hover:underline hover:text-blue-500 font-medium"
                     >
                       <h3>
@@ -3158,7 +3175,9 @@ const upAndComingSources = mainPageSources.filter(
 
         <div className="flex items-center justify-between mt-2">
           <a
-            href={`/external/${encodeURIComponent(matchedSource.source.link)}`}
+            href={matchedSource.source.link || "#"}
+              target="_blank"
+              rel="noopener noreferrer"
             className="text-base text-blue-500 font-semibold"
           >
             MORE ...
@@ -3393,7 +3412,9 @@ const upAndComingSources = mainPageSources.filter(
           )}
           <div>
             <a
-              href={`/external/${encodeURIComponent(matchedSource.source.link)}`}
+              href={matchedSource.source.link || "#"}
+              target="_blank"
+              rel="noopener noreferrer"
               className="text-blue-500 hover:text-blue-700"
             >
               <h2 className="text-lg font-bold uppercase text-black cursor-pointer">
@@ -3414,7 +3435,9 @@ const upAndComingSources = mainPageSources.filter(
                 <li key={index} className="border-b pb-2 flex items-start gap-2">
                   <div className="flex-1">
                     <a
-                      href={`/external/${encodeURIComponent(article.link)}`}
+                      href={article.link || "#"}
+                      target="_blank"
+                      rel="noopener noreferrer"
                       className="text-black hover:underline hover:text-blue-500 font-medium"
                     >
                       <h3>
@@ -3465,7 +3488,9 @@ const upAndComingSources = mainPageSources.filter(
 
         <div className="flex items-center justify-between mt-2">
           <a
-            href={`/external/${encodeURIComponent(matchedSource.source.link)}`}
+            href={matchedSource.source.link || "#"}
+              target="_blank"
+              rel="noopener noreferrer"
             className="text-base text-blue-500 font-semibold"
           >
             MORE ...

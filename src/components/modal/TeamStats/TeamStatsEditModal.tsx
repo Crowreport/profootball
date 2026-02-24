@@ -69,7 +69,7 @@ export default function TeamStatsEditModal({
           losses: parseInt(formData.losses) || 0,
           ties: parseInt(formData.ties) || 0,
           divisionPosition: formData.divisionPosition,
-          userEmail: profile.email
+          userId: profile.id
         }),
       });
 

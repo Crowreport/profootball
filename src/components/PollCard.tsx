@@ -186,7 +186,7 @@ const PollCard: React.FC<PollCardProps> = ({
         },
         body: JSON.stringify({
           pollId,
-          userEmail: profile?.email
+          userId: profile?.id
         }),
       });
 

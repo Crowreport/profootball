@@ -4,7 +4,7 @@ import Nav from "@/components/Nav";
 import Footer from "@/components/Footer";
 import Image from "next/image";
 import { TeamForumEditModal } from "@/components/modal";
-// Removed AuthContext import - now using Zustand for auth
+import { useUserStore } from "@/store/useUserStore";
 import { useState, useEffect } from "react";
 
 const conferences = {
@@ -189,37 +189,39 @@ const conferences = {
 };
 
 export default function FanzonePage() {
-  // Removed useAuth - replace with Zustand if admin functionality is needed
-  const isAdmin = false; // TODO: Implement with useUserStore if needed
+  const { profile } = useUserStore();
+  const isAdmin = profile?.role === 'admin';
   const [expandedTeam, setExpandedTeam] = useState(null);
   const [teamForums, setTeamForums] = useState({});
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [forumModalOpen, setForumModalOpen] = useState(false);
   const [selectedTeam, setSelectedTeam] = useState(null);
 
   useEffect(() => {
     const loadAllTeamForums = async () => {
       setLoading(true);
-      const allTeams = [...conferences.AFC, ...conferences.NFC];
-      const forumData = {};
+      setError(null);
 
-      for (const team of allTeams) {
-        try {
-          const response = await fetch(`/api/manage-team-forums?teamName=${encodeURIComponent(team.name)}`);
-          if (response.ok) {
-            const data = await response.json();
-            forumData[team.name] = data.forums || [];
-          } else {
-            forumData[team.name] = [];
-          }
-        } catch (error) {
-          console.error(`Error loading forums for ${team.name}:`, error);
-          forumData[team.name] = [];
+      try {
+        // Use batch API endpoint for faster loading (single request vs 32)
+        const response = await fetch('/api/team-forums/batch');
+
+        if (!response.ok) {
+          throw new Error(`Failed to fetch forums: ${response.status}`);
         }
-      }
 
-      setTeamForums(forumData);
-      setLoading(false);
+        const data = await response.json();
+        console.log(`Loaded forums for ${data.totalTeams} teams (${data.totalForums} total forums)`);
+
+        setTeamForums(data.forums || {});
+      } catch (err) {
+        console.error('Error loading team forums:', err);
+        setError('Failed to load team forums. Please try again.');
+        setTeamForums({});
+      } finally {
+        setLoading(false);
+      }
     };
 
     loadAllTeamForums();
@@ -292,7 +294,7 @@ export default function FanzonePage() {
                     </span>
                   </button>
                   <div className="flex items-center space-x-3">
-                    {isAdmin() && (
+                    {isAdmin && (
                       <button
                         onClick={() => handleEditForums(team.name)}
                         className="text-xs bg-blue-500 text-white px-2 py-1 rounded hover:bg-blue-600 transition-colors"
@@ -365,7 +367,7 @@ export default function FanzonePage() {
                     ) : (
                       <div className="text-center py-6">
                         <p className="text-gray-500">No forums available for this team</p>
-                        {isAdmin() && (
+                        {isAdmin && (
                           <p className="text-gray-400 text-sm mt-1">Click &quot;Edit Forums&quot; to add some!</p>
                         )}
                       </div>
@@ -386,8 +388,31 @@ export default function FanzonePage() {
         <Nav />
         <div className="flex justify-center items-center h-96">
           <div className="bg-white p-8 rounded-lg shadow-lg text-center">
-            <h2 className="text-2xl font-bold mb-4">Loading forums...</h2>
-            <p>Please wait while we fetch team forums.</p>
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+            <h2 className="text-2xl font-bold mb-4">Loading Team Forums</h2>
+            <p className="text-gray-600">Fetching data for all 32 teams...</p>
+          </div>
+        </div>
+        <Footer />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="bg-[#ECCE8B] min-h-screen">
+        <Nav />
+        <div className="flex justify-center items-center h-96">
+          <div className="bg-white p-8 rounded-lg shadow-lg text-center">
+            <div className="text-red-500 text-4xl mb-4">!</div>
+            <h2 className="text-2xl font-bold mb-4 text-red-600">Error Loading Forums</h2>
+            <p className="text-gray-600 mb-4">{error}</p>
+            <button
+              onClick={() => window.location.reload()}
+              className="bg-blue-500 text-white px-6 py-2 rounded hover:bg-blue-600 transition-colors"
+            >
+              Retry
+            </button>
           </div>
         </div>
         <Footer />
@@ -409,7 +434,7 @@ export default function FanzonePage() {
       </div>
       <Footer />
 
-      {isAdmin() && (
+      {isAdmin && (
         <TeamForumEditModal
           isOpen={forumModalOpen}
           onClose={handleModalClose}
