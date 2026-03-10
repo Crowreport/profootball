@@ -142,8 +142,8 @@ export default function Home() {
     };
 
     loadData();
-    // Refresh every 10 minutes
-    const interval = setInterval(loadData, 600000);
+    // Refresh every 5 minutes
+    const interval = setInterval(loadData, 300000);
     return () => clearInterval(interval);
   }, []);
 
@@ -370,33 +370,22 @@ const spotifyPodcastSources = podcastSources;
     (s) =>
       s.source.title &&
       s.source.title.toLowerCase().includes("nfl") &&
-      s.source.link.includes("youtube")
+      s.source.link?.includes("youtube")
   );
   const nonNFLYoutubeSources = regularSources.filter(
     (s) => s !== nflYoutubeSource
   );
 
-  {
-    /* Featured NFL Video of the Day */
-  }
-  nonNFLYoutubeSources.splice(1, 0, {
-    source: {
-      title: "Featured NFL Video",
-      link: "https://www.youtube.com/watch?v=GwSzA2niaEM",
-      image:
-        "https://upload.wikimedia.org/wikipedia/commons/7/75/YouTube_social_white_squircle_(2017).svg",
-      updatedAt: "2024-03-31T20:00:00Z",
-      isFeatured: true,
-    },
-    articles: [
-      {
-        title: "NFL Draft: Top QB Prospects Review",
-        link: "https://www.youtube.com/watch?v=GwSzA2niaEM",
-        thumbnail: "https://img.youtube.com/vi/GwSzA2niaEM/hqdefault.jpg",
-        pubDate: "2024-03-31T20:00:00Z",
+  /* Featured NFL Video — uses latest video from the NFL YouTube channel feed */
+  if (nflYoutubeSource) {
+    nonNFLYoutubeSources.splice(1, 0, {
+      source: {
+        ...nflYoutubeSource.source,
+        isFeatured: true,
       },
-    ],
-  });
+      articles: nflYoutubeSource.articles.slice(0, 1),
+    });
+  }
   const topGridSources = nonNFLYoutubeSources.slice(0, 3);
   
   const remainingSources = nonNFLYoutubeSources.slice(3);
@@ -775,7 +764,9 @@ const spotifyPodcastSources = podcastSources;
                         
                         <div>
                           <a
-                            href={`/external/${encodeURIComponent(matchedSource.source.link)}`}
+                            href={matchedSource.source.link || "#"}
+                            target="_blank"
+                            rel="noopener noreferrer"
                             className="text-blue-500 hover:text-blue-700"
                           >
                             <h2 className="text-lg font-bold uppercase text-black cursor-pointer">
@@ -796,7 +787,9 @@ const spotifyPodcastSources = podcastSources;
                               <li key={index} className="border-b pb-2 flex items-start gap-2">
                                 <div className="flex-1">
                                   <a
-                                    href={`/external/${encodeURIComponent(article.link)}`}
+                                    href={article.link || "#"}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
                                     className="text-black hover:underline hover:text-blue-500 font-medium"
                                   >
                                     <h3>
@@ -847,8 +840,10 @@ const spotifyPodcastSources = podcastSources;
 
                       <div className="flex items-center justify-between mt-2">
                         <a
-                          href={`/external/${encodeURIComponent(matchedSource.source.link)}`}
+                          href={matchedSource.source.link || "#"}
                           className="text-base text-blue-500 font-semibold"
+                          target="_blank"
+                          rel="noopener noreferrer"
                         >
                           MORE ...
                         </a>
@@ -883,10 +878,10 @@ const spotifyPodcastSources = podcastSources;
 
           {/* MAIN NFL YOUTUBE CHANNEL CAROUSEL */}
           {regularSources.some(
-            (s) => s.source.title === "NFL" && s.source.link.includes("youtube")
+            (s) => s.source.title === "NFL" && s.source.link?.includes("youtube")
           ) && (() => {
             const nflSource = regularSources.find(
-              (s) => s.source.title === "NFL" && s.source.link.includes("youtube")
+              (s) => s.source.title === "NFL" && s.source.link?.includes("youtube")
             );
             
             // Merge custom videos with original NFL videos
@@ -937,10 +932,10 @@ const spotifyPodcastSources = podcastSources;
   <>
     {/* ================= ROW 2 ================= */}
     <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 mb-6">
-      {/* Left: UNKNOWN FEED */}
+      {/* Left: Yahoo Sports */}
       {(() => {
         const left = remainingSourcesChunk1.find(s =>
-          s.source?.title?.toLowerCase().includes("unknown feed")
+          s.source?.title?.toLowerCase().includes("yahoo")
         );
         return left
           ? renderCard(left)
@@ -1019,7 +1014,9 @@ const spotifyPodcastSources = podcastSources;
                         
                         <div>
                           <a
-                            href={`/external/${encodeURIComponent(matchedSource.source.link)}`}
+                            href={matchedSource.source.link || "#"}
+                            target="_blank"
+                            rel="noopener noreferrer"
                             className="text-blue-500 hover:text-blue-700"
                           >
                             <h2 className="text-lg font-bold uppercase text-black cursor-pointer">
@@ -1040,7 +1037,9 @@ const spotifyPodcastSources = podcastSources;
                               <li key={index} className="border-b pb-2 flex items-start gap-2">
                                 <div className="flex-1">
                                   <a
-                                    href={`/external/${encodeURIComponent(article.link)}`}
+                                    href={article.link || "#"}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
                                     className="text-black hover:underline hover:text-blue-500 font-medium"
                                   >
                                     <h3>
@@ -1091,8 +1090,10 @@ const spotifyPodcastSources = podcastSources;
 
                       <div className="flex items-center justify-between mt-2">
                         <a
-                          href={`/external/${encodeURIComponent(matchedSource.source.link)}`}
+                          href={matchedSource.source.link || "#"}
                           className="text-base text-blue-500 font-semibold"
+                          target="_blank"
+                          rel="noopener noreferrer"
                         >
                           MORE ...
                         </a>
@@ -1146,7 +1147,9 @@ const spotifyPodcastSources = podcastSources;
                         
                         <div>
                           <a
-                            href={`/external/${encodeURIComponent(matchedSource.source.link)}`}
+                            href={matchedSource.source.link || "#"}
+                            target="_blank"
+                            rel="noopener noreferrer"
                             className="text-blue-500 hover:text-blue-700"
                           >
                             <h2 className="text-lg font-bold uppercase text-black cursor-pointer">
@@ -1167,7 +1170,9 @@ const spotifyPodcastSources = podcastSources;
                               <li key={index} className="border-b pb-2 flex items-start gap-2">
                                 <div className="flex-1">
                                   <a
-                                    href={`/external/${encodeURIComponent(article.link)}`}
+                                    href={article.link || "#"}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
                                     className="text-black hover:underline hover:text-blue-500 font-medium"
                                   >
                                     <h3>
@@ -1218,8 +1223,10 @@ const spotifyPodcastSources = podcastSources;
 
                       <div className="flex items-center justify-between mt-2">
                         <a
-                          href={`/external/${encodeURIComponent(matchedSource.source.link)}`}
+                          href={matchedSource.source.link || "#"}
                           className="text-base text-blue-500 font-semibold"
+                          target="_blank"
+                          rel="noopener noreferrer"
                         >
                           MORE ...
                         </a>
@@ -1297,7 +1304,9 @@ const spotifyPodcastSources = podcastSources;
                         
                         <div>
                           <a
-                            href={`/external/${encodeURIComponent(matchedSource.source.link)}`}
+                            href={matchedSource.source.link || "#"}
+                            target="_blank"
+                            rel="noopener noreferrer"
                             className="text-blue-500 hover:text-blue-700"
                           >
                             <h2 className="text-lg font-bold uppercase text-black cursor-pointer">
@@ -1318,7 +1327,9 @@ const spotifyPodcastSources = podcastSources;
                               <li key={index} className="border-b pb-2 flex items-start gap-2">
                                 <div className="flex-1">
                                   <a
-                                    href={`/external/${encodeURIComponent(article.link)}`}
+                                    href={article.link || "#"}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
                                     className="text-black hover:underline hover:text-blue-500 font-medium"
                                   >
                                     <h3>
@@ -1369,8 +1380,10 @@ const spotifyPodcastSources = podcastSources;
 
                       <div className="flex items-center justify-between mt-2">
                         <a
-                          href={`/external/${encodeURIComponent(matchedSource.source.link)}`}
+                          href={matchedSource.source.link || "#"}
                           className="text-base text-blue-500 font-semibold"
+                          target="_blank"
+                          rel="noopener noreferrer"
                         >
                           MORE ...
                         </a>
@@ -1481,7 +1494,9 @@ const spotifyPodcastSources = podcastSources;
                         
                         <div>
                           <a
-                            href={`/external/${encodeURIComponent(matchedSource.source.link)}`}
+                            href={matchedSource.source.link || "#"}
+                            target="_blank"
+                            rel="noopener noreferrer"
                             className="text-blue-500 hover:text-blue-700"
                           >
                             <h2 className="text-lg font-bold uppercase text-black cursor-pointer">
@@ -1502,7 +1517,9 @@ const spotifyPodcastSources = podcastSources;
                               <li key={index} className="border-b pb-2 flex items-start gap-2">
                                 <div className="flex-1">
                                   <a
-                                    href={`/external/${encodeURIComponent(article.link)}`}
+                                    href={article.link || "#"}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
                                     className="text-black hover:underline hover:text-blue-500 font-medium"
                                   >
                                     <h3>
@@ -1553,8 +1570,10 @@ const spotifyPodcastSources = podcastSources;
 
                       <div className="flex items-center justify-between mt-2">
                         <a
-                          href={`/external/${encodeURIComponent(matchedSource.source.link)}`}
+                          href={matchedSource.source.link || "#"}
                           className="text-base text-blue-500 font-semibold"
+                          target="_blank"
+                          rel="noopener noreferrer"
                         >
                           MORE ...
                         </a>
@@ -1638,7 +1657,9 @@ const spotifyPodcastSources = podcastSources;
           
           <div>
             <a
-              href={`/external/${encodeURIComponent(matchedSource.source.link)}`}
+              href={matchedSource.source.link || "#"}
+              target="_blank"
+              rel="noopener noreferrer"
               className="text-blue-500 hover:text-blue-700"
             >
               <h2 className="text-lg font-bold uppercase text-black cursor-pointer">
@@ -1659,7 +1680,9 @@ const spotifyPodcastSources = podcastSources;
                 <li key={index} className="border-b pb-2 flex items-start gap-2">
                   <div className="flex-1">
                     <a
-                      href={`/external/${encodeURIComponent(article.link)}`}
+                      href={article.link || "#"}
+                      target="_blank"
+                      rel="noopener noreferrer"
                       className="text-black hover:underline hover:text-blue-500 font-medium"
                     >
                       <h3>
@@ -1710,8 +1733,10 @@ const spotifyPodcastSources = podcastSources;
 
         <div className="flex items-center justify-between mt-2">
           <a
-            href={`/external/${encodeURIComponent(matchedSource.source.link)}`}
+            href={matchedSource.source.link || "#"}
             className="text-base text-blue-500 font-semibold"
+            target="_blank"
+            rel="noopener noreferrer"
           >
             MORE ...
           </a>
@@ -1931,7 +1956,9 @@ const spotifyPodcastSources = podcastSources;
           )}
           <div>
             <a
-              href={`/external/${encodeURIComponent(matchedSource.source.link)}`}
+              href={matchedSource.source.link || "#"}
+              target="_blank"
+              rel="noopener noreferrer"
               className="text-blue-500 hover:text-blue-700"
             >
               <h2 className="text-lg font-bold uppercase text-black cursor-pointer">
@@ -1952,7 +1979,9 @@ const spotifyPodcastSources = podcastSources;
                 <li key={index} className="border-b pb-2 flex items-start gap-2">
                   <div className="flex-1">
                     <a
-                      href={`/external/${encodeURIComponent(article.link)}`}
+                      href={article.link || "#"}
+                      target="_blank"
+                      rel="noopener noreferrer"
                       className="text-black hover:underline hover:text-blue-500 font-medium"
                     >
                       <h3>
@@ -2003,8 +2032,10 @@ const spotifyPodcastSources = podcastSources;
 
         <div className="flex items-center justify-between mt-2">
           <a
-            href={`/external/${encodeURIComponent(matchedSource.source.link)}`}
+            href={matchedSource.source.link || "#"}
             className="text-base text-blue-500 font-semibold"
+            target="_blank"
+            rel="noopener noreferrer"
           >
             MORE ...
           </a>
@@ -2241,7 +2272,9 @@ const spotifyPodcastSources = podcastSources;
           )}
           <div>
             <a
-              href={`/external/${encodeURIComponent(matchedSource.source.link)}`}
+              href={matchedSource.source.link || "#"}
+              target="_blank"
+              rel="noopener noreferrer"
               className="text-blue-500 hover:text-blue-700"
             >
               <h2 className="text-lg font-bold uppercase text-black cursor-pointer">
@@ -2262,7 +2295,9 @@ const spotifyPodcastSources = podcastSources;
                 <li key={index} className="border-b pb-2 flex items-start gap-2">
                   <div className="flex-1">
                     <a
-                      href={`/external/${encodeURIComponent(article.link)}`}
+                      href={article.link || "#"}
+                      target="_blank"
+                      rel="noopener noreferrer"
                       className="text-black hover:underline hover:text-blue-500 font-medium"
                     >
                       <h3>
@@ -2313,8 +2348,10 @@ const spotifyPodcastSources = podcastSources;
 
         <div className="flex items-center justify-between mt-2">
           <a
-            href={`/external/${encodeURIComponent(matchedSource.source.link)}`}
+            href={matchedSource.source.link || "#"}
             className="text-base text-blue-500 font-semibold"
+            target="_blank"
+            rel="noopener noreferrer"
           >
             MORE ...
           </a>
@@ -2414,7 +2451,9 @@ const spotifyPodcastSources = podcastSources;
           )}
           <div>
             <a
-              href={`/external/${encodeURIComponent(matchedSource.source.link)}`}
+              href={matchedSource.source.link || "#"}
+              target="_blank"
+              rel="noopener noreferrer"
               className="text-blue-500 hover:text-blue-700"
             >
               <h2 className="text-lg font-bold uppercase text-black cursor-pointer">
@@ -2435,7 +2474,9 @@ const spotifyPodcastSources = podcastSources;
                 <li key={index} className="border-b pb-2 flex items-start gap-2">
                   <div className="flex-1">
                     <a
-                      href={`/external/${encodeURIComponent(article.link)}`}
+                      href={article.link || "#"}
+                      target="_blank"
+                      rel="noopener noreferrer"
                       className="text-black hover:underline hover:text-blue-500 font-medium"
                     >
                       <h3>
@@ -2486,8 +2527,10 @@ const spotifyPodcastSources = podcastSources;
 
         <div className="flex items-center justify-between mt-2">
           <a
-            href={`/external/${encodeURIComponent(matchedSource.source.link)}`}
+            href={matchedSource.source.link || "#"}
             className="text-base text-blue-500 font-semibold"
+            target="_blank"
+            rel="noopener noreferrer"
           >
             MORE ...
           </a>
@@ -2797,7 +2840,9 @@ const spotifyPodcastSources = podcastSources;
           
           <div>
             <a
-              href={`/external/${encodeURIComponent(matchedSource.source.link)}`}
+              href={matchedSource.source.link || "#"}
+              target="_blank"
+              rel="noopener noreferrer"
               className="text-blue-500 hover:text-blue-700"
             >
               <h2 className="text-lg font-bold uppercase text-black cursor-pointer">
@@ -2818,7 +2863,9 @@ const spotifyPodcastSources = podcastSources;
                 <li key={index} className="border-b pb-2 flex items-start gap-2">
                   <div className="flex-1">
                     <a
-                      href={`/external/${encodeURIComponent(article.link)}`}
+                      href={article.link || "#"}
+                      target="_blank"
+                      rel="noopener noreferrer"
                       className="text-black hover:underline hover:text-blue-500 font-medium"
                     >
                       <h3>
@@ -2869,8 +2916,10 @@ const spotifyPodcastSources = podcastSources;
 
         <div className="flex items-center justify-between mt-2">
           <a
-            href={`/external/${encodeURIComponent(matchedSource.source.link)}`}
+            href={matchedSource.source.link || "#"}
             className="text-base text-blue-500 font-semibold"
+            target="_blank"
+            rel="noopener noreferrer"
           >
             MORE ...
           </a>
@@ -2968,7 +3017,9 @@ const spotifyPodcastSources = podcastSources;
           )}
           <div>
             <a
-              href={`/external/${encodeURIComponent(matchedSource.source.link)}`}
+              href={matchedSource.source.link || "#"}
+              target="_blank"
+              rel="noopener noreferrer"
               className="text-blue-500 hover:text-blue-700"
             >
               <h2 className="text-lg font-bold uppercase text-black cursor-pointer">
@@ -2989,7 +3040,9 @@ const spotifyPodcastSources = podcastSources;
                 <li key={index} className="border-b pb-2 flex items-start gap-2">
                   <div className="flex-1">
                     <a
-                      href={`/external/${encodeURIComponent(article.link)}`}
+                      href={article.link || "#"}
+                      target="_blank"
+                      rel="noopener noreferrer"
                       className="text-black hover:underline hover:text-blue-500 font-medium"
                     >
                       <h3>
@@ -3040,8 +3093,10 @@ const spotifyPodcastSources = podcastSources;
 
         <div className="flex items-center justify-between mt-2">
           <a
-            href={`/external/${encodeURIComponent(matchedSource.source.link)}`}
+            href={matchedSource.source.link || "#"}
             className="text-base text-blue-500 font-semibold"
+            target="_blank"
+            rel="noopener noreferrer"
           >
             MORE ...
           </a>
@@ -3281,7 +3336,9 @@ const spotifyPodcastSources = podcastSources;
           
           <div>
             <a
-              href={`/external/${encodeURIComponent(matchedSource.source.link)}`}
+              href={matchedSource.source.link || "#"}
+              target="_blank"
+              rel="noopener noreferrer"
               className="text-blue-500 hover:text-blue-700"
             >
               <h2 className="text-lg font-bold uppercase text-black cursor-pointer">
@@ -3302,7 +3359,9 @@ const spotifyPodcastSources = podcastSources;
                 <li key={index} className="border-b pb-2 flex items-start gap-2">
                   <div className="flex-1">
                     <a
-                      href={`/external/${encodeURIComponent(article.link)}`}
+                      href={article.link || "#"}
+                      target="_blank"
+                      rel="noopener noreferrer"
                       className="text-black hover:underline hover:text-blue-500 font-medium"
                     >
                       <h3>
@@ -3353,8 +3412,10 @@ const spotifyPodcastSources = podcastSources;
 
         <div className="flex items-center justify-between mt-2">
           <a
-            href={`/external/${encodeURIComponent(matchedSource.source.link)}`}
+            href={matchedSource.source.link || "#"}
             className="text-base text-blue-500 font-semibold"
+            target="_blank"
+            rel="noopener noreferrer"
           >
             MORE ...
           </a>
@@ -3547,7 +3608,9 @@ const spotifyPodcastSources = podcastSources;
           )}
           <div>
             <a
-              href={`/external/${encodeURIComponent(matchedSource.source.link)}`}
+              href={matchedSource.source.link || "#"}
+              target="_blank"
+              rel="noopener noreferrer"
               className="text-blue-500 hover:text-blue-700"
             >
               <h2 className="text-lg font-bold uppercase text-black cursor-pointer">
@@ -3568,7 +3631,9 @@ const spotifyPodcastSources = podcastSources;
                 <li key={index} className="border-b pb-2 flex items-start gap-2">
                   <div className="flex-1">
                     <a
-                      href={`/external/${encodeURIComponent(article.link)}`}
+                      href={article.link || "#"}
+                      target="_blank"
+                      rel="noopener noreferrer"
                       className="text-black hover:underline hover:text-blue-500 font-medium"
                     >
                       <h3>
@@ -3619,8 +3684,10 @@ const spotifyPodcastSources = podcastSources;
 
         <div className="flex items-center justify-between mt-2">
           <a
-            href={`/external/${encodeURIComponent(matchedSource.source.link)}`}
+            href={matchedSource.source.link || "#"}
             className="text-base text-blue-500 font-semibold"
+            target="_blank"
+            rel="noopener noreferrer"
           >
             MORE ...
           </a>

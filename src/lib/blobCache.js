@@ -4,8 +4,8 @@ const CACHE_KEY = "rss-feeds-cache";
 const STORE_NAME = "rss-cache";
 
 // Cache timing configuration
-const STALE_THRESHOLD = 15 * 60 * 1000; // 15 minutes - after this, serve stale + refresh
-const EXPIRE_THRESHOLD = 30 * 60 * 1000; // 30 minutes - after this, must fetch fresh
+const STALE_THRESHOLD = 3 * 60 * 1000; // 3 minutes - after this, serve stale + refresh
+const EXPIRE_THRESHOLD = 5 * 60 * 1000; // 5 minutes - after this, must fetch fresh
 
 /**
  * Get the Netlify Blobs store with error handling for local development
