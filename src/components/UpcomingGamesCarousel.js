@@ -58,55 +58,71 @@ function getTeamLogo(teamName) {
 const showYear = getNflSeasonYear();
 console.log("🏈 showYear:", showYear);
 
+// Fetch events for a given season year, returns the items array or []
+async function fetchSeasonEvents(year) {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 15000);
+
+  try {
+    const response = await fetch(
+      `https://sports.core.api.espn.com/v2/sports/football/leagues/nfl/seasons/${year}/types/2/events?limit=50`,
+      {
+        signal: controller.signal,
+        headers: {
+          Accept: "application/json",
+          "User-Agent": "Mozilla/5.0",
+          Origin: "https://pro-football.netlify.app",
+          Referer: "https://pro-football.netlify.app/",
+        },
+        mode: "cors",
+        credentials: "omit",
+      }
+    );
+
+    clearTimeout(timeoutId);
+
+    if (!response.ok) {
+      console.warn(`Season ${year} API returned status ${response.status}`);
+      return [];
+    }
+
+    const data = await response.json();
+    return data.items || [];
+  } catch (err) {
+    clearTimeout(timeoutId);
+    console.warn(`Failed to fetch season ${year} events:`, err.message);
+    return [];
+  }
+}
 
 // Function to fetch upcoming games from ESPN API
 async function fetchUpcomingGames() {
   console.log("🔍 Starting fetchUpcomingGames");
-  
-  try {
-    // Go directly to 2025 season since that's where the future games are
-    console.log("📡 Fetching season events");
-    
-    // Add timeout and better error handling
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 15000); // 15 second timeout
-    
-    const seasonResponse = await fetch(
-  `https://sports.core.api.espn.com/v2/sports/football/leagues/nfl/seasons/${showYear}/types/2/events?limit=50`,
-  {
-    signal: controller.signal,
-    headers: {
-      Accept: "application/json",
-      "User-Agent": "Mozilla/5.0",
-      Origin: "https://pro-football.netlify.app",
-      Referer: "https://pro-football.netlify.app/",
-    },
-    mode: "cors",
-    credentials: "omit",
-  }
-);
 
-    
-    clearTimeout(timeoutId);
-    
-    if (!seasonResponse.ok) {
-      throw new Error(`2025 season API failed with status: ${seasonResponse.status}`);
+  try {
+    console.log("📡 Fetching season events");
+
+    // Try current season year first, fall back to previous year (handles offseason gap)
+    let items = await fetchSeasonEvents(showYear);
+    console.log(`📡 Found ${items.length} events in ${showYear} season`);
+
+    if (items.length === 0) {
+      console.log(`📡 No events in ${showYear}, trying ${showYear - 1}`);
+      items = await fetchSeasonEvents(showYear - 1);
+      console.log(`📡 Found ${items.length} events in ${showYear - 1} season`);
     }
-    
-    const seasonData = await seasonResponse.json();
-    console.log("📦 seasonData.items length:", seasonData?.items?.length);
-    console.log(`📡 Found ${seasonData.items?.length || 0} events in 2025 season`);
-    
-    if (!seasonData.items || seasonData.items.length === 0) {
-      throw new Error('No events found in 2025 season');
+
+    if (items.length === 0) {
+      console.log("⚠️ No events found in any season — likely offseason");
+      return [];
     }
-    
+
     const futureGames = [];
     
     // Process first 8 events (should all be future games)
-    for (let i = 0; i < Math.min(8, seasonData.items.length); i++) {
+    for (let i = 0; i < Math.min(8, items.length); i++) {
       try {
-        const eventRef = seasonData.items[i];
+        const eventRef = items[i];
         console.log(`📡 Processing event ${i + 1}/8`);
         
         // Add timeout for individual event requests
@@ -145,8 +161,14 @@ async function fetchUpcomingGames() {
         const gameDate = new Date(fixedDateStr);
 
         const now = new Date();
-        
-        // Extract team names from event name (always add the next scheduled games)
+
+        // Skip games that have already happened
+        if (gameDate < now) {
+          console.log(`⏭️ Skipping past game (${fixedDateStr})`);
+          continue;
+        }
+
+        // Extract team names from event name
 const eventName = eventData.name || '';
 let awayTeamName = 'Unknown';
 let homeTeamName = 'Unknown';

@@ -1,75 +1,64 @@
 import { NextResponse } from "next/server";
 import { fetchAllFeeds } from "@/lib/rssFetcher";
-import { setCachedFeeds } from "@/lib/blobCache";
-
-// Track if a refresh is currently in progress to prevent duplicate refreshes
-let refreshInProgress = false;
+import { getCachedFeeds, setCachedFeeds, isCacheStale } from "@/lib/blobCache";
 
 /**
  * POST /api/rss/refresh
- * Triggers a background refresh of the RSS cache
- * Returns immediately while the refresh happens in the background
+ * Refreshes the RSS cache if it's stale.
+ * Uses blob cache age as a distributed guard instead of module-level state
+ * (which resets on every serverless cold start).
+ * Awaits the fetch so it completes before the serverless context is frozen.
  */
 export async function POST(request) {
-  // Prevent duplicate refreshes
-  if (refreshInProgress) {
-    console.log("Refresh already in progress, skipping");
+  // Check whether the cache is still fresh enough to skip a refresh
+  const cached = await getCachedFeeds();
+  if (cached?.timestamp && !isCacheStale(cached.timestamp)) {
+    console.log(`Refresh skipped — cache is only ${Math.round((Date.now() - cached.timestamp) / 1000)}s old`);
     return NextResponse.json({
       status: "skipped",
-      message: "Refresh already in progress",
+      message: "Cache is still fresh, no refresh needed",
     });
   }
 
-  // Start the refresh in the background (fire-and-forget)
-  refreshInProgress = true;
+  const startTime = Date.now();
+  console.log("Refresh started at", new Date().toISOString());
 
-  // Use setImmediate-like pattern to allow response to return first
-  const refreshPromise = (async () => {
-    const startTime = Date.now();
-    console.log("Background refresh started at", new Date().toISOString());
+  try {
+    const data = await fetchAllFeeds(15);
+    const success = await setCachedFeeds(data);
+    const duration = Date.now() - startTime;
 
-    try {
-      const data = await fetchAllFeeds(15); // Process 15 feeds at a time
-      const success = await setCachedFeeds(data);
+    console.log(
+      `Refresh ${success ? "completed" : "failed"}: ` +
+      `${data.sources?.length || 0} feeds in ${Math.round(duration / 1000)}s`
+    );
 
-      const duration = Date.now() - startTime;
-      console.log(
-        `Background refresh ${success ? "completed" : "failed"}: ` +
-        `${data.sources?.length || 0} feeds in ${Math.round(duration / 1000)}s`
-      );
-
-      return { success, feedCount: data.sources?.length || 0, duration };
-    } catch (error) {
-      console.error("Background refresh error:", error);
-      return { success: false, error: error.message };
-    } finally {
-      refreshInProgress = false;
-    }
-  })();
-
-  // Don't await - let it run in background
-  refreshPromise.catch((err) => {
-    console.error("Unhandled refresh error:", err);
-    refreshInProgress = false;
-  });
-
-  // Return immediately
-  return NextResponse.json({
-    status: "refreshing",
-    message: "Cache refresh started in background",
-    startedAt: new Date().toISOString(),
-  });
+    return NextResponse.json({
+      status: "refreshed",
+      feedCount: data.sources?.length || 0,
+      duration: Math.round(duration / 1000),
+    });
+  } catch (error) {
+    console.error("Refresh error:", error);
+    return NextResponse.json(
+      { status: "error", message: error.message },
+      { status: 500 }
+    );
+  }
 }
 
 /**
  * GET /api/rss/refresh
- * Check the status of the refresh process
+ * Returns current cache age so callers can determine freshness.
  */
 export async function GET(request) {
+  const cached = await getCachedFeeds();
+  const ageMs = cached?.timestamp ? Date.now() - cached.timestamp : null;
   return NextResponse.json({
-    refreshInProgress,
-    message: refreshInProgress
-      ? "A refresh is currently running"
-      : "No refresh in progress",
+    hasCachedData: !!cached,
+    cacheAgeSeconds: ageMs !== null ? Math.round(ageMs / 1000) : null,
+    message: ageMs !== null
+      ? `Cache is ${Math.round(ageMs / 1000)}s old`
+      : "No cache present",
   });
 }
