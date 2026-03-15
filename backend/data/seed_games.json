@@ -1,0 +1,242 @@
+[
+  {
+    "external_id": "seed-2025-w1-dal-phi",
+    "season_year": 2025,
+    "week": 1,
+    "kickoff_time": "2025-09-05T00:20:00Z",
+    "status": "scheduled",
+    "venue": "Lincoln Financial Field",
+    "broadcast": "NBC",
+    "source": "seed",
+    "home_team": {
+      "external_id": "PHI",
+      "name": "Philadelphia Eagles",
+      "display_name": "Philadelphia Eagles",
+      "short_name": "Eagles",
+      "abbreviation": "PHI",
+      "logo_url": "https://a.espncdn.com/i/teamlogos/nfl/500/phi.png",
+      "record": "0-0",
+      "score": 0
+    },
+    "away_team": {
+      "external_id": "DAL",
+      "name": "Dallas Cowboys",
+      "display_name": "Dallas Cowboys",
+      "short_name": "Cowboys",
+      "abbreviation": "DAL",
+      "logo_url": "https://a.espncdn.com/i/teamlogos/nfl/500/dal.png",
+      "record": "0-0",
+      "score": 0
+    }
+  },
+  {
+    "external_id": "seed-2025-w1-kc-lac",
+    "season_year": 2025,
+    "week": 1,
+    "kickoff_time": "2025-09-05T23:00:00Z",
+    "status": "scheduled",
+    "venue": "SoFi Stadium",
+    "broadcast": "CBS",
+    "source": "seed",
+    "home_team": {
+      "external_id": "LAC",
+      "name": "Los Angeles Chargers",
+      "display_name": "Los Angeles Chargers",
+      "short_name": "Chargers",
+      "abbreviation": "LAC",
+      "logo_url": "https://a.espncdn.com/i/teamlogos/nfl/500/lac.png",
+      "record": "0-0",
+      "score": 0
+    },
+    "away_team": {
+      "external_id": "KC",
+      "name": "Kansas City Chiefs",
+      "display_name": "Kansas City Chiefs",
+      "short_name": "Chiefs",
+      "abbreviation": "KC",
+      "logo_url": "https://a.espncdn.com/i/teamlogos/nfl/500/kc.png",
+      "record": "0-0",
+      "score": 0
+    }
+  },
+  {
+    "external_id": "seed-2025-w1-buf-bal",
+    "season_year": 2025,
+    "week": 1,
+    "kickoff_time": "2025-09-07T17:00:00Z",
+    "status": "scheduled",
+    "venue": "M&T Bank Stadium",
+    "broadcast": "CBS",
+    "source": "seed",
+    "home_team": {
+      "external_id": "BAL",
+      "name": "Baltimore Ravens",
+      "display_name": "Baltimore Ravens",
+      "short_name": "Ravens",
+      "abbreviation": "BAL",
+      "logo_url": "https://a.espncdn.com/i/teamlogos/nfl/500/bal.png",
+      "record": "0-0",
+      "score": 0
+    },
+    "away_team": {
+      "external_id": "BUF",
+      "name": "Buffalo Bills",
+      "display_name": "Buffalo Bills",
+      "short_name": "Bills",
+      "abbreviation": "BUF",
+      "logo_url": "https://a.espncdn.com/i/teamlogos/nfl/500/buf.png",
+      "record": "0-0",
+      "score": 0
+    }
+  },
+  {
+    "external_id": "seed-2025-w1-det-gb",
+    "season_year": 2025,
+    "week": 1,
+    "kickoff_time": "2025-09-07T17:00:00Z",
+    "status": "scheduled",
+    "venue": "Lambeau Field",
+    "broadcast": "FOX",
+    "source": "seed",
+    "home_team": {
+      "external_id": "GB",
+      "name": "Green Bay Packers",
+      "display_name": "Green Bay Packers",
+      "short_name": "Packers",
+      "abbreviation": "GB",
+      "logo_url": "https://a.espncdn.com/i/teamlogos/nfl/500/gb.png",
+      "record": "0-0",
+      "score": 0
+    },
+    "away_team": {
+      "external_id": "DET",
+      "name": "Detroit Lions",
+      "display_name": "Detroit Lions",
+      "short_name": "Lions",
+      "abbreviation": "DET",
+      "logo_url": "https://a.espncdn.com/i/teamlogos/nfl/500/det.png",
+      "record": "0-0",
+      "score": 0
+    }
+  },
+  {
+    "external_id": "seed-2025-w1-sf-sea",
+    "season_year": 2025,
+    "week": 1,
+    "kickoff_time": "2025-09-07T20:05:00Z",
+    "status": "scheduled",
+    "venue": "Lumen Field",
+    "broadcast": "FOX",
+    "source": "seed",
+    "home_team": {
+      "external_id": "SEA",
+      "name": "Seattle Seahawks",
+      "display_name": "Seattle Seahawks",
+      "short_name": "Seahawks",
+      "abbreviation": "SEA",
+      "logo_url": "https://a.espncdn.com/i/teamlogos/nfl/500/sea.png",
+      "record": "0-0",
+      "score": 0
+    },
+    "away_team": {
+      "external_id": "SF",
+      "name": "San Francisco 49ers",
+      "display_name": "San Francisco 49ers",
+      "short_name": "49ers",
+      "abbreviation": "SF",
+      "logo_url": "https://a.espncdn.com/i/teamlogos/nfl/500/sf.png",
+      "record": "0-0",
+      "score": 0
+    }
+  },
+  {
+    "external_id": "seed-2025-w1-mia-nyj",
+    "season_year": 2025,
+    "week": 1,
+    "kickoff_time": "2025-09-08T00:20:00Z",
+    "status": "scheduled",
+    "venue": "MetLife Stadium",
+    "broadcast": "ESPN",
+    "source": "seed",
+    "home_team": {
+      "external_id": "NYJ",
+      "name": "New York Jets",
+      "display_name": "New York Jets",
+      "short_name": "Jets",
+      "abbreviation": "NYJ",
+      "logo_url": "https://a.espncdn.com/i/teamlogos/nfl/500/nyj.png",
+      "record": "0-0",
+      "score": 0
+    },
+    "away_team": {
+      "external_id": "MIA",
+      "name": "Miami Dolphins",
+      "display_name": "Miami Dolphins",
+      "short_name": "Dolphins",
+      "abbreviation": "MIA",
+      "logo_url": "https://a.espncdn.com/i/teamlogos/nfl/500/mia.png",
+      "record": "0-0",
+      "score": 0
+    }
+  },
+  {
+    "external_id": "seed-2025-w1-cin-cle",
+    "season_year": 2025,
+    "week": 1,
+    "kickoff_time": "2025-09-07T17:00:00Z",
+    "status": "scheduled",
+    "venue": "Huntington Bank Field",
+    "broadcast": "CBS",
+    "source": "seed",
+    "home_team": {
+      "external_id": "CLE",
+      "name": "Cleveland Browns",
+      "display_name": "Cleveland Browns",
+      "short_name": "Browns",
+      "abbreviation": "CLE",
+      "logo_url": "https://a.espncdn.com/i/teamlogos/nfl/500/cle.png",
+      "record": "0-0",
+      "score": 0
+    },
+    "away_team": {
+      "external_id": "CIN",
+      "name": "Cincinnati Bengals",
+      "display_name": "Cincinnati Bengals",
+      "short_name": "Bengals",
+      "abbreviation": "CIN",
+      "logo_url": "https://a.espncdn.com/i/teamlogos/nfl/500/cin.png",
+      "record": "0-0",
+      "score": 0
+    }
+  },
+  {
+    "external_id": "seed-2025-w1-wsh-tb",
+    "season_year": 2025,
+    "week": 1,
+    "kickoff_time": "2025-09-07T17:00:00Z",
+    "status": "scheduled",
+    "venue": "Raymond James Stadium",
+    "broadcast": "FOX",
+    "source": "seed",
+    "home_team": {
+      "external_id": "TB",
+      "name": "Tampa Bay Buccaneers",
+      "display_name": "Tampa Bay Buccaneers",
+      "short_name": "Buccaneers",
+      "abbreviation": "TB",
+      "logo_url": "https://a.espncdn.com/i/teamlogos/nfl/500/tb.png",
+      "record": "0-0",
+      "score": 0
+    },
+    "away_team": {
+      "external_id": "WSH",
+      "name": "Washington Commanders",
+      "display_name": "Washington Commanders",
+      "short_name": "Commanders",
+      "abbreviation": "WSH",
+      "logo_url": "https://a.espncdn.com/i/teamlogos/nfl/500/wsh.png",
+      "record": "0-0",
+      "score": 0
+    }
+  }
+]
