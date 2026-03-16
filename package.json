@@ -20,6 +20,7 @@
     "glin-profanity": "^2.1.0",
     "next": "^16.0.10",
     "react": "^19.2.3",
+    "react-confetti": "^6.4.0",
     "react-dom": "^19.2.3",
     "react-icons": "^5.5.0",
     "rss-parser": "^3.13.0",
