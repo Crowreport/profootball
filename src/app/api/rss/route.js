@@ -26,9 +26,9 @@ function createCacheMetadata({ age = 0, stale = false, refreshing = false, error
  * GET /api/rss
  *
  * Returns RSS feed data with stale-while-revalidate caching:
- * - Fresh cache (< 15 min): Return immediately
- * - Stale cache (15-30 min): Return immediately + trigger background refresh
- * - Expired cache (> 30 min): Fetch fresh data (blocking)
+ * - Fresh cache (< 3 min): Return immediately
+ * - Stale cache (3-5 min): Return immediately + trigger background refresh
+ * - Expired cache (> 5 min): Fetch fresh data (blocking)
  *
  * Query params:
  * - clearCache=true: Force clear the cache and fetch fresh
@@ -68,7 +68,7 @@ export async function GET(request) {
         },
         {
           headers: {
-            "Cache-Control": "public, s-maxage=60, stale-while-revalidate=900",
+            "Cache-Control": "public, s-maxage=60, stale-while-revalidate=300",
           },
         }
       );
@@ -88,7 +88,7 @@ export async function GET(request) {
         },
         {
           headers: {
-            "Cache-Control": "public, s-maxage=0, stale-while-revalidate=1800",
+            "Cache-Control": "public, s-maxage=0, stale-while-revalidate=300",
             "X-Cache-Status": "STALE",
           },
         }
@@ -119,7 +119,7 @@ export async function GET(request) {
       },
       {
         headers: {
-          "Cache-Control": "public, s-maxage=60, stale-while-revalidate=900",
+          "Cache-Control": "public, s-maxage=60, stale-while-revalidate=300",
         },
       }
     );

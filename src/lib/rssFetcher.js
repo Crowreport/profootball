@@ -35,6 +35,7 @@ export async function processFeed(feedConfig, parser) {
   const {
     image,
     url: feedUrl,
+    source,
     isPodcast = false,
     isTopChannel = false,
     isUpAndComing = false,
@@ -77,8 +78,8 @@ export async function processFeed(feedConfig, parser) {
         }
       }
 
-      const feedTitle = decodeHtmlEntities(parsedFeed.title || "Unknown Feed");
-      const feedImage = image || parsedFeed.image?.url || parsedFeed.itunes?.image || null;
+      const feedTitle = source || decodeHtmlEntities(parsedFeed.title || "Unknown Feed");
+      const feedImage = image || parsedFeed.image?.url?.trim() || parsedFeed.itunes?.image?.trim() || null;
       const feedLink = parsedFeed.link?.startsWith("http")
         ? parsedFeed.link
         : parsedFeed.items?.[0]?.link

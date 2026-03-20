@@ -1,22 +1,13 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
-import dynamic from "next/dynamic";
-import DOMPurify from "isomorphic-dompurify";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import Image from "next/image";
 import Nav from "@/components/Nav";
 import Footer from "@/components/Footer";
 import { createClient } from "@/utils/supabase/component";
 import { useUserStore } from "@/store/useUserStore";
 import { censorText } from "@/utils/censor";
-import { decodeHtmlEntities } from "@/utils/decodeHtmlEntities";
 import { checkRateLimit } from "@/utils/ratelimit";
-
-// Dynamically import TinyMCE Editor for SSR compatibility
-const Editor = dynamic(
-  () => import("@tinymce/tinymce-react").then((mod) => mod.Editor),
-  { ssr: false }
-);
 
 interface Comment {
   comment_id: string;
@@ -64,8 +55,16 @@ export default function CommentsPage({ title, sourceTitle, sourceImage, sourceLi
   const [commentContent, setCommentContent] = useState("");
   const [userVotes, setUserVotes] = useState<Record<string, string>>({});
   const [isLoading, setIsLoading] = useState(false);
-  
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+
   const decodedTitle = decodeURIComponent(title);
+
+  const handleTextareaChange = useCallback((e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    setCommentContent(e.target.value);
+    const textarea = e.target;
+    textarea.style.height = 'auto';
+    textarea.style.height = `${Math.min(textarea.scrollHeight, 300)}px`;
+  }, []);
 
   useEffect(() => {
     setUserVotes(getStoredVotes());
@@ -163,11 +162,7 @@ export default function CommentsPage({ title, sourceTitle, sourceImage, sourceLi
   };
 
   const handleSubmit = async () => {
-    if (
-      commentContent.trim() === "" ||
-      commentContent === "<p><br></p>" ||
-      commentContent === "<p></p>"
-    ) {
+    if (commentContent.trim() === "") {
       return alert("Please enter a comment.");
     }
 
@@ -189,9 +184,7 @@ export default function CommentsPage({ title, sourceTitle, sourceImage, sourceLi
       return;
     }
 
-    // Censor the comment content before saving
-    const plainText = decodeHtmlEntities(commentContent.replace(/<[^>]+>/g, ' '));
-    const censoredContent = censorText(plainText);
+    const censoredContent = censorText(commentContent.trim());
 
     const newCommentPayload = {
       user_id: profile.id,
@@ -226,6 +219,9 @@ export default function CommentsPage({ title, sourceTitle, sourceImage, sourceLi
         setComments((prevComments) => [...prevComments, data[0]]);
       }
       setCommentContent("");
+      if (textareaRef.current) {
+        textareaRef.current.style.height = 'auto';
+      }
     }
   };
 
@@ -291,7 +287,7 @@ export default function CommentsPage({ title, sourceTitle, sourceImage, sourceLi
           <div className="flex items-center mb-4 p-3 bg-white rounded-lg border">
             {sourceImage && (
               <Image
-                src={decodeURIComponent(sourceImage)}
+                src={decodeURIComponent(sourceImage).trim()}
                 alt={decodeURIComponent(sourceTitle)}
                 width={40}
                 height={40}
@@ -362,16 +358,7 @@ export default function CommentsPage({ title, sourceTitle, sourceImage, sourceLi
                       </span>
                     </div>
                   </div>
-                  <div
-                    className="mt-2"
-                    dangerouslySetInnerHTML={{ 
-                      __html: DOMPurify.sanitize(c.content, {
-                        ALLOWED_TAGS: ['p', 'br', 'strong', 'em', 'u', 'a', 'ul', 'ol', 'li', 'img', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'blockquote', 'code', 'pre', 'span', 'div'],
-                        ALLOWED_ATTR: ['href', 'src', 'alt', 'title', 'class', 'style'],
-                        ALLOW_DATA_ATTR: false
-                      }) 
-                    }}
-                  />
+                  <p className="mt-2 whitespace-pre-wrap break-words">{c.content}</p>
                 </li>
               ))}
             </ul>
@@ -436,62 +423,15 @@ export default function CommentsPage({ title, sourceTitle, sourceImage, sourceLi
               </div>
             </div>
 
-            <div className="border border-gray-300 rounded p-2 bg-white">
-              <Editor
-                apiKey={process.env.NEXT_PUBLIC_TINYMCE_API_KEY}
-                value={commentContent}
-                init={{
-                  height: 200,
-                  menubar: false,
-                  plugins: ["image", "link", "lists", "media", "table"],
-                  toolbar:
-                    "undo redo | fontfamily fontsize formatselect fontselect fontsizeselect | bold italic underline | alignleft aligncenter alignright | bullist numlist | link image media",
-                  font_family_formats:
-                    "Arial=arial,helvetica,sans-serif; Courier New=courier new,courier; Times New Roman=times new roman,times; Verdana=verdana,geneva;",
-                  fontsize_formats: "10px 12px 14px 16px 18px 24px 36px",
-                  file_picker_types: "image media",
-                  images_upload_handler: (blobInfo: any) => {
-                    return new Promise((resolve, reject) => {
-                      try {
-                        const base64 = blobInfo.base64();
-                        const mimeType = blobInfo.blob().type;
-                        const dataUrl = `data:${mimeType};base64,${base64}`;
-                        resolve(dataUrl);
-                      } catch (err) {
-                        reject("Failed to upload image");
-                      }
-                    });
-                  },
-                  file_picker_callback: (callback: any, value: any, meta: any) => {
-                    const input = document.createElement("input");
-                    input.setAttribute("type", "file");
-
-                    if (meta.filetype === "image") {
-                      input.setAttribute("accept", "image/*");
-                    } else if (meta.filetype === "media") {
-                      input.setAttribute("accept", "video/*");
-                    }
-
-                    input.onchange = function () {
-                      const file = (this as HTMLInputElement).files?.[0];
-                      if (!file) return;
-                      
-                      const reader = new FileReader();
-                      reader.onload = function () {
-                        callback(reader.result, { title: file.name });
-                      };
-                      reader.readAsDataURL(file);
-                    };
-
-                    input.click();
-                  },
-                  content_style:
-                    "body { font-family:Arial,sans-serif; font-size:14px }",
-                  placeholder: "Write your comments here...",
-                }}
-                onEditorChange={(newValue) => setCommentContent(newValue)}
-              />
-            </div>
+            <textarea
+              ref={textareaRef}
+              value={commentContent}
+              onChange={handleTextareaChange}
+              placeholder="Write your comment here..."
+              disabled={isLoading}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+              style={{ minHeight: '100px', maxHeight: '300px', overflowY: 'auto' }}
+            />
 
             <div className="flex justify-end space-x-2 mt-4">
               <button
@@ -511,63 +451,15 @@ export default function CommentsPage({ title, sourceTitle, sourceImage, sourceLi
           >
             <p className="mb-4">Logged in as {profile?.email}</p>
 
-            <div className="border border-gray-300 rounded p-2 bg-white">
-              <Editor
-                apiKey={process.env.NEXT_PUBLIC_TINYMCE_API_KEY}
-                value={commentContent}
-                init={{
-                  height: 200,
-                  menubar: false,
-                  plugins: ["image", "link", "lists", "media", "table"],
-                  toolbar:
-                    "undo redo | fontfamily fontsize formatselect fontselect fontsizeselect | bold italic underline | alignleft aligncenter alignright | bullist numlist | link image media",
-                  font_family_formats:
-                    "Arial=arial,helvetica,sans-serif; Courier New=courier new,courier; Times New Roman=times new roman,times; Verdana=verdana,geneva;",
-                  fontsize_formats: "10px 12px 14px 16px 18px 24px 36px",
-                  automatic_uploads: true,
-                  file_picker_types: "image media",
-                  images_upload_handler: (blobInfo: any) => {
-                    return new Promise((resolve, reject) => {
-                      try {
-                        const base64 = blobInfo.base64();
-                        const mimeType = blobInfo.blob().type;
-                        const dataUrl = `data:${mimeType};base64,${base64}`;
-                        resolve(dataUrl);
-                      } catch (err) {
-                        reject("Failed to upload image");
-                      }
-                    });
-                  },
-                  file_picker_callback: (callback: any, value: any, meta: any) => {
-                    const input = document.createElement("input");
-                    input.setAttribute("type", "file");
-
-                    if (meta.filetype === "image") {
-                      input.setAttribute("accept", "image/*");
-                    } else if (meta.filetype === "media") {
-                      input.setAttribute("accept", "video/*");
-                    }
-
-                    input.onchange = function () {
-                      const file = (this as HTMLInputElement).files?.[0];
-                      if (!file) return;
-                      
-                      const reader = new FileReader();
-                      reader.onload = function () {
-                        callback(reader.result, { title: file.name });
-                      };
-                      reader.readAsDataURL(file);
-                    };
-
-                    input.click();
-                  },
-                  content_style:
-                    "body { font-family:Arial,sans-serif; font-size:14px }",
-                  placeholder: "Write your comments here...",
-                }}
-                onEditorChange={(newValue) => setCommentContent(newValue)}
-              />
-            </div>
+            <textarea
+              ref={textareaRef}
+              value={commentContent}
+              onChange={handleTextareaChange}
+              placeholder="Write your comment here..."
+              disabled={isLoading}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+              style={{ minHeight: '100px', maxHeight: '300px', overflowY: 'auto' }}
+            />
 
             <div className="flex justify-end space-x-2 mt-4">
               <button
