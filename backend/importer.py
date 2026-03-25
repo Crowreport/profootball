@@ -9,7 +9,7 @@ from typing import Any
 import requests
 
 from .config import load_config
-from .database import delete_games, fetch_games, upsert_games
+from .database import fetch_games, upsert_games
 
 ESPN_SITE_SOURCE = "espn-site-api"
 ESPN_CORE_SOURCE = "espn-core-api"
@@ -78,6 +78,25 @@ def to_int(value: Any) -> int | None:
         return int(value)
     except (TypeError, ValueError):
         return None
+
+
+def canonicalize_kickoff_key(value: Any) -> str:
+    raw_value = to_text(value, "") or ""
+    if not raw_value:
+        return ""
+
+    normalized = raw_value.replace("Z", "+00:00")
+    try:
+        parsed = datetime.fromisoformat(normalized)
+    except ValueError:
+        return raw_value
+
+    if parsed.tzinfo is None:
+        parsed = parsed.replace(tzinfo=timezone.utc)
+    else:
+        parsed = parsed.astimezone(timezone.utc)
+
+    return parsed.strftime("%Y-%m-%dT%H:%MZ")
 
 
 def derive_short_name(name: str) -> str:
@@ -247,7 +266,7 @@ def normalize_espn_game(
     week = extract_week_number(event.get("week")) or requested_week
     venue = to_text(competition.get("venue"), "TBD")
 
-    return {
+    game = {
         "external_id": external_id,
         "season_year": season,
         "week": week,
@@ -262,6 +281,9 @@ def normalize_espn_game(
         "home_team": normalize_espn_team(home_competitor),
         "away_team": normalize_espn_team(away_competitor),
     }
+
+    game["game_key"] = matchup_key(game)
+    return game
 
 
 def fetch_games_from_espn_site_api(
@@ -364,6 +386,7 @@ def load_seed_games(seed_path: Path, season_year: int, week: int) -> list[dict[s
         game = dict(item)
         game.setdefault("source", "seed")
         game.setdefault("source_updated_at", utc_now_iso())
+        game.setdefault("game_key", matchup_key(game))
         games.append(game)
 
     return games
@@ -384,7 +407,7 @@ def matchup_key(game: dict[str, Any]) -> str:
         [
             str(game.get("season_year") or game.get("season") or ""),
             str(game.get("week") or ""),
-            to_text(game.get("kickoff_time") or game.get("date"), "") or "",
+            canonicalize_kickoff_key(game.get("kickoff_time") or game.get("date")),
             team_identity(game.get("home_team") or game.get("homeTeam") or {}),
             team_identity(game.get("away_team") or game.get("awayTeam") or {}),
         ]
@@ -412,6 +435,46 @@ def dedupe_game_rows(rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
             deduped[key] = row
 
     return list(deduped.values())
+
+
+def format_game_response(row: dict[str, Any]) -> dict[str, Any]:
+    home_team = row.get("home_team") or {}
+    away_team = row.get("away_team") or {}
+    game_key = matchup_key(row)
+
+    return {
+        "id": game_key,
+        "gameKey": game_key,
+        "externalId": row.get("external_id"),
+        "season": row.get("season_year"),
+        "week": row.get("week"),
+        "date": row.get("kickoff_time"),
+        "status": row.get("status"),
+        "venue": row.get("venue"),
+        "broadcast": row.get("broadcast"),
+        "source": row.get("source"),
+        "updatedAt": row.get("source_updated_at"),
+        "spread": row.get("spread"),
+        "overUnder": row.get("over_under"),
+        "homeTeam": {
+            "id": home_team.get("external_id"),
+            "name": home_team.get("display_name") or home_team.get("name"),
+            "shortName": home_team.get("short_name"),
+            "abbreviation": home_team.get("abbreviation"),
+            "logo": home_team.get("logo_url"),
+            "record": home_team.get("record") or "0-0",
+            "score": home_team.get("score"),
+        },
+        "awayTeam": {
+            "id": away_team.get("external_id"),
+            "name": away_team.get("display_name") or away_team.get("name"),
+            "shortName": away_team.get("short_name"),
+            "abbreviation": away_team.get("abbreviation"),
+            "logo": away_team.get("logo_url"),
+            "record": away_team.get("record") or "0-0",
+            "score": away_team.get("score"),
+        },
+    }
 
 
 def sync_games(*, season_year: int | None = None, week: int | None = None, seed_only: bool = False) -> dict[str, Any]:
@@ -464,14 +527,7 @@ def sync_games(*, season_year: int | None = None, week: int | None = None, seed_
         }
 
     try:
-        if source != "seed":
-            delete_games(
-                season_year=target_season,
-                week=target_week,
-                source="seed",
-                config=config,
-            )
-        upsert_games(games, config=config)
+        upsert_games(dedupe_game_rows(games), config=config)
     except (requests.RequestException, RuntimeError, ValueError) as exc:
         errors.append(f"Supabase sync failed: {exc}")
         return {
@@ -508,44 +564,4 @@ def list_games(
             config=config,
         )
     )
-
-    games: list[dict[str, Any]] = []
-    for row in rows:
-        home_team = row.get("home_team") or {}
-        away_team = row.get("away_team") or {}
-
-        games.append(
-            {
-                "id": row.get("external_id"),
-                "season": row.get("season_year"),
-                "week": row.get("week"),
-                "date": row.get("kickoff_time"),
-                "status": row.get("status"),
-                "venue": row.get("venue"),
-                "broadcast": row.get("broadcast"),
-                "source": row.get("source"),
-                "updatedAt": row.get("source_updated_at"),
-                "spread": row.get("spread"),
-                "overUnder": row.get("over_under"),
-                "homeTeam": {
-                    "id": home_team.get("external_id"),
-                    "name": home_team.get("display_name") or home_team.get("name"),
-                    "shortName": home_team.get("short_name"),
-                    "abbreviation": home_team.get("abbreviation"),
-                    "logo": home_team.get("logo_url"),
-                    "record": home_team.get("record") or "0-0",
-                    "score": home_team.get("score"),
-                },
-                "awayTeam": {
-                    "id": away_team.get("external_id"),
-                    "name": away_team.get("display_name") or away_team.get("name"),
-                    "shortName": away_team.get("short_name"),
-                    "abbreviation": away_team.get("abbreviation"),
-                    "logo": away_team.get("logo_url"),
-                    "record": away_team.get("record") or "0-0",
-                    "score": away_team.get("score"),
-                },
-            }
-        )
-
-    return games
+    return [format_game_response(row) for row in rows]

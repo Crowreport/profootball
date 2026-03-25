@@ -33,6 +33,8 @@ class Config:
     supabase_url: str | None
     supabase_api_key: str | None
     supabase_games_table: str
+    supabase_picks_table: str
+    supabase_users_table: str
 
 
 def load_config() -> Config:
@@ -80,4 +82,6 @@ def load_config() -> Config:
             or os.getenv("SUPABASE_API_KEY")
         ),
         supabase_games_table=os.getenv("SUPABASE_GAMES_TABLE", "prediction_games"),
+        supabase_picks_table=os.getenv("SUPABASE_PICKS_TABLE", "prediction_picks"),
+        supabase_users_table=os.getenv("SUPABASE_USERS_TABLE", "users"),
     )

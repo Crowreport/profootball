@@ -1,18 +1,19 @@
-## Week 1 Backend Slice
+## Prediction Game Backend
 
-This repo now includes a thin Flask backend in [backend](/Users/gurbirdhaliwal/Desktop/crowreport/profootball/backend) for the NFL prediction game MVP. It reads and writes through Supabase and uses ESPN as the live schedule provider.
+This repo includes a Flask backend in [backend](/Users/gurbirdhaliwal/Desktop/crowreport/profootball/backend) for the NFL prediction game service. It reads and writes through Supabase, syncs NFL schedules and results from ESPN, stores user picks, and computes leaderboard standings from actual game outcomes.
 
-What is intentionally in scope right now:
+What is now in scope:
 - real Flask app running locally
-- Supabase-backed games table
+- Supabase-backed games and picks tables
 - repeatable ESPN fetch/import script
 - working `GET /api/games`
+- working pick submission and deletion routes
+- leaderboard and pick-result matching based on synced scores
 - seed fallback when the live feed is unavailable or off-season
 
-What is intentionally out of scope right now:
-- auth
-- scoring/model work
-- leaderboard/prizes
+What is still intentionally out of scope:
+- JWT/session validation inside Flask
+- prizes/payout logic
 - production deployment polish
 
 ## Backend Quickstart
@@ -37,13 +38,19 @@ export ESPN_SITE_API_BASE_URL=https://site.api.espn.com/apis/site/v2/sports/foot
 export ESPN_CORE_API_BASE_URL=https://sports.core.api.espn.com/v2/sports/football/leagues/nfl
 ```
 
-Create the Supabase table from the bundled SQL:
+Create or update the Supabase tables from the bundled SQL:
 
 ```bash
 python3 -m backend.scripts.init_db
 ```
 
-That writes the schema file to [backend/supabase_schema.sql](/Users/gurbirdhaliwal/Desktop/crowreport/profootball/backend/supabase_schema.sql). Run that SQL in the Supabase SQL Editor once.
+That writes the schema file to [backend/supabase_schema.sql](/Users/gurbirdhaliwal/Desktop/crowreport/profootball/backend/supabase_schema.sql). Run that SQL in the Supabase SQL Editor.
+
+Important:
+- the schema now adds a stable `game_key` to `prediction_games` so picks survive seed-to-live refreshes
+- it also creates `prediction_picks`
+- if you already created `prediction_games` earlier, re-run the new SQL before syncing or posting picks
+- picks assume your existing Supabase auth trigger is populating `public.users`; [supabase_user_trigger.sql](/Users/gurbirdhaliwal/Desktop/crowreport/profootball/supabase_user_trigger.sql) is included for that setup
 
 Pull one week of games into Supabase:
 
@@ -65,7 +72,7 @@ flask run
 
 Because there is a root [app.py](/Users/gurbirdhaliwal/Desktop/crowreport/profootball/app.py) shim, `flask run` works directly from the project root.
 
-Test the route with `curl`:
+Test the games route with `curl`:
 
 ```bash
 curl "http://127.0.0.1:5000/api/games?season=2025&week=1&limit=4"
@@ -77,7 +84,9 @@ Example response shape:
 {
   "games": [
     {
-      "id": "seed-2025-w1-dal-phi",
+      "id": "2025|1|2025-09-05T00:20:00Z|PHI|DAL",
+      "gameKey": "2025|1|2025-09-05T00:20:00Z|PHI|DAL",
+      "externalId": "401772621",
       "date": "2025-09-05T00:20:00Z",
       "week": 1,
       "status": "scheduled",
@@ -100,6 +109,30 @@ Example response shape:
     "status": null
   }
 }
+```
+
+Submit a pick:
+
+```bash
+curl -X POST "http://127.0.0.1:5000/api/picks" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "userId": "YOUR_SUPABASE_USER_UUID",
+    "gameId": "2025|1|2025-09-05T00:20:00Z|PHI|DAL",
+    "pick": "home"
+  }'
+```
+
+Read a user's picks:
+
+```bash
+curl "http://127.0.0.1:5000/api/picks?userId=YOUR_SUPABASE_USER_UUID&season=2025&week=1"
+```
+
+Read the leaderboard:
+
+```bash
+curl "http://127.0.0.1:5000/api/leaderboard?season=2025&week=1&limit=10"
 ```
 
 ## Local Development Setup

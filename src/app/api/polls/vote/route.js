@@ -1,12 +1,19 @@
 import { NextResponse } from 'next/server';
-import { supabase } from '@/utils/supabase';
+import { createClient } from '@/utils/supabase/server';
 import { checkRateLimit } from '@/utils/ratelimit';
 
 // POST - Submit a vote for a poll
 export async function POST(request) {
   try {
     console.log('Received vote submission');
-    const { pollId, optionId, userId, userSession } = await request.json();
+    const { pollId, optionId, userSession } = await request.json();
+    const supabase = await createClient();
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser();
+    const userId = user?.id || null;
+
     console.log('Vote data:', { pollId, optionId, userId: userId ? 'present' : 'null', userSession: userSession ? 'present' : 'null' });
 
     // Rate limiting: max 20 votes per minute per session/user
@@ -26,6 +33,9 @@ export async function POST(request) {
     }
 
     if (!userId) {
+      if (authError) {
+        console.error('Auth lookup failed:', authError);
+      }
       console.error('User must be logged in to vote');
       return NextResponse.json({ 
         error: 'Please log in to vote on polls' 
@@ -163,16 +173,23 @@ export async function POST(request) {
 // GET - Check if user has voted in a poll
 export async function GET(request) {
   try {
+    const supabase = await createClient();
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser();
     const url = new URL(request.url);
     const pollId = url.searchParams.get('pollId');
-    const userId = url.searchParams.get('userId');
-    const userSession = url.searchParams.get('userSession');
+    const userId = user?.id;
 
     if (!pollId) {
       return NextResponse.json({ error: 'Poll ID is required' }, { status: 400 });
     }
 
     if (!userId) {
+      if (authError) {
+        console.error('Auth lookup failed:', authError);
+      }
       return NextResponse.json({ error: 'Please log in to check vote status' }, { status: 401 });
     }
 

@@ -1,4 +1,4 @@
-"""Week 1 backend slice for the NFL prediction game."""
+"""Flask backend for the NFL prediction game service."""
 
 from .app import app, create_app
 

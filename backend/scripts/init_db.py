@@ -8,7 +8,7 @@ def main() -> None:
     config = load_config()
     schema_path = ensure_schema_file(config)
     print(f"Supabase schema written to {schema_path}")
-    print("Run that SQL in the Supabase SQL Editor before syncing games.")
+    print("Run that SQL in the Supabase SQL Editor before syncing games or posting picks.")
 
 
 if __name__ == "__main__":
