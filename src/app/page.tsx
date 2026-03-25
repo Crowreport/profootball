@@ -2,7 +2,7 @@
 import Nav from "@/components/Nav";
 import Footer from "@/components/Footer";
 import { TopBannerAd, SidebarAd, InContentAd } from "@/components/AdBanner";
-import UpcomingGamesCarousel from "@/components/UpcomingGamesCarousel";
+import NFLPredictionGame from "@/components/NFLPredictionGame.js";
 import { getCommentCounts, getAllCommentTitles } from "@/utils/supabase";
 import HorizontalScroller from "@/components/HorizontalScroller";
 import PollCard from "@/components/PollCard";
@@ -716,9 +716,9 @@ const spotifyPodcastSources = podcastSources;
         <TopBannerAd />
       </div>
 
-      {/* Upcoming Games Carousel */}
+      {/* NFL Prediction Game */}
       <div className="px-4">
-        <UpcomingGamesCarousel />
+        <NFLPredictionGame />
       </div>
 
       {/* Main Layout with Sidebar */}
@@ -863,11 +863,17 @@ const spotifyPodcastSources = podcastSources;
               </div>
               {/* Featured NFL Video */}
               <div className="flex flex-col">
-                {renderCard(topGridSources.find(source => source.source.isFeatured))}
+                {(() => {
+                  const featured = topGridSources.find(source => source.source.isFeatured);
+                  return featured ? renderCard(featured) : null;
+                })()}
               </div>
               {/* Card 2 */}
               <div className="flex flex-col">
-                {renderCard(topGridSources.filter(source => !source.source.isFeatured)[1])}
+                {(() => {
+                  const second = topGridSources.filter(source => !source.source.isFeatured)[1];
+                  return second ? renderCard(second) : null;
+                })()}
               </div>
             </div>
           )}
