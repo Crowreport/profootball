@@ -1,5 +1,6 @@
 'use client';
 import React, { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import Confetti from 'react-confetti';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useUserStore } from '@/store/useUserStore';
@@ -116,6 +117,7 @@ async function loadUserPicks(season, week = null) {
 
 const NFLPredictionGame = () => {
   const { profile } = useUserStore();
+  const router = useRouter();
   const [games, setGames] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -315,20 +317,13 @@ const NFLPredictionGame = () => {
         {/* Header */}
         <div className="bg-gradient-to-r from-blue-900 via-slate-900 to-slate-900 text-white px-6 py-4 border-b border-slate-600 flex items-center justify-between">
           <div className="flex items-center gap-4">
-            <img 
-              src="/images/NFLlogo.png" 
-              alt="NFL Logo" 
-              className="w-12 h-12 object-contain"
-              onError={(e) => {
-                e.target.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDgiIGhlaWdodD0iNDgiIHZpZXdCb3g9IjAgMCA0OCA0OCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iNDgiIGhlaWdodD0iNDgiIGZpbGw9IiMwMDMzNjYiLz48dGV4dCB4PSIyNCIgeT0iMjQiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGR5PSIuM2VtIiBmaWxsPSJ3aGl0ZSIgZm9udC1zaXplPSIxOCIgZm9udC13ZWlnaHQ9ImJvbGQiIGZvbnQtZmFtaWx5PSJBcmlhbCIsTWFyaWEsIHNhbnMtc2VyaWY+TkZMPC90ZXh0Pjwvc3ZnPg=='
-              }}
-            />
+            <span className="text-4xl select-none" aria-hidden="true">🏈</span>
             <div>
               <h2 className="text-2xl font-black mb-1" style={{ fontFamily: 'Inter', fontWeight: 700 }}>
-                {viewMode === 'predictions' ? 'Predictions' : 'Leaderboard'}
+                Predictions
               </h2>
               <p className="text-gray-300 text-sm" style={{ fontFamily: 'Inter', fontWeight: 600 }}>
-                {viewMode === 'predictions' ? 'Pick the winners and climb the leaderboard!' : `${activeSeason ?? ''} Season Rankings`}
+                Pick the winners and climb the leaderboard!
               </p>
             </div>
           </div>
@@ -342,21 +337,15 @@ const NFLPredictionGame = () => {
               <option value={2026}>2026</option>
             </select>
           <motion.button
-            onClick={handleToggleLeaderboard}
+            onClick={() => router.push(`/leaderboard?season=${activeSeason ?? new Date().getFullYear()}`)}
             className="p-2 bg-slate-700 hover:bg-slate-600 text-white rounded-lg transition-colors flex items-center justify-center cursor-pointer"
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
-            title={viewMode === 'predictions' ? 'View Leaderboard' : 'Back to Predictions'}
+            title="View Full Leaderboard"
           >
-            {viewMode === 'predictions' ? (
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-              </svg>
-            ) : (
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-              </svg>
-            )}
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+            </svg>
           </motion.button>
           </div>
         </div>

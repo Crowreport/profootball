@@ -54,7 +54,7 @@ const Nav = () => {
 
         {/* Desktop Nav Links */}
         <div className="hidden lg:flex space-x-2 ml-4">
-          {["Home", "Teams","Scores", "Standings", "Fantasy", "Sportsbooks", "Fanzone"].map((item) => (
+          {["Home", "Teams","Scores", "Standings", "Fantasy", "Sportsbooks", "Fanzone", "Leaderboard"].map((item) => (
             <Link
               key={item}
               href={item === "Home" ? "/" : `/${item.toLowerCase()}`}
@@ -133,7 +133,7 @@ const Nav = () => {
       {/* Mobile Menu */}
       {isOpen && (
         <div className="lg:hidden mt-4 grid grid-cols-3 gap-3 place-items-center">
-          {["Home", "Teams", "Scores", "Standings", "Fantasy", "Sportsbooks", "Fanzone"].map((item) => (
+          {["Home", "Teams", "Scores", "Standings", "Fantasy", "Sportsbooks", "Fanzone", "Leaderboard"].map((item) => (
             <Link
               key={item}
               href={item === "Home" ? "/" : `/${item.toLowerCase()}`}

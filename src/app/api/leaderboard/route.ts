@@ -10,7 +10,7 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const season = parseInt(searchParams.get('season') || '2025');
     const week = searchParams.get('week') ? parseInt(searchParams.get('week')!) : null;
-    const limit = Math.min(parseInt(searchParams.get('limit') || '100'), 100);
+    const limit = Math.min(parseInt(searchParams.get('limit') || '100'), 500);
 
     // 1. Fetch all picks for the given season (and optional week)
     let picksQuery = serviceSupabase
