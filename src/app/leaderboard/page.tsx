@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback, useRef, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import Nav from '@/components/Nav';
@@ -196,6 +196,14 @@ function Podium({ top3 }: { top3: (LeaderboardEntry | null)[] }) {
 
 // ─── Main page ───────────────────────────────────────────────────────────────
 export default function LeaderboardPage() {
+  return (
+    <Suspense fallback={<div className="bg-[#ECCE8B] min-h-screen flex items-center justify-center"><div className="text-gray-600 animate-pulse text-lg">Loading leaderboard...</div></div>}>
+      <LeaderboardContent />
+    </Suspense>
+  );
+}
+
+function LeaderboardContent() {
   const searchParams = useSearchParams();
   const { profile } = useUserStore();
 
