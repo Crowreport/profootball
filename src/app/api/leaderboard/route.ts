@@ -10,7 +10,7 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const season = parseInt(searchParams.get('season') || '2025');
     const week = searchParams.get('week') ? parseInt(searchParams.get('week')!) : null;
-    const limit = Math.min(parseInt(searchParams.get('limit') || '100'), 100);
+    const limit = Math.min(parseInt(searchParams.get('limit') || '100'), 500);
 
     // 1. Fetch all picks for the given season (and optional week)
     let picksQuery = serviceSupabase
@@ -109,6 +109,22 @@ export async function GET(request: NextRequest) {
       streakMap[userId] = { type: firstResult === 'correct' ? 'W' : 'L', count };
     }
 
+    // 6b. Compute per-game results (last 16, oldest→newest) for each user
+    const resultsMap: Record<string, ('W' | 'L' | 'P')[]> = {};
+    for (const [userId, userPicks] of Object.entries(picksByUser)) {
+      const sorted = [...userPicks].sort((a: any, b: any) => {
+        const ta = gameMap[a.game_key]?.kickoff_time || '';
+        const tb = gameMap[b.game_key]?.kickoff_time || '';
+        return ta.localeCompare(tb); // oldest first
+      });
+      resultsMap[userId] = sorted.map((p: any) => {
+        const r = computePickResult(p.pick_side, gameMap[p.game_key]);
+        if (r === 'correct') return 'W';
+        if (r === 'incorrect') return 'L';
+        return 'P';
+      });
+    }
+
     // 7. Build ranked entries
     const entries = Object.entries(userStats).map(([userId, stats]) => {
       const userInfo = userMap[userId] || {};
@@ -155,6 +171,7 @@ export async function GET(request: NextRequest) {
         pending: entry.pending,
         total: entry.total,
         streak: entry.streak, // { type: 'W'|'L', count: number } | null
+        results: resultsMap[entry.userId] || [],
       };
     });
 

@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400" fill="none">
+  <rect width="400" height="400" rx="80" fill="#0a1628"/>
+  <!-- Ribbon strands -->
+  <polygon points="155,30 185,30 200,160 155,160" fill="#e53935"/>
+  <polygon points="245,30 215,30 200,160 245,160" fill="#1565c0"/>
+  <!-- Medal circle -->
+  <circle cx="200" cy="240" r="110" fill="#ffd700"/>
+  <circle cx="200" cy="240" r="90" fill="#f9a825"/>
+  <circle cx="200" cy="240" r="75" fill="#ffd700"/>
+  <!-- Star on medal -->
+  <polygon points="200,175 215,215 258,215 223,238 236,278 200,255 164,278 177,238 142,215 185,215" fill="#f9a825"/>
+</svg>
