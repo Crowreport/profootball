@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import Nav from '@/components/Nav';
@@ -8,38 +8,75 @@ import { useUserStore } from '@/store/useUserStore';
 
 const ROWS_PER_PAGE = 25;
 
+const TOTAL_GAMES = 272; // NFL regular season: 32 teams × 17 games ÷ 2
+
+// Games per week (NFL 18-week regular season — bye weeks mean some weeks have fewer)
+const GAMES_PER_WEEK: Record<number, number> = {
+  1:16, 2:16, 3:16, 4:16, 5:14, 6:14, 7:14, 8:14, 9:14, 10:14,
+  11:14, 12:16, 13:16, 14:14, 15:16, 16:16, 17:16, 18:16,
+  19:6, 20:4, 21:2, 22:1, // playoffs
+};
+
 // ─── Dummy data (shown when no real picks exist) ─────────────────────────────
+// Seeded PRNG so dummy dots are stable across re-renders
+function seededShuffle(arr: ('W' | 'L')[], seed: number) {
+  let s = seed;
+  for (let i = arr.length - 1; i > 0; i--) {
+    s = (s * 16807 + 0) % 2147483647;
+    const j = s % (i + 1);
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
+}
+
+function makeDummy(rank: number, id: string, name: string, correct: number, incorrect: number, pending: number, streak: LeaderboardEntry['streak']): LeaderboardEntry {
+  const total = correct + incorrect + pending;
+  const sc = streak?.count ?? 0;
+  const st = streak?.type ?? 'W';
+  // Non-streak portion: interleave W/L randomly
+  const wNonStreak = Math.max(0, correct - (st === 'W' ? sc : 0));
+  const lNonStreak = Math.max(0, incorrect - (st === 'L' ? sc : 0));
+  const mixed: ('W' | 'L')[] = [];
+  for (let i = 0; i < wNonStreak; i++) mixed.push('W');
+  for (let i = 0; i < lNonStreak; i++) mixed.push('L');
+  seededShuffle(mixed, rank * 7919);
+  const results: ('W' | 'L' | 'P')[] = [...mixed];
+  for (let i = 0; i < sc; i++) results.push(st);
+  for (let i = 0; i < pending; i++) results.push('P');
+  return { rank, user: { id, displayName: name }, points: correct, record: `${correct}-${incorrect}`, correct, incorrect, pending, total, streak, results };
+}
+
 const DUMMY_ENTRIES: LeaderboardEntry[] = [
-  { rank:1, user:{id:'d1',displayName:'GridironGuru'},    points:14, record:'14-2',  correct:14, incorrect:2,  pending:0, total:16, streak:{type:'W',count:5} },
-  { rank:2, user:{id:'d2',displayName:'BlitzKing99'},     points:13, record:'13-3',  correct:13, incorrect:3,  pending:0, total:16, streak:{type:'W',count:2} },
-  { rank:3, user:{id:'d3',displayName:'TDQueen'},         points:12, record:'12-4',  correct:12, incorrect:4,  pending:0, total:16, streak:{type:'L',count:1} },
-  { rank:4, user:{id:'d4',displayName:'RedZoneRandy'},    points:11, record:'11-5',  correct:11, incorrect:5,  pending:0, total:16, streak:{type:'W',count:3} },
-  { rank:5, user:{id:'d5',displayName:'SackMaster'},      points:11, record:'11-5',  correct:11, incorrect:5,  pending:0, total:16, streak:{type:'L',count:2} },
-  { rank:6, user:{id:'d6',displayName:'PocketRocket'},    points:10, record:'10-6',  correct:10, incorrect:6,  pending:0, total:16, streak:{type:'W',count:1} },
-  { rank:7, user:{id:'d7',displayName:'HailMaryHank'},    points:10, record:'10-6',  correct:10, incorrect:6,  pending:0, total:16, streak:{type:'W',count:4} },
-  { rank:8, user:{id:'d8',displayName:'LinebackerLiz'},   points:9,  record:'9-7',   correct:9,  incorrect:7,  pending:0, total:16, streak:null },
-  { rank:9, user:{id:'d9',displayName:'FumbleFreeFranck'},points:9,  record:'9-7',   correct:9,  incorrect:7,  pending:0, total:16, streak:{type:'L',count:3} },
-  { rank:10,user:{id:'d10',displayName:'EndZoneElla'},    points:8,  record:'8-8',   correct:8,  incorrect:8,  pending:0, total:16, streak:{type:'W',count:2} },
-  { rank:11,user:{id:'d11',displayName:'SnapCount'},      points:8,  record:'8-8',   correct:8,  incorrect:8,  pending:0, total:16, streak:null },
-  { rank:12,user:{id:'d12',displayName:'DriveTimeDave'},  points:7,  record:'7-9',   correct:7,  incorrect:9,  pending:0, total:16, streak:{type:'W',count:1} },
-  { rank:13,user:{id:'d13',displayName:'SpecialTeamsSue'},points:7,  record:'7-9',   correct:7,  incorrect:9,  pending:0, total:16, streak:{type:'L',count:1} },
-  { rank:14,user:{id:'d14',displayName:'TwoMinuteTom'},   points:6,  record:'6-10',  correct:6,  incorrect:10, pending:0, total:16, streak:{type:'L',count:4} },
-  { rank:15,user:{id:'d15',displayName:'ChopBlockChris'}, points:6,  record:'6-10',  correct:6,  incorrect:10, pending:0, total:16, streak:{type:'W',count:1} },
-  { rank:16,user:{id:'d16',displayName:'AudibleAlex'},    points:5,  record:'5-11',  correct:5,  incorrect:11, pending:0, total:16, streak:null },
-  { rank:17,user:{id:'d17',displayName:'JukeMoveJordan'}, points:5,  record:'5-11',  correct:5,  incorrect:11, pending:0, total:16, streak:{type:'L',count:2} },
-  { rank:18,user:{id:'d18',displayName:'PuntReturnPat'},  points:4,  record:'4-12',  correct:4,  incorrect:12, pending:0, total:16, streak:{type:'W',count:1} },
-  { rank:19,user:{id:'d19',displayName:'NoseTackleNick'}, points:4,  record:'4-12',  correct:4,  incorrect:12, pending:0, total:16, streak:{type:'L',count:5} },
-  { rank:20,user:{id:'d20',displayName:'WildcardWendy'},  points:3,  record:'3-13',  correct:3,  incorrect:13, pending:0, total:16, streak:null },
-  { rank:21,user:{id:'d21',displayName:'SafetyBlitzSam'}, points:3,  record:'3-13',  correct:3,  incorrect:13, pending:0, total:16, streak:{type:'L',count:1} },
-  { rank:22,user:{id:'d22',displayName:'CoverTwoCole'},   points:3,  record:'3-13',  correct:3,  incorrect:13, pending:0, total:16, streak:{type:'W',count:2} },
-  { rank:23,user:{id:'d23',displayName:'BootlegBeth'},    points:2,  record:'2-14',  correct:2,  incorrect:14, pending:0, total:16, streak:{type:'L',count:3} },
-  { rank:24,user:{id:'d24',displayName:'RedDogRex'},      points:2,  record:'2-14',  correct:2,  incorrect:14, pending:0, total:16, streak:null },
-  { rank:25,user:{id:'d25',displayName:'OffsidOliver'},   points:1,  record:'1-15',  correct:1,  incorrect:15, pending:0, total:16, streak:{type:'L',count:6} },
-  { rank:26,user:{id:'d26',displayName:'HoldingPenalty'}, points:1,  record:'1-15',  correct:1,  incorrect:15, pending:0, total:16, streak:{type:'L',count:2} },
-  { rank:27,user:{id:'d27',displayName:'FalseStartFrank'},points:1,  record:'1-15',  correct:1,  incorrect:15, pending:0, total:16, streak:null },
-  { rank:28,user:{id:'d28',displayName:'PassIntPriya'},   points:0,  record:'0-16',  correct:0,  incorrect:16, pending:0, total:16, streak:{type:'L',count:16} },
-  { rank:29,user:{id:'d29',displayName:'DelayOfGame'},    points:0,  record:'0-16',  correct:0,  incorrect:16, pending:0, total:16, streak:{type:'L',count:8} },
-  { rank:30,user:{id:'d30',displayName:'IllegalContact'}, points:0,  record:'0-16',  correct:0,  incorrect:16, pending:0, total:16, streak:{type:'L',count:4} },
+  makeDummy(1,'d1','GridironGuru',    200, 72,  0, {type:'W',count:8}),
+  makeDummy(2,'d2','BlitzKing99',     194, 78,  0, {type:'W',count:4}),
+  makeDummy(3,'d3','TDQueen',         188, 84,  0, {type:'L',count:1}),
+  makeDummy(4,'d4','RedZoneRandy',    183, 89,  0, {type:'W',count:6}),
+  makeDummy(5,'d5','SackMaster',      180, 92,  0, {type:'L',count:3}),
+  makeDummy(6,'d6','PocketRocket',    176, 96,  0, {type:'W',count:2}),
+  makeDummy(7,'d7','HailMaryHank',    172, 100, 0, {type:'W',count:5}),
+  makeDummy(8,'d8','LinebackerLiz',   168, 104, 0, null),
+  makeDummy(9,'d9','FumbleFreeFranck',165, 107, 0, {type:'L',count:4}),
+  makeDummy(10,'d10','EndZoneElla',   162, 110, 0, {type:'W',count:3}),
+  makeDummy(11,'d11','SnapCount',     158, 114, 0, null),
+  makeDummy(12,'d12','DriveTimeDave', 154, 118, 0, {type:'W',count:1}),
+  makeDummy(13,'d13','SpecialTeamsSue',150,122, 0, {type:'L',count:2}),
+  makeDummy(14,'d14','TwoMinuteTom',  147, 125, 0, {type:'L',count:5}),
+  makeDummy(15,'d15','ChopBlockChris',143, 129, 0, {type:'W',count:1}),
+  makeDummy(16,'d16','AudibleAlex',   140, 132, 0, null),
+  makeDummy(17,'d17','JukeMoveJordan',137, 135, 0, {type:'L',count:3}),
+  makeDummy(18,'d18','PuntReturnPat', 133, 139, 0, {type:'W',count:2}),
+  makeDummy(19,'d19','NoseTackleNick',129, 143, 0, {type:'L',count:6}),
+  makeDummy(20,'d20','WildcardWendy', 125, 147, 0, null),
+  makeDummy(21,'d21','SafetyBlitzSam',121, 151, 0, {type:'L',count:2}),
+  makeDummy(22,'d22','CoverTwoCole',  117, 155, 0, {type:'W',count:3}),
+  makeDummy(23,'d23','BootlegBeth',   113, 159, 0, {type:'L',count:4}),
+  makeDummy(24,'d24','RedDogRex',     109, 163, 0, null),
+  makeDummy(25,'d25','OffsidOliver',  105, 167, 0, {type:'L',count:7}),
+  makeDummy(26,'d26','HoldingPenalty',100, 172, 0, {type:'L',count:3}),
+  makeDummy(27,'d27','FalseStartFrank',95, 177, 0, null),
+  makeDummy(28,'d28','PassIntPriya',   87, 185, 0, {type:'L',count:11}),
+  makeDummy(29,'d29','DelayOfGame',    80, 192, 0, {type:'L',count:9}),
+  makeDummy(30,'d30','IllegalContact',  72,200, 0, {type:'L',count:5}),
 ];
 
 interface LeaderboardEntry {
@@ -52,6 +89,7 @@ interface LeaderboardEntry {
   pending: number;
   total: number;
   streak: { type: 'W' | 'L'; count: number } | null;
+  results?: ('W' | 'L' | 'P')[]; // per-game results, oldest→newest
 }
 
 // ─── 2D Podium ───────────────────────────────────────────────────────────────
@@ -66,7 +104,7 @@ function Podium({ top3 }: { top3: (LeaderboardEntry | null)[] }) {
   const cfg = {
     1: { w: 160, h: 220, bg: '#d4a012', border: '#f5ce4e', label: '1ST', nameSz: 'text-xl', crown: true,  growDelay: '0ms',   textDelay: '530ms' },
     2: { w: 128, h: 165, bg: '#7a8e9e', border: '#b0c4d4', label: '2ND', nameSz: 'text-lg', crown: false, growDelay: '140ms', textDelay: '670ms' },
-    3: { w: 104, h: 120, bg: '#a05a28', border: '#d48040', label: '3RD', nameSz: 'text-base', crown: false, growDelay: '260ms', textDelay: '790ms' },
+    3: { w: 104, h: 130, bg: '#a05a28', border: '#d48040', label: '3RD', nameSz: 'text-base', crown: false, growDelay: '260ms', textDelay: '790ms' },
   } as const;
 
   function Block({ place, entry }: { place: 1 | 2 | 3; entry: LeaderboardEntry | null }) {
@@ -144,13 +182,13 @@ function Podium({ top3 }: { top3: (LeaderboardEntry | null)[] }) {
       <div className="flex flex-col items-center py-8">
         {/* Podium blocks — 2nd behind-left, 1st centre, 3rd behind-right */}
         <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'center', gap: 36 }}>
-          <div style={{ transform: 'translateY(-28px)' }}><Block place={2} entry={top3[1] ?? null} /></div>
+          <Block place={2} entry={top3[1] ?? null} />
           <Block place={1} entry={top3[0] ?? null} />
-          <div style={{ transform: 'translateY(-28px)' }}><Block place={3} entry={top3[2] ?? null} /></div>
+          <Block place={3} entry={top3[2] ?? null} />
         </div>
 
         {/* Baseline */}
-        <div style={{ width: totalW, height: 3, background: 'linear-gradient(to right, transparent, #94a3b8 12%, #94a3b8 88%, transparent)', borderRadius: 2 }} />
+        <div style={{ width: totalW + 120, height: 3, background: 'linear-gradient(to right, transparent, #94a3b8 8%, #94a3b8 92%, transparent)', borderRadius: 2 }} />
       </div>
     </>
   );
@@ -166,15 +204,17 @@ export default function LeaderboardPage() {
     const s = searchParams.get('season');
     return s ? parseInt(s) : currentYear;
   });
+  const [week, setWeek] = useState<number | null>(null); // null = all weeks
   const [entries, setEntries] = useState<LeaderboardEntry[]>([]);
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
 
-  const fetchData = useCallback(async (yr: number) => {
+  const fetchData = useCallback(async (yr: number, wk: number | null) => {
     setLoading(true);
     try {
-      const res = await fetch(`/api/leaderboard?season=${yr}&limit=500`);
+      const url = `/api/leaderboard?season=${yr}&limit=500${wk !== null ? `&week=${wk}` : ''}`;
+      const res = await fetch(url);
       const data = await res.json();
       setEntries(data.entries || []);
       setTotal(data.meta?.total ?? 0);
@@ -186,12 +226,35 @@ export default function LeaderboardPage() {
   }, []);
 
   useEffect(() => {
-    fetchData(season);
+    fetchData(season, week);
     setPage(1);
-  }, [season, fetchData]);
+  }, [season, week, fetchData]);
 
   // Fall back to dummy data so the UI is always visible
-  const displayEntries = entries.length > 0 ? entries : DUMMY_ENTRIES;
+  // When a specific week is selected, scale dummy stats down to that week's game count
+  const displayEntries = entries.length > 0 ? entries : (() => {
+    if (week === null) return DUMMY_ENTRIES;
+    const weekGames = GAMES_PER_WEEK[week] ?? 16;
+    return DUMMY_ENTRIES.map((e) => {
+      const ratio = weekGames / TOTAL_GAMES;
+      const correct = Math.round(e.correct * ratio);
+      const incorrect = Math.round(e.incorrect * ratio);
+      const pending = Math.max(0, weekGames - correct - incorrect);
+      const streakMax = correct + incorrect;
+      const streak = e.streak ? { type: e.streak.type, count: Math.min(e.streak.count, streakMax > 0 ? Math.max(1, Math.round(e.streak.count * ratio)) : 0) } as const : null;
+      const results: ('W' | 'L' | 'P')[] = [];
+      const wNS = Math.max(0, correct - (streak?.type === 'W' ? (streak?.count ?? 0) : 0));
+      const lNS = Math.max(0, incorrect - (streak?.type === 'L' ? (streak?.count ?? 0) : 0));
+      const mixed: ('W' | 'L')[] = [];
+      for (let i = 0; i < wNS; i++) mixed.push('W');
+      for (let i = 0; i < lNS; i++) mixed.push('L');
+      seededShuffle(mixed, e.rank * 3571 + (week ?? 0));
+      results.push(...mixed);
+      if (streak) for (let i = 0; i < streak.count; i++) results.push(streak.type);
+      for (let i = 0; i < pending; i++) results.push('P');
+      return { ...e, correct, incorrect, pending, total: weekGames, points: correct, record: `${correct}-${incorrect}`, streak, results };
+    }).sort((a, b) => b.points - a.points || a.incorrect - b.incorrect).map((e, i) => ({ ...e, rank: i + 1 }));
+  })();
 
   const top3 = displayEntries.slice(0, 3);
   const rest = displayEntries.slice(3);
@@ -201,6 +264,104 @@ export default function LeaderboardPage() {
 
   const streakColor = (s: LeaderboardEntry['streak']) =>
     !s ? 'text-gray-500' : s.type === 'W' ? 'text-emerald-400' : 'text-red-400';
+
+  // Derive results array from stats when API hasn't provided one (dummy data)
+  function deriveResults(entry: LeaderboardEntry): ('W' | 'L' | 'P')[] {
+    if (entry.results && entry.results.length > 0) return entry.results;
+    const arr: ('W' | 'L' | 'P')[] = [];
+    const sc = entry.streak?.count ?? 0;
+    const st = entry.streak?.type ?? 'W';
+    const wNS = Math.max(0, entry.correct - (st === 'W' ? sc : 0));
+    const lNS = Math.max(0, entry.incorrect - (st === 'L' ? sc : 0));
+    const mixed: ('W' | 'L')[] = [];
+    for (let i = 0; i < wNS; i++) mixed.push('W');
+    for (let i = 0; i < lNS; i++) mixed.push('L');
+    seededShuffle(mixed, entry.rank * 4217);
+    arr.push(...mixed);
+    for (let i = 0; i < sc; i++) arr.push(st);
+    for (let i = 0; i < entry.pending; i++) arr.push('P');
+    return arr;
+  }
+
+  // Dot trail: shows all 272 dots for full season, or just that week's games when filtered
+  function WLDots({ entry }: { entry: LeaderboardEntry }) {
+    const results = deriveResults(entry);
+    const maxDots = week !== null ? (GAMES_PER_WEEK[week] ?? 16) : TOTAL_GAMES;
+    const isWeekView = week !== null;
+    const dotSize = isWeekView ? 8 : 3;
+    const dotColor = (r: 'W' | 'L' | 'P') =>
+      r === 'W' ? '#34d399' : r === 'L' ? '#f87171' : '#374151';
+    return (
+      <div className="flex flex-wrap items-center gap-px" style={{ maxWidth: isWeekView ? 200 : 180 }}>
+        {Array.from({ length: maxDots }).map((_, i) => {
+          const r = results[i] as 'W' | 'L' | 'P' | undefined;
+          return (
+            <span
+              key={i}
+              title={r === 'W' ? 'Win' : r === 'L' ? 'Loss' : r === 'P' ? 'Pending' : 'No pick'}
+              style={{ display: 'inline-block', width: dotSize, height: dotSize, borderRadius: '50%', background: r ? dotColor(r) : '#1f2937', flexShrink: 0 }}
+            />
+          );
+        })}
+      </div>
+    );
+  }
+
+  function PlayerCell({ entry, isMe, bold }: { entry: LeaderboardEntry; isMe: boolean; bold?: boolean }) {
+    const isWeekView = week !== null;
+    const [showDots, setShowDots] = useState(false);
+    const cellRef = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+      if (!showDots) return;
+      function handleClick(e: MouseEvent) {
+        if (cellRef.current && !cellRef.current.contains(e.target as Node)) {
+          setShowDots(false);
+        }
+      }
+      document.addEventListener('mousedown', handleClick);
+      return () => document.removeEventListener('mousedown', handleClick);
+    }, [showDots]);
+
+    return (
+      <td className="px-5 py-3">
+        <div className="relative" ref={cellRef}>
+          <div className={`font-semibold text-white ${bold ? 'text-base' : 'text-sm'} leading-snug`}>
+            {entry.user.displayName}
+            {isMe && <span className="ml-2 text-xs text-blue-400 font-normal">(you)</span>}
+          </div>
+          <div className="flex items-center gap-2.5 mt-1 flex-wrap">
+            {!isWeekView ? (
+              <span
+                className="text-gray-400 text-xs cursor-pointer underline decoration-gray-500 hover:text-gray-300 transition-colors"
+                onClick={() => setShowDots(v => !v)}
+              >
+                {entry.total} picks
+              </span>
+            ) : (
+              <span className="text-gray-400 text-xs">{entry.total} picks</span>
+            )}
+            {entry.pending > 0 && (
+              <span className="inline-flex items-center gap-1 text-xs text-amber-400 bg-amber-400/10 px-1.5 py-0.5 rounded">
+                <span>{entry.pending} pending</span>
+              </span>
+            )}
+            {isWeekView && <WLDots entry={entry} />}
+          </div>
+          {/* Season dot trail popup */}
+          {!isWeekView && showDots && (
+            <div className="absolute left-0 top-full mt-1 z-50 bg-slate-800 border border-slate-600 rounded-lg px-3 py-2 shadow-xl" style={{ minWidth: 200 }}>
+              <div className="text-gray-400 text-xs font-semibold mb-1">Season Record</div>
+              <WLDots entry={entry} />
+            </div>
+          )}
+        </div>
+      </td>
+    );
+  }
+
+  const colCount = 5;
+
 
   return (
     <div className="bg-[#ECCE8B] min-h-screen">
@@ -237,15 +398,31 @@ export default function LeaderboardPage() {
                 </p>
               </div>
             </div>
-            {/* Year selector */}
-            <select
-              value={season}
-              onChange={(e) => setSeason(parseInt(e.target.value))}
-              className="bg-slate-700 hover:bg-slate-600 text-white text-sm font-semibold rounded-lg px-3 py-2 border border-slate-500 cursor-pointer focus:outline-none focus:border-blue-400"
-            >
-              <option value={2025}>2025</option>
-              <option value={2026}>2026</option>
-            </select>
+            {/* Selectors */}
+            <div className="flex items-center gap-2">
+              <select
+                value={week ?? ''}
+                onChange={(e) => setWeek(e.target.value === '' ? null : parseInt(e.target.value))}
+                className="bg-slate-700 hover:bg-slate-600 text-white text-sm font-semibold rounded-lg px-3 py-2 border border-slate-500 cursor-pointer focus:outline-none focus:border-blue-400"
+              >
+                <option value="">All Weeks</option>
+                {Array.from({ length: 18 }, (_, i) => i + 1).map(w => (
+                  <option key={w} value={w}>Week {w}</option>
+                ))}
+                <option value={19}>Wild Card</option>
+                <option value={20}>Divisional</option>
+                <option value={21}>Conf. Championship</option>
+                <option value={22}>Super Bowl</option>
+              </select>
+              <select
+                value={season}
+                onChange={(e) => setSeason(parseInt(e.target.value))}
+                className="bg-slate-700 hover:bg-slate-600 text-white text-sm font-semibold rounded-lg px-3 py-2 border border-slate-500 cursor-pointer focus:outline-none focus:border-blue-400"
+              >
+                <option value={2025}>2025</option>
+                <option value={2026}>2026</option>
+              </select>
+            </div>
           </div>
 
           {/* Body */}
@@ -294,10 +471,7 @@ export default function LeaderboardPage() {
                           } ${isMe ? 'ring-1 ring-inset ring-blue-500/50' : ''}`}
                         >
                           <td className="px-5 py-4 font-black text-xl">{medals[i]}</td>
-                          <td className="px-5 py-4 font-semibold text-white">
-                            <span>{entry.user.displayName}</span>
-                            {isMe && <span className="ml-2 text-xs text-blue-400 font-normal">(you)</span>}
-                          </td>
+                          <PlayerCell entry={entry} isMe={isMe} bold />
                           <td className="px-5 py-4 text-center">
                             <span className="inline-flex items-center gap-0.5 leading-none">
                               <span className="text-green-400">{entry.correct}</span>
@@ -316,7 +490,7 @@ export default function LeaderboardPage() {
                     {/* Divider */}
                     {top3.length > 0 && rest.length > 0 && (
                       <tr>
-                        <td colSpan={5} className="px-4 py-1 bg-slate-900/60">
+                        <td colSpan={colCount} className="px-4 py-1 bg-slate-900/60">
                           <div className="border-t border-slate-600 border-dashed" />
                         </td>
                       </tr>
@@ -333,10 +507,7 @@ export default function LeaderboardPage() {
                           }`}
                         >
                           <td className="px-5 py-4 text-gray-400 font-semibold">#{entry.rank}</td>
-                          <td className="px-5 py-4 font-medium text-white">
-                            <span>{entry.user.displayName}</span>
-                            {isMe && <span className="ml-2 text-xs text-blue-400 font-normal">(you)</span>}
-                          </td>
+                          <PlayerCell entry={entry} isMe={isMe} />
                           <td className="px-5 py-4 text-center">
                             <span className="inline-flex items-center gap-0.5 leading-none">
                               <span className="text-green-400">{entry.correct}</span>

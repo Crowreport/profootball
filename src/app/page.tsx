@@ -49,6 +49,30 @@ async function fetchRSS() {
   }
 }
 
+// ── Client-side session cache for instant page loads on refresh ──
+const SESSION_CACHE_KEY = 'profootball-page-data';
+const SESSION_CACHE_MAX_AGE = 3 * 60 * 1000; // 3 minutes
+
+function getSessionCache(): { sources: any[]; customArticles: Record<string, any>; customVideos: Record<string, any>; polls: any[]; timestamp: number } | null {
+  if (typeof window === 'undefined') return null;
+  try {
+    const raw = sessionStorage.getItem(SESSION_CACHE_KEY);
+    if (!raw) return null;
+    return JSON.parse(raw);
+  } catch {
+    return null;
+  }
+}
+
+function setSessionCache(data: { sources: any[]; customArticles: Record<string, any>; customVideos: Record<string, any>; polls: any[] }) {
+  if (typeof window === 'undefined') return;
+  try {
+    sessionStorage.setItem(SESSION_CACHE_KEY, JSON.stringify({ ...data, timestamp: Date.now() }));
+  } catch (e) {
+    // sessionStorage might be full or unavailable
+  }
+}
+
 function formatDate(dateString: string): string {
   if (!dateString) return "Unknown";
   try {
@@ -108,9 +132,9 @@ export default function Home() {
   };
 
   useEffect(() => {
-    const loadData = async () => {
+    const loadData = async (isBackground = false) => {
       try {
-        setLoading(true);
+        if (!isBackground) setLoading(true);
         const [fetchedSources, customArticlesData, customVideosData, pollsData] = await Promise.all([
           fetchRSS(),
           fetch('/api/manage-articles').then(res => res.ok ? res.json() : { articles: {} }),
@@ -118,13 +142,26 @@ export default function Home() {
           fetch('/api/polls?status=active&limit=10').then(res => res.ok ? res.json() : { polls: [] })
         ]);
         
-        setSources(fetchedSources);
-        setCustomArticles(customArticlesData.articles || {});
-        setCustomVideos(customVideosData.videos || {});
-        setPolls(pollsData.polls || []);
+        const newSources = fetchedSources;
+        const newCustomArticles = customArticlesData.articles || {};
+        const newCustomVideos = customVideosData.videos || {};
+        const newPolls = pollsData.polls || [];
+
+        setSources(newSources);
+        setCustomArticles(newCustomArticles);
+        setCustomVideos(newCustomVideos);
+        setPolls(newPolls);
+
+        // Persist to session cache for instant loads on refresh
+        setSessionCache({
+          sources: newSources,
+          customArticles: newCustomArticles,
+          customVideos: newCustomVideos,
+          polls: newPolls,
+        });
 
         // Get comment counts for displayed articles
-        const displayedArticles = fetchedSources.flatMap(source => 
+        const displayedArticles = newSources.flatMap(source => 
           (source.articles || []).slice(0, 6)
         );
         const articleTitles = displayedArticles.map(article => article.title).filter(Boolean);
@@ -135,15 +172,43 @@ export default function Home() {
         }
       } catch (err) {
         console.error('Error loading data:', err);
-        setError(err);
+        if (!isBackground) setError(err);
       } finally {
         setLoading(false);
       }
     };
 
-    loadData();
-    // Refresh every 5 minutes
-    const interval = setInterval(loadData, 300000);
+    // Try to hydrate from session cache for an instant load (no loading spinner)
+    const cached = getSessionCache();
+    if (cached && cached.sources && cached.sources.length > 0) {
+      // Hydrate state immediately from cache — page renders instantly
+      setSources(cached.sources);
+      setCustomArticles(cached.customArticles || {});
+      setCustomVideos(cached.customVideos || {});
+      setPolls(cached.polls || []);
+      setLoading(false);
+
+      // Fetch comment counts for cached data
+      const displayedArticles = cached.sources.flatMap(source =>
+        (source.articles || []).slice(0, 6)
+      );
+      const articleTitles = displayedArticles.map(article => article.title).filter(Boolean);
+      if (articleTitles.length > 0) {
+        getCommentCounts(articleTitles).then(counts => setCommentCounts(counts));
+      }
+
+      // Silently refresh in the background (no loading state, no re-render flicker)
+      const isFresh = cached.timestamp && (Date.now() - cached.timestamp) < SESSION_CACHE_MAX_AGE;
+      if (!isFresh) {
+        loadData(true);
+      }
+    } else {
+      // No cache — first visit, show loading spinner and fetch everything
+      loadData(false);
+    }
+
+    // Silent background refresh every 5 minutes
+    const interval = setInterval(() => loadData(true), 300000);
     return () => clearInterval(interval);
   }, []);
 
@@ -182,8 +247,15 @@ export default function Home() {
       setSources(fetchedSources);
       setCustomArticles(customArticlesData.articles || {});
       
+      // Update session cache
+      setSessionCache({
+        sources: fetchedSources,
+        customArticles: customArticlesData.articles || {},
+        customVideos,
+        polls,
+      });
+      
       console.log('Data refreshed after article save');
-      console.log('Custom articles:', customArticlesData.articles);
     } catch (error) {
       console.error('Error refreshing data after article save:', error);
     }
@@ -195,8 +267,15 @@ export default function Home() {
       const customVideosData = await fetch('/api/manage-videos').then(res => res.ok ? res.json() : { videos: {} });
       setCustomVideos(customVideosData.videos || {});
       
+      // Update session cache
+      setSessionCache({
+        sources,
+        customArticles,
+        customVideos: customVideosData.videos || {},
+        polls,
+      });
+      
       console.log('Videos refreshed after video save');
-      console.log('Custom videos:', customVideosData.videos);
     } catch (error) {
       console.error('Error refreshing videos after save:', error);
     }
@@ -757,7 +836,7 @@ const spotifyPodcastSources = podcastSources;
                       <div className="flex items-center mb-4">
                         
                           <img
-                            src="\images\new-favicons-home\ESPN-Favicon-400x400.svg"
+                            src="/images/new-favicons-home/ESPN-Favicon-400x400.svg"
                             alt={matchedSource.source.title}
                             className="w-10 h-10 mr-3 rounded-full object-cover"
                           />
@@ -953,7 +1032,7 @@ const spotifyPodcastSources = podcastSources;
       source: {
     title: "By The Numbers",
     link: "#",
-    image: null,
+    image: "/images/new-favicons-home/ByTheNumbers-Icon-400x400.svg",
     updatedAt: new Date().toISOString(),
   },
   articles: [
@@ -1013,7 +1092,7 @@ const spotifyPodcastSources = podcastSources;
                       <div className="flex items-center mb-4">
                         
                           <img
-                            src="\images\new-favicons-home\CBS-Sports-Favicon-400x400.png"
+                            src="/images/new-favicons-home/CBS-Sports-Favicon-400x400.png"
                             alt={matchedSource.source.title}
                             className="w-10 h-10 mr-3 rounded-full object-cover"
                           />
@@ -1146,7 +1225,7 @@ const spotifyPodcastSources = podcastSources;
                       <div className="flex items-center mb-4">
                         
                           <img
-                            src="\images\new-favicons-home\AllAccessFootball-Favicon-1024x1024.png"
+                            src="/images/new-favicons-home/AllAccessFootball-Favicon-1024x1024.png"
                             alt={matchedSource.source.title}
                             className="w-10 h-10 mr-3 rounded-full object-cover"
                           />
@@ -1254,7 +1333,7 @@ const spotifyPodcastSources = podcastSources;
          source: {
          title: "NFL Power Rankings",
          link: "#",
-         image: null,
+         image: "/images/new-favicons-home/PowerRankings-Icon-400x400.svg",
          updatedAt: new Date().toISOString(),
            },
       articles: [
@@ -1303,7 +1382,7 @@ const spotifyPodcastSources = podcastSources;
                       <div className="flex items-center mb-4">
                         
                           <img
-                            src="\images\new-favicons-home\Pro-Football-Focus-Favicon-180x180.png"
+                            src="/images/new-favicons-home/Pro-Football-Focus-Favicon-180x180.png"
                             alt={matchedSource.source.title}
                             className="w-10 h-10 mr-3 rounded-full object-cover"
                           />
@@ -1493,7 +1572,7 @@ const spotifyPodcastSources = podcastSources;
                       <div className="flex items-center mb-4">
                         
                           <img
-                            src="\images\new-favicons-home\NFL-Traderumors-Favicon-192x192-(TD).svg"
+                            src="/images/new-favicons-home/NFL-Traderumors-Favicon-192x192-(TD).svg"
                             alt={matchedSource.source.title}
                             className="w-10 h-10 mr-3 rounded-full object-cover"
                           />
@@ -1601,7 +1680,7 @@ const spotifyPodcastSources = podcastSources;
       source: {
       title: "Weekly Poll",
       link: "#",
-      image: null,
+      image: "/images/new-favicons-home/WeeklyPoll-Icon-400x400.svg",
       updatedAt: new Date().toISOString(),
       },
       articles: [
@@ -1656,7 +1735,7 @@ const spotifyPodcastSources = podcastSources;
         <div className="flex items-center mb-4">
           
             <img
-              src="\images\new-favicons-home\33rd-Favicon-400x400.png"
+              src="/images/new-favicons-home/33rd-Favicon-400x400.png"
               alt={matchedSource.source.title}
               className="w-10 h-10 mr-3 rounded-full object-cover"
             />
@@ -1829,7 +1908,7 @@ const spotifyPodcastSources = podcastSources;
     source: {
     title: "NFL Injury Reports",
     link: "#",
-    image: null,
+    image: "/images/new-favicons-home/InjuryReport-Icon-400x400.svg",
     updatedAt: new Date().toISOString(),
   },
   articles: [
@@ -2269,7 +2348,7 @@ const spotifyPodcastSources = podcastSources;
         <div className="flex items-center mb-4">
           {matchedSource.source.image ? (
             <img
-              src="images\new-favicons-home\Sporting-News-Favicon-530x530.png"
+              src="/images/new-favicons-home/Sporting-News-Favicon-530x530.png"
               alt={matchedSource.source.title}
               className="w-10 h-10 mr-3 rounded-full object-cover"
             />
@@ -2448,7 +2527,7 @@ const spotifyPodcastSources = podcastSources;
         <div className="flex items-center mb-4">
           {matchedSource.source.image ? (
             <img
-              src="images\new-favicons-home\The-Ringer-Favicon-324x324-(Black-BG)-02.png"
+              src="/images/new-favicons-home/The-Ringer-Favicon-324x324-(Black-BG)-02.png"
               alt={matchedSource.source.title}
               className="w-10 h-10 mr-3 rounded-full object-cover"
             />
@@ -2839,7 +2918,7 @@ const spotifyPodcastSources = podcastSources;
         <div className="flex items-center mb-4">
          
             <img
-              src="\images\new-favicons-home\Fansided-Favicon.png"
+              src="/images/new-favicons-home/Fansided-Favicon.png"
               alt={matchedSource.source.title}
               className="w-10 h-10 mr-3 rounded-full object-cover"
             />
@@ -3014,7 +3093,7 @@ const spotifyPodcastSources = podcastSources;
         <div className="flex items-center mb-4">
           {matchedSource.source.image ? (
             <img
-              src="images\new-favicons-home\SportsIllustrated-Favicon-528x528.png"
+              src="/images/new-favicons-home/SportsIllustrated-Favicon-528x528.png"
               alt={matchedSource.source.title}
               className="w-10 h-10 mr-3 rounded-full object-cover"
             />
@@ -3335,7 +3414,7 @@ const spotifyPodcastSources = podcastSources;
         <div className="flex items-center mb-4">
           
             <img
-              src="images\new-favicons-home\NFL-Spinzone.png"
+              src="/images/new-favicons-home/NFL-Spinzone.png"
               alt={matchedSource.source.title}
               className="w-10 h-10 mr-3 rounded-full object-cover"
             />
@@ -3470,7 +3549,7 @@ const spotifyPodcastSources = podcastSources;
         <div className="flex items-center mb-4">
           {matchedSource.source.image ? (
             <img
-              src="images\new-favicons-home\Bleacher-Report-Favicon-256x256(TD).png"
+              src="/images/new-favicons-home/Bleacher-Report-Favicon-256x256(TD).png"
               alt={matchedSource.source.title}
               className="w-10 h-10 mr-3 rounded-full object-cover"
             />
@@ -3605,7 +3684,7 @@ const spotifyPodcastSources = podcastSources;
         <div className="flex items-center mb-4">
           {matchedSource.source.image ? (
             <img
-              src="images\new-favicons-home\Fox-Sports-530x530.png"
+              src="/images/new-favicons-home/Fox-Sports-530x530.png"
               alt={matchedSource.source.title}
               className="w-10 h-10 mr-3 rounded-full object-cover"
             />
