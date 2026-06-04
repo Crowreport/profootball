@@ -716,19 +716,25 @@ const spotifyPodcastSources = podcastSources;
         <TopBannerAd />
       </div>
 
-      {/* NFL Prediction Game */}
-      <div className="px-4">
-        <NFLPredictionGame />
-      </div>
+      {/* Main Layout with Left Sidebar, Content, and Right Sidebar */}
+      <div className="grid grid-cols-1 lg:grid-cols-[minmax(300px,400px)_minmax(600px,1fr)_minmax(300px,400px)] gap-6 px-4 pb-4 mx-auto overflow-x-hidden">
+        {/* Left Sidebar - NFL Prediction Game */}
+        <div className="hidden lg:block w-full min-w-[300px] max-w-[400px]">
+          <div className="sticky top-0">
+            <NFLPredictionGame />
+          </div>
+        </div>
 
-      {/* Main Layout with Sidebar */}
-      <div className="grid grid-cols-1 lg:grid-cols-[1fr_256px] gap-6 px-4 pb-4 max-w-screen-2xl mx-auto">
         {/* Main Content Area */}
         <div className="min-w-0">
+          {/* NFL Prediction Game - Mobile/Tablet Only */}
+          <div className="lg:hidden mb-6">
+            <NFLPredictionGame />
+          </div>
           {/* --- NEW TOP GRID LAYOUT --- */}
           {/* Top grid: Card 1 | Featured NFL Video | Card 2 */}
           {topGridSources.length >= 3 && (
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6 items-stretch">
+            <div className="grid grid-cols-1 min-[1700px]:grid-cols-3 gap-6 mb-6">
               {/* Card 1 */}
               <div className="h-full flex flex-col">
                 {["ESPN"].map((sourceName, i) => {
@@ -937,7 +943,7 @@ const spotifyPodcastSources = podcastSources;
 {remainingSourcesChunk1.length > 0 && (
   <>
     {/* ================= ROW 2 ================= */}
-    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 mb-6">
+    <div className="grid grid-cols-1 min-[1700px]:grid-cols-3 gap-6 mb-6">
       {/* Left: Yahoo Sports */}
       {(() => {
         const left = remainingSourcesChunk1.find(s =>
@@ -945,10 +951,11 @@ const spotifyPodcastSources = podcastSources;
         );
         return left
           ? renderCard(left)
-          : <div className="bg-white shadow-lg rounded-lg p-4 h-full" />;
+          : <div className="bg-white shadow-lg rounded-lg p-4 h-full flex flex-col" />;
+          //bg-white shadow-lg rounded-lg p-4 h-full
       })()}
 
-      {/* Middle: Blank */}
+      {/* Middle: By The Numbers */}
     {renderCard({
       source: {
     title: "By The Numbers",
@@ -1118,7 +1125,7 @@ const spotifyPodcastSources = podcastSources;
     </div>
 
     {/* ================= ROW 3 ================= */}
-    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 mb-6">
+    <div className="grid grid-cols-1 min-[1700px]:grid-cols-3 gap-6 mb-6">
       {/* Left: All Access Football */}
       {["All Access Football"].map((sourceName, i) => {
                   const matchedSource = sources.find( 
@@ -1431,7 +1438,7 @@ const spotifyPodcastSources = podcastSources;
                       className="w-12 h-12 mr-2"
                     />
                     <div>
-                      <h2 className="text-lg font-bold text-black">Top NFL Channels</h2>
+                      <h2 className="text-lg font-bold text-black">Hot🔥NFL Channels</h2>
                       <p className="text-gray-500 text-xs">
                         Last Updated: {formatDate(topChannelSources[0]?.source?.updatedAt)}
                       </p>
@@ -1463,8 +1470,9 @@ const spotifyPodcastSources = podcastSources;
 
 
         {/* Second chunk of remaining articles */}
-        {remainingSourcesChunk2.length > 0 && (
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 mb-6">
+{remainingSourcesChunk2.length > 0 && (
+        //row 4
+        <div className="grid grid-cols-1 min-[1700px]:grid-cols-3 gap-6 mb-6">
     
           {/* LEFT: NFLTradeRumors.co */}
           {["nfltraderumors"].map((sourceName, i) => {
@@ -1782,7 +1790,7 @@ const spotifyPodcastSources = podcastSources;
                       className="w-12 h-12 mr-2"
                     />
                     <div>
-                      <h2 className="text-lg font-bold text-black">Up & Coming NFL Channels</h2>
+                      <h2 className="text-lg font-bold text-black">Deep Cut NFL Channels</h2>
                       <p className="text-gray-500 text-xs">
                         Last Updated: {formatDate(upAndComingSources[0]?.source?.updatedAt)}
                       </p>
@@ -1813,15 +1821,13 @@ const spotifyPodcastSources = podcastSources;
           })()}
 
 {/*5th row*/}
-<div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 mb-6">
+<div className="grid grid-cols-1 min-[1700px]:grid-cols-3 gap-6 mb-6">
   {/* LEFT: NFL Discussion */}
   {(() => {
     const left = remainingSourcesChunk3.find(s =>
       s.source?.title?.toLowerCase().includes("national football league discussion")
     );
-    return left
-      ? renderCard(left)
-      : <div className="bg-white shadow-lg rounded-lg p-4 h-full" />;
+    return left ? renderCard(left) : null;
   })()}
 
   {/* MIDDLE: Empty */}
@@ -1867,9 +1873,7 @@ const spotifyPodcastSources = podcastSources;
     const right = remainingSourcesChunk3.find(s =>
       s.source?.title?.toLowerCase().includes("sportsnet")
     );
-    return right
-      ? renderCard(right)
-      : <div className="bg-white shadow-lg rounded-lg p-4 h-full" />;
+    return right ? renderCard(right) : null;
   })()}
 </div>
 
@@ -1926,7 +1930,7 @@ const spotifyPodcastSources = podcastSources;
 
 
 {/*6th row*/}
-<div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 mb-6">
+<div className="grid grid-cols-1 min-[1700px]:grid-cols-3 gap-6 mb-6">
   {["Yardbarker NFL"].map((sourceName, i) => {
     const matchedSource = sources.find( 
       (s) => s.source?.title && s.source.title.toLowerCase().includes(sourceName.toLowerCase())
@@ -2242,7 +2246,7 @@ const spotifyPodcastSources = podcastSources;
 
 
 {/*7th row*/}
-<div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 mb-6">
+<div className="grid grid-cols-1 min-[1700px]:grid-cols-3 gap-6 mb-6">
   {["The Sporting News NFL"].map((sourceName, i) => {
     const matchedSource = sources.find( 
       (s) => s.source?.title && s.source.title.toLowerCase().includes(sourceName.toLowerCase())
@@ -2812,7 +2816,7 @@ const spotifyPodcastSources = podcastSources;
 
 
 {/*8th row*/}
-<div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 mb-6">
+<div className="grid grid-cols-1 min-[1700px]:grid-cols-3 gap-6 mb-6">
   {["FANSIDED"].map((sourceName, i) => {
     const matchedSource = sources.find( 
       (s) => s.source?.title && s.source.title.toLowerCase().includes(sourceName.toLowerCase())
@@ -3124,7 +3128,7 @@ const spotifyPodcastSources = podcastSources;
 
 
 {/*9th row*/}
-<div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 mb-6">
+<div className="grid grid-cols-1 min-[1700px]:grid-cols-3 gap-6 mb-6">
   {["The Draft Network"].map((sourceName, i) => {
     const matchedSource = sources.find( 
       (s) => s.source?.title && s.source.title.toLowerCase().includes(sourceName.toLowerCase())
@@ -3443,7 +3447,7 @@ const spotifyPodcastSources = podcastSources;
 
 
 {/*10th row*/} 
-<div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 mb-6">
+<div className="grid grid-cols-1 min-[1700px]:grid-cols-3 gap-6 mb-6">
   {["Bleacher Report"].map((sourceName, i) => {
     const matchedSource = sources.find( 
       (s) => s.source?.title && s.source.title.toLowerCase().includes(sourceName.toLowerCase())
@@ -3719,7 +3723,7 @@ const spotifyPodcastSources = podcastSources;
         </div>
 
         {/* Sidebar - Only visible on large screens */}
-        <div className="hidden lg:block w-64 flex-shrink-0 space-y-8">
+        <div className="hidden lg:block w-full min-w-[300px] max-w-[400px] flex-shrink-0 space-y-8">
           <SidebarAd size="medium" />
           <SidebarAd size="large" />
           <SidebarAd size="medium" />
