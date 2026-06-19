@@ -53,7 +53,7 @@ const Nav = () => {
         </Link>
 
         {/* Desktop Nav Links */}
-        <div className="hidden lg:flex space-x-2 ml-4">
+        <div className="hidden xl:flex space-x-2 ml-4">
           {["Home", "Teams","Scores", "Standings", "Fantasy", "Sportsbooks", "Fanzone"].map((item) => (
             <Link
               key={item}
@@ -66,7 +66,7 @@ const Nav = () => {
         </div>
 
         {/* Right Side Buttons */}
-        <div className="hidden lg:flex items-center space-x-2">
+        <div className="hidden xl:flex items-center space-x-2">
           {isAuthenticated && profile ? (
             <>
               <span className="text-white text-sm mr-2">
@@ -101,7 +101,7 @@ const Nav = () => {
         </div>
 
         {/* Mobile Hamburger */}
-        <div className="lg:hidden">
+        <div className="xl:hidden">
           <button onClick={toggleMenu} className="cursor-pointer">
             <svg
               className="w-6 h-6 text-white"
